@@ -7,6 +7,7 @@
 class EntityBase {
   public:
   enum Type {
+    Unspecified,
     Mob,
     Player,
   };
@@ -31,9 +32,9 @@ class EntityBase {
   const float* getRotation() const { return m_rotation; }
 
   private:
-  Type          m_type;
-  Dimension     m_dimension;
-  bool          m_isOnGround;
+  Type          m_type        = Type::Unspecified;
+  Dimension     m_dimension   = Dimension::Overworld;
+  bool          m_isOnGround  = false;
   DoubleVector3 m_position    = {0.0, 0.0, 0.0};
   float         m_rotation[2] = {0.0f, 0.0f};
 };

@@ -9,12 +9,14 @@
 #include "packets/Kick.h"
 #include "packets/LoginRequest.h"
 #include "packets/MapChunk.h"
+#include "packets/Ping.h"
 #include "packets/PlayerPosAndLook.h"
 #include "packets/PreChunk.h"
 #include "packets/SpawnPosition.h"
 #include "packets/TimeUpdate.h"
 #include "packets/Window.h"
 
+#include <chrono>
 #include <format>
 #include <spdlog/spdlog.h>
 #include <thread>
@@ -27,6 +29,9 @@ CreateReader::CreateReader(sockpp::tcp_socket& sock, sockpp::inet_address& addr)
 void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) {
   bool        isReaderRunning = true;
   EntityBase* linkedEntity    = nullptr;
+
+  const auto pingFreq = std::chrono::seconds(2);
+  auto       nextPing = std::chrono::system_clock::now() + pingFreq;
 
   try {
     while (isReaderRunning) {
@@ -65,7 +70,7 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
           }
 
           {
-            Packet::ToClient::TimeUpdate wdata_tu(1);
+            Packet::ToClient::TimeUpdate wdata_tu(0);
             wdata_tu.sendTo(sock);
           }
 
@@ -116,6 +121,13 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
         } break;
 
         default: throw UnknownPacketException(id);
+      }
+
+      const auto ctime = std::chrono::system_clock::now();
+      if (nextPing < ctime) {
+        Packet::ToClient::Ping data;
+        data.sendTo(sock);
+        nextPing = ctime + pingFreq;
       }
     }
   } catch (std::exception& ex) {
