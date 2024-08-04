@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../ids.h"
 #include "../packet.h"
 
 namespace Packet {
@@ -18,7 +19,7 @@ class Handshake: private PacketReader {
 namespace ToClient {
 class Handshake: public PacketWriter {
   public:
-  Handshake(std::wstring& connhash): PacketWriter(0x02) { writeString(connhash); }
+  Handshake(std::wstring& connhash): PacketWriter(Packet::IDs::Handshake) { writeString(connhash); }
 };
 } // namespace ToClient
 } // namespace Packet

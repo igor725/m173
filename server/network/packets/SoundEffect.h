@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../ids.h"
 #include "../packet.h"
 #include "helper.h"
 
@@ -18,7 +19,7 @@ class SoundEffect: public PacketWriter {
     BlockBreak = 2001,
   };
 
-  SoundEffect(EffectId eid, IntVector3& pos): PacketWriter(0x3d) {
+  SoundEffect(EffectId eid, IntVector3& pos): PacketWriter(Packet::IDs::SoundEffect) {
     writeInteger(eid);
     writeBoolean(true);
     writeInteger(pos.x);

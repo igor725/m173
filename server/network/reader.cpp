@@ -2,16 +2,19 @@
 
 #include "../entity/manager.h"
 #include "../entity/player/player.h"
+#include "ids.h"
 #include "packets/Animation.h"
 #include "packets/ChatMessage.h"
 #include "packets/EntityAction.h"
 #include "packets/Handshake.h"
+#include "packets/HealthUpdate.h"
 #include "packets/Kick.h"
 #include "packets/LoginRequest.h"
 #include "packets/MapChunk.h"
 #include "packets/Ping.h"
 #include "packets/PlayerPosAndLook.h"
 #include "packets/PreChunk.h"
+#include "packets/Respawn.h"
 #include "packets/SpawnPosition.h"
 #include "packets/TimeUpdate.h"
 #include "packets/Window.h"
@@ -44,9 +47,9 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
       spdlog::trace("Received packet {:02x} from {}", id, addr.to_string());
 
       switch (id) {
-        case 0x00: {
+        case Packet::IDs::KeepAlive: {
         } break;
-        case 0x01: {
+        case Packet::IDs::Login: {
           Packet::FromClient::LoginRequest data(sock);
 
           auto entId = accessEntityManager().AddEntity(createPlayer(sock));
@@ -65,29 +68,35 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
           }
 
           {
-            Packet::ToClient::PlayerPosAndLook wdata_pl(dynamic_cast<IPlayer*>(linkedEntity));
-            wdata_pl.sendTo(sock);
-          }
-
-          {
-            Packet::ToClient::TimeUpdate wdata_tu(0);
+            Packet::ToClient::TimeUpdate wdata_tu(6000);
             wdata_tu.sendTo(sock);
           }
 
           {
-            IntVector2                 cpos = {0, 0};
-            Packet::ToClient::PreChunk wdata_pc(cpos, true);
-            wdata_pc.sendTo(sock);
+            // Receiving this packet by client concludes terrain downloading state
+            Packet::ToClient::PlayerPosAndLook wdata_pl(dynamic_cast<IPlayer*>(linkedEntity));
+            wdata_pl.sendTo(sock);
           }
 
-          {
-            IntVector3                 cpos  = {0, 0, 0};
-            ByteVector3                csize = {15, 127, 15};
-            Packet::ToClient::MapChunk wdata_mc(cpos, csize, 0);
-            wdata_mc.sendTo(sock);
-          }
+          // {
+          //   IntVector2                 cpos = {0, 0};
+          //   Packet::ToClient::PreChunk wdata_pc(cpos, true);
+          //   wdata_pc.sendTo(sock);
+          // }
+
+          // {
+          //   IntVector3                 cpos  = {0, 0, 0};
+          //   ByteVector3                csize = {15, 127, 15};
+          //   Packet::ToClient::MapChunk wdata_mc(cpos, csize, 0);
+          //   wdata_mc.sendTo(sock);
+          // }
+
+          // {
+          //   Packet::ToClient::HealthUpdate wdata_hu(0);
+          //   wdata_hu.sendTo(sock);
+          // }
         } break;
-        case 0x02: {
+        case Packet::IDs::Handshake: {
           Packet::FromClient::Handshake data(sock);
 
           std::wstring chash = L"-";
@@ -95,32 +104,40 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
           Packet::ToClient::Handshake wdata(chash);
           wdata.sendTo(sock);
         } break;
-        case 0x03: {
+        case Packet::IDs::ChatMessage: {
           Packet::FromClient::ChatMessage data(sock);
         } break;
-        case 0x0b: {
+        case Packet::IDs::Respawn: {
+          Packet::FromClient::Respawn data(sock);
+
+          /* todo: Teleport player to World's spawn point */
+
+          Packet::ToClient::Respawn wdata(data.getDimension());
+          wdata.sendTo(sock);
+        } break;
+        case Packet::IDs::PlayerPos: {
           Packet::FromClient::PlayerPos data(sock);
         } break;
-        case 0x0c: {
+        case Packet::IDs::PlayerLook: {
           Packet::FromClient::PlayerLook data(sock);
         } break;
-        case 0x0d: {
+        case Packet::IDs::PlayerPnL: {
           Packet::FromClient::PlayerPosAndLook data(sock);
         } break;
-        case 0x12: {
+        case Packet::IDs::Animation: {
           Packet::FromClient::Animation data(sock);
         } break;
-        case 0x13: {
+        case Packet::IDs::EntityAct: {
           Packet::FromClient::EntityAction data(sock);
           spdlog::info("Player performed action {}", data.getAction());
         } break;
-        case 0x65: {
+        case Packet::IDs::CloseWindow: {
           Packet::FromClient::CloseWindow data(sock);
         } break;
-        case 0x66: {
+        case Packet::IDs::ClickWindow: {
           Packet::FromClient::ClickWindow data(sock);
         } break;
-        case 0xFF: {
+        case Packet::IDs::Disconnect: {
           Packet::FromClient::Disconnect data(sock);
         } break;
 

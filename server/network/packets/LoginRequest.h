@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../ids.h"
 #include "../packet.h"
 
 namespace Packet {
@@ -22,7 +23,7 @@ class LoginRequest: private PacketReader {
 namespace ToClient {
 class LoginRequest: public PacketWriter {
   public:
-  LoginRequest(int32_t entId, std::wstring& svname, int8_t dimension): PacketWriter(0x01) {
+  LoginRequest(int32_t entId, std::wstring& svname, int8_t dimension): PacketWriter(Packet::IDs::Login) {
     writeInteger(entId);
     writeString(svname);
     writeInteger(0ll); // todo world seed

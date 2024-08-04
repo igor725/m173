@@ -5,9 +5,9 @@
 
 namespace Packet {
 namespace ToClient {
-class TimeUpdate: public PacketWriter {
+class HealthUpdate: public PacketWriter {
   public:
-  TimeUpdate(int64_t time): PacketWriter(Packet::IDs::TimeUpdate) { writeInteger(time); }
+  HealthUpdate(int16_t health): PacketWriter(Packet::IDs::HealthUpdate) { writeInteger(health); }
 };
 } // namespace ToClient
 } // namespace Packet

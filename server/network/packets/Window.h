@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../ids.h"
 #include "../packet.h"
 #include "helper.h"
 
@@ -37,7 +38,7 @@ class ClickWindow: private PacketReader {
 namespace ToClient {
 class OpenWindow: public PacketWriter {
   public:
-  OpenWindow(WinId wid, InvId iid, std::string& name, int8_t numslots): PacketWriter(0x64) {
+  OpenWindow(WinId wid, InvId iid, std::string& name, int8_t numslots): PacketWriter(Packet::IDs::NewWindow) {
     writeInteger(wid);
     writeInteger(iid);
     writeString(name);
@@ -47,7 +48,7 @@ class OpenWindow: public PacketWriter {
 
 class CloseWindow: public PacketWriter {
   public:
-  CloseWindow(WinId wid): PacketWriter(0x65) { writeInteger(wid); }
+  CloseWindow(WinId wid): PacketWriter(Packet::IDs::CloseWindow) { writeInteger(wid); }
 };
 } // namespace ToClient
 } // namespace Packet

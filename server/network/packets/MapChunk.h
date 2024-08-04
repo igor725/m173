@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../ids.h"
 #include "../packet.h"
 #include "helper.h"
 
@@ -7,7 +8,7 @@ namespace Packet {
 namespace ToClient {
 class MapChunk: public PacketWriter {
   public:
-  MapChunk(IntVector3& pos, ByteVector3& size, int32_t datasize): PacketWriter(0x33) {
+  MapChunk(IntVector3& pos, ByteVector3& size, int32_t datasize): PacketWriter(Packet::IDs::MapChunk) {
     writeInteger(pos.x);
     writeInteger<int16_t>(pos.y);
     writeInteger(pos.z);

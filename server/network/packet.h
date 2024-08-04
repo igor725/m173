@@ -1,12 +1,12 @@
 #pragma once
 
+#include "helper.h"
+
 #include <cstdint>
 #include <exception>
 #include <sockpp/tcp_socket.h>
 #include <string>
 #include <vector>
-
-typedef unsigned char PacketId;
 
 #pragma region(Reader)
 

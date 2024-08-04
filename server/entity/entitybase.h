@@ -12,11 +12,6 @@ class EntityBase {
     Player,
   };
 
-  enum Dimension : int8_t {
-    Overworld = 0,
-    Nether    = -1,
-  };
-
   EntityBase(Type type): m_type(type) {}
 
   virtual ~EntityBase() = default;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../ids.h"
 #include "../packet.h"
 #include "helper.h"
 
@@ -7,7 +8,7 @@ namespace Packet {
 namespace ToClient {
 class PreChunk: public PacketWriter {
   public:
-  PreChunk(IntVector2& pos, bool init): PacketWriter(0x32) {
+  PreChunk(IntVector2& pos, bool init): PacketWriter(Packet::IDs::PreChunk) {
     writeInteger(pos.x);
     writeInteger(pos.z);
     writeBoolean(init);

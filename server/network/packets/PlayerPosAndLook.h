@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../entity/player/player.h"
+#include "../ids.h"
 #include "../packet.h"
 
 namespace Packet {
@@ -48,7 +49,7 @@ class PlayerLook: private PacketReader {
 namespace ToClient {
 class PlayerPosAndLook: public PacketWriter {
   public:
-  PlayerPosAndLook(IPlayer* player): PacketWriter(0x0d) {
+  PlayerPosAndLook(IPlayer* player): PacketWriter(Packet::IDs::PlayerPnL) {
     auto position = player->getPosition();
     auto rotation = player->getRotation();
 

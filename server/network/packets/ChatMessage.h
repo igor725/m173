@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../ids.h"
 #include "../packet.h"
 
 namespace Packet {
@@ -16,7 +17,7 @@ class ChatMessage: public PacketReader {
 namespace ToClient {
 class ChatMessage: public PacketWriter {
   public:
-  ChatMessage(std::wstring& message): PacketWriter(0x03) { writeString(message); }
+  ChatMessage(std::wstring& message): PacketWriter(Packet::IDs::ChatMessage) { writeString(message); }
 };
 } // namespace ToClient
 } // namespace Packet

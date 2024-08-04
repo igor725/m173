@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../ids.h"
 #include "../packet.h"
 #include "helper.h"
 
@@ -22,7 +23,7 @@ class Animation: private PacketReader {
 namespace ToClient {
 class Animation: public PacketWriter {
   public:
-  Animation(EntityId eid, AnimId aid): PacketWriter(0x12) {
+  Animation(EntityId eid, AnimId aid): PacketWriter(Packet::IDs::Animation) {
     writeInteger(eid);
     writeInteger(aid);
   }

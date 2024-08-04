@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../ids.h"
 #include "../packet.h"
 
 namespace Packet {
@@ -18,7 +19,7 @@ class Disconnect: private PacketReader {
 namespace ToClient {
 class Kick: public PacketWriter {
   public:
-  Kick(std::wstring& reason): PacketWriter(0xFF) { writeString(reason); }
+  Kick(std::wstring& reason): PacketWriter(Packet::IDs::Disconnect) { writeString(reason); }
 };
 } // namespace ToClient
 } // namespace Packet
