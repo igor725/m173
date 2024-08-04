@@ -1,0 +1,6 @@
+[submodule "3rd/spdlog"]
+	path = 3rd/spdlog
+	url = https://github.com/gabime/spdlog/
+[submodule "3rd/sockpp"]
+	path = 3rd/sockpp
+	url = https://github.com/fpagliughi/sockpp

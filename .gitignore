@@ -1,0 +1,5 @@
+/3rd/build
+/3rd/install
+/build/*
+/client/*
+!/client/**/ */.gitkeep
