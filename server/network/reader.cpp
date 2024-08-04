@@ -84,6 +84,7 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
             IntVector3                 cpos  = {0, 0, 0};
             ByteVector3                csize = {15, 127, 15};
             Packet::ToClient::MapChunk wdata_mc(cpos, csize, 0);
+            wdata_mc.sendTo(sock);
           }
         } break;
         case 0x02: {
