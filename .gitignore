@@ -2,4 +2,4 @@
 /3rd/install
 /build/*
 /client/*
-!/client/**/ */.gitkeep
+!*/.gitkeep
