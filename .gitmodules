@@ -4,3 +4,6 @@
 [submodule "3rd/sockpp"]
 	path = 3rd/sockpp
 	url = https://github.com/fpagliughi/sockpp
+[submodule "3rd/zlib"]
+	path = 3rd/zlib
+	url = https://github.com/madler/zlib.git

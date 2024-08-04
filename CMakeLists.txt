@@ -21,6 +21,10 @@ include_directories(BEFORE
   ${CMAKE_SOURCE_DIR}/server
 )
 
+link_directories(BEFORE
+  ${CMAKE_SOURCE_DIR}/3rd/install/lib
+)
+
 find_package(spdlog REQUIRED)
 find_package(sockpp REQUIRED)
 
@@ -34,7 +38,9 @@ add_executable(server
 )
 
 if(WIN32)
-  set(platform_libs ws2_32.lib)
+  set(platform_libs ws2_32.lib $<$<CONFIG:Debug>:zlibstaticd>$<$<CONFIG:Release>:zlibstatic>.lib)
+else()
+  set(platform_libs z)
 endif()
 
 target_link_libraries(server PRIVATE Sockpp::sockpp-static spdlog::spdlog ${platform_libs})
