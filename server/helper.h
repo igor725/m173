@@ -12,6 +12,7 @@
   name& operator=(name&&) noexcept = delete
 
 typedef int32_t EntityId;
+typedef int16_t ItemId;
 typedef int8_t  AnimId;
 typedef int8_t  WinId;
 typedef int8_t  InvId;

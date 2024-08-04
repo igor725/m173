@@ -116,6 +116,9 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
         case 0x65: {
           Packet::FromClient::CloseWindow data(sock);
         } break;
+        case 0x66: {
+          Packet::FromClient::ClickWindow data(sock);
+        } break;
         case 0xFF: {
           Packet::FromClient::Disconnect data(sock);
         } break;
@@ -141,7 +144,6 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
     wdata.sendTo(sock);
 
     spdlog::error("Exception thrown on {} handling: {}", addr.to_string(), ex.what());
-    isReaderRunning = false;
   }
 
   spdlog::info("Client {} closed!", addr.to_string());

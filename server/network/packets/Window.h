@@ -14,6 +14,24 @@ class CloseWindow: private PacketReader {
   private:
   WinId m_win;
 };
+
+class ClickWindow: private PacketReader {
+  public:
+  ClickWindow(sockpp::tcp_socket& sock): PacketReader(sock) {
+    readInteger<WinId>();                        // Window ID
+    readInteger<int16_t>();                      // Slot number
+    readBoolean();                               // Is right click
+    readInteger<int16_t>();                      // Action number
+    readBoolean();                               // Is shift pressed
+    if ((m_iid = readInteger<ItemId>()) != -1) { // Item ID
+      readInteger<int8_t>();                     // Item count
+      readInteger<int16_t>();                    // Item uses
+    }
+  }
+
+  private:
+  ItemId m_iid;
+};
 } // namespace FromClient
 
 namespace ToClient {
