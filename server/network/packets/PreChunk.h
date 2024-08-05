@@ -8,7 +8,7 @@ namespace Packet {
 namespace ToClient {
 class PreChunk: public PacketWriter {
   public:
-  PreChunk(IntVector2& pos, bool init): PacketWriter(Packet::IDs::PreChunk) {
+  PreChunk(const IntVector2& pos, bool init): PacketWriter(Packet::IDs::PreChunk) {
     writeInteger(pos.x);
     writeInteger(pos.z);
     writeBoolean(init);

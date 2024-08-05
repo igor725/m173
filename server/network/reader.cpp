@@ -15,9 +15,8 @@
 #include "packets/PlayerPosAndLook.h"
 #include "packets/PreChunk.h"
 #include "packets/Respawn.h"
-#include "packets/SpawnPosition.h"
-#include "packets/TimeUpdate.h"
 #include "packets/Window.h"
+#include "safesock.h"
 
 #include <chrono>
 #include <format>
@@ -30,8 +29,10 @@ CreateReader::CreateReader(sockpp::tcp_socket& sock, sockpp::inet_address& addr)
 }
 
 void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) {
-  bool        isReaderRunning = true;
-  EntityBase* linkedEntity    = nullptr;
+  SafeSocket ss(std::move(sock), std::move(addr));
+
+  bool     isReaderRunning = true;
+  IPlayer* linkedEntity    = nullptr;
 
   const auto pingFreq = std::chrono::seconds(2);
   auto       nextPing = std::chrono::system_clock::now() + pingFreq;
@@ -39,7 +40,7 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
   try {
     while (isReaderRunning) {
       PacketId id;
-      if (sock.read(&id, sizeof(PacketId)) == -1) {
+      if (!ss.read(&id, sizeof(PacketId))) {
         isReaderRunning = false;
         break;
       }
@@ -50,33 +51,13 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
         case Packet::IDs::KeepAlive: {
         } break;
         case Packet::IDs::Login: {
-          Packet::FromClient::LoginRequest data(sock);
+          Packet::FromClient::LoginRequest data(ss);
 
-          auto entId = accessEntityManager().AddEntity(createPlayer(sock));
+          auto entId = accessEntityManager().AddEntity(createPlayer(ss));
 
-          linkedEntity = accessEntityManager().GetEntity(entId);
+          linkedEntity = dynamic_cast<IPlayer*>(accessEntityManager().GetEntity(entId));
 
-          {
-            std::wstring                   _str = L"Fuck you";
-            Packet::ToClient::LoginRequest wdata_lr(entId, _str, linkedEntity->getDimension());
-            wdata_lr.sendTo(sock);
-          }
-
-          {
-            Packet::ToClient::SpawnPosition wdata_sp({0, 0, 0});
-            wdata_sp.sendTo(sock);
-          }
-
-          {
-            Packet::ToClient::TimeUpdate wdata_tu(6000);
-            wdata_tu.sendTo(sock);
-          }
-
-          {
-            // Receiving this packet by client concludes terrain downloading state
-            Packet::ToClient::PlayerPosAndLook wdata_pl(dynamic_cast<IPlayer*>(linkedEntity));
-            wdata_pl.sendTo(sock);
-          }
+          linkedEntity->doLoginProcess();
 
           // {
           //   IntVector2                 cpos = {0, 0};
@@ -97,48 +78,49 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
           // }
         } break;
         case Packet::IDs::Handshake: {
-          Packet::FromClient::Handshake data(sock);
+          Packet::FromClient::Handshake data(ss);
 
           std::wstring chash = L"-";
 
           Packet::ToClient::Handshake wdata(chash);
-          wdata.sendTo(sock);
+          wdata.sendTo(ss);
         } break;
         case Packet::IDs::ChatMessage: {
-          Packet::FromClient::ChatMessage data(sock);
+          Packet::FromClient::ChatMessage data(ss);
         } break;
         case Packet::IDs::Respawn: {
-          Packet::FromClient::Respawn data(sock);
+          Packet::FromClient::Respawn data(ss);
 
           /* todo: Teleport player to World's spawn point */
 
           Packet::ToClient::Respawn wdata(data.getDimension());
-          wdata.sendTo(sock);
+          wdata.sendTo(ss);
         } break;
         case Packet::IDs::PlayerPos: {
-          Packet::FromClient::PlayerPos data(sock);
+          Packet::FromClient::PlayerPos data(ss);
         } break;
         case Packet::IDs::PlayerLook: {
-          Packet::FromClient::PlayerLook data(sock);
+          Packet::FromClient::PlayerLook data(ss);
         } break;
         case Packet::IDs::PlayerPnL: {
-          Packet::FromClient::PlayerPosAndLook data(sock);
+          Packet::FromClient::PlayerPosAndLook data(ss);
         } break;
         case Packet::IDs::Animation: {
-          Packet::FromClient::Animation data(sock);
+          Packet::FromClient::Animation data(ss);
         } break;
         case Packet::IDs::EntityAct: {
-          Packet::FromClient::EntityAction data(sock);
+          Packet::FromClient::EntityAction data(ss);
           spdlog::info("Player performed action {}", data.getAction());
         } break;
         case Packet::IDs::CloseWindow: {
-          Packet::FromClient::CloseWindow data(sock);
+          Packet::FromClient::CloseWindow data(ss);
         } break;
         case Packet::IDs::ClickWindow: {
-          Packet::FromClient::ClickWindow data(sock);
+          Packet::FromClient::ClickWindow data(ss);
         } break;
         case Packet::IDs::Disconnect: {
-          Packet::FromClient::Disconnect data(sock);
+          Packet::FromClient::Disconnect data(ss);
+          isReaderRunning = false;
         } break;
 
         default: throw UnknownPacketException(id);
@@ -147,7 +129,7 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
       const auto ctime = std::chrono::system_clock::now();
       if (nextPing < ctime) {
         Packet::ToClient::Ping data;
-        data.sendTo(sock);
+        data.sendTo(ss);
         nextPing = ctime + pingFreq;
       }
     }
@@ -159,7 +141,7 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
     auto fmtreason = std::format(L"Client thread exception: {}", reason);
 
     Packet::ToClient::Kick wdata(fmtreason);
-    wdata.sendTo(sock);
+    wdata.sendTo(ss);
 
     spdlog::error("Exception thrown on {} handling: {}", addr.to_string(), ex.what());
   }

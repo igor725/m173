@@ -8,7 +8,7 @@ namespace Packet {
 namespace FromClient {
 class CloseWindow: private PacketReader {
   public:
-  CloseWindow(sockpp::tcp_socket& sock): PacketReader(sock) { m_win = readInteger<WinId>(); }
+  CloseWindow(SafeSocket& sock): PacketReader(sock) { m_win = readInteger<WinId>(); }
 
   const auto& getWindowId() const { return m_win; }
 
@@ -18,7 +18,7 @@ class CloseWindow: private PacketReader {
 
 class ClickWindow: private PacketReader {
   public:
-  ClickWindow(sockpp::tcp_socket& sock): PacketReader(sock) {
+  ClickWindow(SafeSocket& sock): PacketReader(sock) {
     readInteger<WinId>();                        // Window ID
     readInteger<int16_t>();                      // Slot number
     readBoolean();                               // Is right click
@@ -38,7 +38,7 @@ class ClickWindow: private PacketReader {
 namespace ToClient {
 class OpenWindow: public PacketWriter {
   public:
-  OpenWindow(WinId wid, InvId iid, std::string& name, int8_t numslots): PacketWriter(Packet::IDs::NewWindow) {
+  OpenWindow(WinId wid, InvId iid, const std::string& name, int8_t numslots): PacketWriter(Packet::IDs::NewWindow) {
     writeInteger(wid);
     writeInteger(iid);
     writeString(name);

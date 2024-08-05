@@ -1,6 +1,7 @@
 #pragma once
 
 #include "helper.h"
+#include "safesock.h"
 
 #include <cstdint>
 #include <exception>
@@ -35,12 +36,12 @@ private:
 
 #pragma endregion()
 
-  PacketReader(sockpp::tcp_socket& sock, Direction dir = Direction::Both): m_sock(sock), m_dir(dir) {}
+  PacketReader(SafeSocket& sock, Direction dir = Direction::Both): m_sock(sock), m_dir(dir) {}
 
   template <typename T>
   T readInteger() {
     T rint;
-    if (m_sock.read(&rint, sizeof(T)) == sizeof(T)) {
+    if (m_sock.read(&rint, sizeof(T))) {
       switch (sizeof(T)) {
         case 1: return rint;
         case 2: return static_cast<T>(_byteswap_ushort(rint));
@@ -57,7 +58,7 @@ private:
   template <typename T>
   T readFloating() {
     T rfloat;
-    if (m_sock.read(&rfloat, sizeof(T)) == sizeof(T)) {
+    if (m_sock.read(&rfloat, sizeof(T))) {
       return rfloat;
     }
 
@@ -93,8 +94,8 @@ private:
   }
 
   private:
-  sockpp::tcp_socket& m_sock;
-  Direction           m_dir;
+  SafeSocket& m_sock;
+  Direction   m_dir;
 };
 
 #pragma endregion()
@@ -140,7 +141,7 @@ class PacketWriter {
     }
   }
 
-  void sendTo(sockpp::tcp_socket& sock) { sock.write(m_data.data(), m_data.size()); }
+  bool sendTo(SafeSocket& sock) { return sock.write(m_data.data(), m_data.size()); }
 
   private:
   std::vector<char> m_data;

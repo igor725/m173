@@ -7,7 +7,9 @@ class EntityManager: public IEntityManager {
   EntityId AddEntity(std::unique_ptr<EntityBase>&& entity) final {
     static EntityId entcounter = 0;
 
-    m_loadedents.emplace(std::make_pair(++entcounter, std::move(entity)));
+    auto p = m_loadedents.emplace(std::make_pair(++entcounter, std::move(entity)));
+    p.first->second.get()->_setEntId(entcounter);
+
     return entcounter;
   }
 

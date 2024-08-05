@@ -7,7 +7,7 @@ namespace Packet {
 namespace FromClient {
 class Respawn: public PacketReader {
   public:
-  Respawn(sockpp::tcp_socket& sock): PacketReader(sock) {
+  Respawn(SafeSocket& sock): PacketReader(sock) {
     m_dim = readInteger<Dimension>(); // Dimension
   }
 

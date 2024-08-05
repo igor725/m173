@@ -7,7 +7,7 @@ namespace Packet {
 namespace FromClient {
 class ChatMessage: public PacketReader {
   public:
-  ChatMessage(sockpp::tcp_socket& sock): PacketReader(sock) { readString(m_message); }
+  ChatMessage(SafeSocket& sock): PacketReader(sock) { readString(m_message); }
 
   private:
   std::wstring m_message;
@@ -17,7 +17,7 @@ class ChatMessage: public PacketReader {
 namespace ToClient {
 class ChatMessage: public PacketWriter {
   public:
-  ChatMessage(std::wstring& message): PacketWriter(Packet::IDs::ChatMessage) { writeString(message); }
+  ChatMessage(const std::wstring& message): PacketWriter(Packet::IDs::ChatMessage) { writeString(message); }
 };
 } // namespace ToClient
 } // namespace Packet

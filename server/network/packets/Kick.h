@@ -7,7 +7,7 @@ namespace Packet {
 namespace FromClient {
 class Disconnect: private PacketReader {
   public:
-  Disconnect(sockpp::tcp_socket& sock): PacketReader(sock) { readString(m_reason); }
+  Disconnect(SafeSocket& sock): PacketReader(sock) { readString(m_reason); }
 
   const auto& getName() const { return m_reason; }
 
@@ -19,7 +19,7 @@ class Disconnect: private PacketReader {
 namespace ToClient {
 class Kick: public PacketWriter {
   public:
-  Kick(std::wstring& reason): PacketWriter(Packet::IDs::Disconnect) { writeString(reason); }
+  Kick(const std::wstring& reason): PacketWriter(Packet::IDs::Disconnect) { writeString(reason); }
 };
 } // namespace ToClient
 } // namespace Packet

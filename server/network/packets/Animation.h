@@ -8,7 +8,7 @@ namespace Packet {
 namespace FromClient {
 class Animation: private PacketReader {
   public:
-  Animation(sockpp::tcp_socket& sock): PacketReader(sock) {
+  Animation(SafeSocket& sock): PacketReader(sock) {
     readInteger<int32_t>();
     m_anim = readInteger<AnimId>();
   }

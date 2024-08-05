@@ -7,7 +7,7 @@ namespace Packet {
 namespace FromClient {
 class Handshake: private PacketReader {
   public:
-  Handshake(sockpp::tcp_socket& sock): PacketReader(sock) { readString(m_name_or_hash); }
+  Handshake(SafeSocket& sock): PacketReader(sock) { readString(m_name_or_hash); }
 
   const auto& getName() const { return m_name_or_hash; }
 
@@ -19,7 +19,7 @@ class Handshake: private PacketReader {
 namespace ToClient {
 class Handshake: public PacketWriter {
   public:
-  Handshake(std::wstring& connhash): PacketWriter(Packet::IDs::Handshake) { writeString(connhash); }
+  Handshake(const std::wstring& connhash): PacketWriter(Packet::IDs::Handshake) { writeString(connhash); }
 };
 } // namespace ToClient
 } // namespace Packet

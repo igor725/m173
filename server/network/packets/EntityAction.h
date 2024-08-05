@@ -7,7 +7,7 @@ namespace Packet {
 namespace FromClient {
 class EntityAction: private PacketReader {
   public:
-  EntityAction(sockpp::tcp_socket& sock): PacketReader(sock) {
+  EntityAction(SafeSocket& sock): PacketReader(sock) {
     readInteger<EntityId>();
     m_action = readInteger<int8_t>();
   }

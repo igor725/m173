@@ -8,7 +8,7 @@ namespace Packet {
 namespace FromClient {
 class PlayerPosAndLook: private PacketReader {
   public:
-  PlayerPosAndLook(sockpp::tcp_socket& sock): PacketReader(sock) {
+  PlayerPosAndLook(SafeSocket& sock): PacketReader(sock) {
     readFloating<double_t>(); // X
     readFloating<double_t>(); // Y
     readFloating<double_t>(); // Stance
@@ -23,7 +23,7 @@ class PlayerPosAndLook: private PacketReader {
 
 class PlayerPos: private PacketReader {
   public:
-  PlayerPos(sockpp::tcp_socket& sock): PacketReader(sock) {
+  PlayerPos(SafeSocket& sock): PacketReader(sock) {
     readFloating<double_t>(); // X
     readFloating<double_t>(); // Y
     readFloating<double_t>(); // Stance
@@ -36,7 +36,7 @@ class PlayerPos: private PacketReader {
 
 class PlayerLook: private PacketReader {
   public:
-  PlayerLook(sockpp::tcp_socket& sock): PacketReader(sock) {
+  PlayerLook(SafeSocket& sock): PacketReader(sock) {
     readFloating<float_t>(); // X
     readFloating<float_t>(); // Y
     readBoolean();           // On ground

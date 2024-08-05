@@ -26,7 +26,12 @@ class EntityBase {
 
   const float* getRotation() const { return m_rotation; }
 
+  int32_t getEntityId() const { return m_id; }
+
+  void _setEntId(int32_t id) { m_id = id; }
+
   private:
+  EntityId      m_id          = -1;
   Type          m_type        = Type::Unspecified;
   Dimension     m_dimension   = Dimension::Overworld;
   bool          m_isOnGround  = false;
