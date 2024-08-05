@@ -4,7 +4,7 @@
 #include <spdlog/spdlog.h>
 
 int main(int argc, char* argv[]) {
-  // spdlog::set_level(spdlog::level::info);
+  // spdlog::set_level(spdlog::level::trace);
   spdlog::info("Initializing sockpp...");
   sockpp::initialize();
 

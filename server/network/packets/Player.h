@@ -66,6 +66,23 @@ class PlayerDig: private PacketReader {
 
   private:
 };
+
+class BlockPlace: public PacketReader {
+  public:
+  BlockPlace(SafeSocket& sock): PacketReader(sock) {
+    readInteger<int32_t>();                               // X
+    readInteger<int8_t>();                                // Y
+    readInteger<int32_t>();                               // Z
+    readInteger<int8_t>();                                // Direction
+    if ((m_item_or_block = readInteger<int16_t>()) > 0) { // Block or Item ID
+      readInteger<int8_t>();                              // Amount
+      readInteger<int16_t>();                             // Damage
+    }
+  }
+
+  private:
+  int16_t m_item_or_block;
+};
 } // namespace FromClient
 
 namespace ToClient {

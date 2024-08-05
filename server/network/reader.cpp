@@ -1,7 +1,7 @@
 #include "reader.h"
 
-#include "../entity/manager.h"
-#include "../entity/player/player.h"
+#include "entity/manager.h"
+#include "entity/player/player.h"
 #include "ids.h"
 #include "packets/Animation.h"
 #include "packets/ChatMessage.h"
@@ -17,6 +17,8 @@
 #include "packets/Respawn.h"
 #include "packets/Window.h"
 #include "safesock.h"
+#include "world/world.h"
+#include "zlibpp/zlibpp.h"
 
 #include <chrono>
 #include <format>
@@ -68,41 +70,49 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
           }
 
           {
-            z_stream zs;
-            ::memset(&zs, 0, sizeof(zs));
+            auto& world = accessWorld();
+            auto  chunk = world.getChunk(0, 0);
 
-            std::ifstream file("datachunk.dat", std::ios::in | std::ios::binary);
-
-            file.seekg(0, std::ios::end);
-            auto sz = file.tellg();
-            file.seekg(0, std::ios::beg);
-
-            auto array_in  = new char[sz];
-            auto array_out = new char[sz];
-            file.read(array_in, sz);
-
-            zs.avail_in  = sz;
-            zs.next_in   = (Bytef*)array_in;
-            zs.avail_out = sz;
-            zs.next_out  = (Bytef*)array_out;
-
-            if (deflateInit(&zs, Z_DEFAULT_COMPRESSION) != Z_OK) {
-              throw std::runtime_error("Failed to initialize compression stream");
-              break;
+            for (int32_t x = 0; x < 16; ++x) {
+              for (int32_t y = 0; y < 4; ++y) {
+                for (int32_t z = 0; z < 16; ++z) {
+                  chunk->m_blocks[world.getIndex({x, y, z})] = y < 1 ? 7 : y < 3 ? 3 : 2;
+                }
+              }
             }
 
-            int ret;
-            if ((ret = deflate(&zs, Z_FINISH)) != Z_STREAM_END) {
-              throw std::runtime_error(std::format("Failed to deflate data {}", ret));
-              break;
-            }
+            unsigned long gzsize;
+            const auto    gzchunk = world.compressChunk(chunk, gzsize);
 
-            IntVector3                 cpos  = {0, 0, 0};
-            ByteVector3                csize = {15, 1, 15};
-            Packet::ToClient::MapChunk wdata_mc(cpos, csize, zs.total_out);
+            Packet::ToClient::MapChunk wdata_mc({0, 0, 0}, CHUNK_DIMS, gzsize);
             wdata_mc.sendTo(ss);
-            ss.write(array_out, zs.total_out); // Sending the actual data
+
+            ss.write(gzchunk, gzsize);
           }
+          // {
+          //   std::ifstream file("datachunk.dat", std::ios::in | std::ios::binary);
+
+          //   file.seekg(0, std::ios::end);
+          //   auto sz = file.tellg();
+          //   file.seekg(0, std::ios::beg);
+
+          //   auto array_in  = new char[sz];
+          //   auto array_out = new char[sz];
+          //   file.read(array_in, sz);
+
+          //   auto compr = createCompressor();
+          //   compr->setInput(array_in, sz);
+          //   compr->setOutput(array_out, sz);
+          //   while (!compr->tick()) {
+          //     spdlog::trace("We need to compress {} more bytes", compr->getAvailableInput());
+          //   }
+
+          //   IntVector3                 cpos  = {0, 0, 0};
+          //   ByteVector3                csize = {15, 1, 15};
+          //   Packet::ToClient::MapChunk wdata_mc(cpos, csize, compr->getTotalOutput());
+          //   wdata_mc.sendTo(ss);
+          //   ss.write(array_out, compr->getTotalOutput()); // Sending the actual data
+          // }
 
           // {
           //   Packet::ToClient::HealthUpdate wdata_hu(0);
@@ -142,6 +152,9 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
         } break;
         case Packet::IDs::PlayerDig: {
           Packet::FromClient::PlayerDig data(ss);
+        } break;
+        case Packet::IDs::BlockPlace: {
+          Packet::FromClient::BlockPlace data(ss);
         } break;
         case Packet::IDs::Animation: {
           Packet::FromClient::Animation data(ss);

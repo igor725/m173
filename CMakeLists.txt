@@ -30,11 +30,15 @@ find_package(sockpp REQUIRED)
 
 add_subdirectory(server/network)
 add_subdirectory(server/entity)
+add_subdirectory(server/world)
+add_subdirectory(server/zlibpp)
 
 add_executable(server
 	server/entry.cpp
 	$<TARGET_OBJECTS:network>
 	$<TARGET_OBJECTS:entity>
+	$<TARGET_OBJECTS:world>
+	$<TARGET_OBJECTS:zlibpp>
 )
 
 if(WIN32)
