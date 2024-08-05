@@ -50,5 +50,23 @@ class CloseWindow: public PacketWriter {
   public:
   CloseWindow(WinId wid): PacketWriter(Packet::IDs::CloseWindow) { writeInteger(wid); }
 };
+
+class UpdateWindow: public PacketWriter {
+  public:
+  UpdateWindow(WinId wid, int16_t type, int16_t value): PacketWriter(Packet::IDs::UpdateWindow) {
+    writeInteger(wid);
+    writeInteger(type);
+    writeInteger(value);
+  }
+};
+
+class TransactionWindow: public PacketWriter {
+  public:
+  TransactionWindow(WinId wid, int16_t anum, bool accepted): PacketWriter(Packet::IDs::TransactWindow) {
+    writeInteger(wid);
+    writeInteger(anum);
+    writeBoolean(accepted);
+  }
+};
 } // namespace ToClient
 } // namespace Packet
