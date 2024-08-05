@@ -44,6 +44,28 @@ class PlayerLook: private PacketReader {
 
   private:
 };
+
+class PlayerFall: private PacketReader {
+  public:
+  PlayerFall(SafeSocket& sock): PacketReader(sock) {
+    readBoolean(); // On ground
+  }
+
+  private:
+};
+
+class PlayerDig: private PacketReader {
+  public:
+  PlayerDig(SafeSocket& sock): PacketReader(sock) {
+    readInteger<DigStatus>(); // Status
+    readInteger<int32_t>();   // X
+    readInteger<int8_t>();    // Y
+    readInteger<int32_t>();   // Z
+    readInteger<int8_t>();    // Face
+  }
+
+  private:
+};
 } // namespace FromClient
 
 namespace ToClient {

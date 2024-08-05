@@ -43,6 +43,12 @@ enum Dimension : int8_t {
   Nether    = -1,
 };
 
+enum DigStatus : int8_t {
+  Started  = 0,
+  Finished = 2,
+  DropItem = 4,
+};
+
 enum SlotId : int8_t {
   CraftResult,
   CraftSlot_0,

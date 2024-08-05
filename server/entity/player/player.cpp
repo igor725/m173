@@ -1,7 +1,7 @@
 #include "player.h"
 
 #include "../../network/packets/LoginRequest.h"
-#include "../../network/packets/PlayerPosAndLook.h"
+#include "../../network/packets/Player.h"
 #include "../../network/packets/SpawnPosition.h"
 #include "../../network/packets/TimeUpdate.h"
 #include "../../network/safesock.h"
@@ -19,20 +19,23 @@ class Player: public IPlayer {
       wdata_lr.sendTo(m_selfSock);
     }
 
-    setSpawnPosition({0, 0, 0});
+    setSpawnPos({5, 10, 5});
     setTime(6000);
-    setPlayerPosition(this);
+    setPlayerPos({5.0, 10.0, 5.0});
+    updPlayerPos(this);
 
     return true;
   }
 
-  bool setPlayerPosition(IPlayer* player) final {
+  void setPlayerPos(const DoubleVector3& pos) final { m_position = pos; }
+
+  bool updPlayerPos(IPlayer* player) final {
     // Receiving this packet by client concludes terrain downloading state
     Packet::ToClient::PlayerPosAndLook wdata_pl(player);
     return wdata_pl.sendTo(m_selfSock);
   }
 
-  bool setSpawnPosition(const IntVector3& pos) final {
+  bool setSpawnPos(const IntVector3& pos) final {
     Packet::ToClient::SpawnPosition wdata_sp(pos);
     return wdata_sp.sendTo(m_selfSock);
   }

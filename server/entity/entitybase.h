@@ -30,7 +30,7 @@ class EntityBase {
 
   void _setEntId(int32_t id) { m_id = id; }
 
-  private:
+  protected:
   EntityId      m_id          = -1;
   Type          m_type        = Type::Unspecified;
   Dimension     m_dimension   = Dimension::Overworld;

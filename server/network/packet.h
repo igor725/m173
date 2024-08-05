@@ -9,6 +9,19 @@
 #include <string>
 #include <vector>
 
+template <typename T>
+T bswap(T val) {
+  T     retVal;
+  char* pVal    = (char*)&val;
+  char* pRetVal = (char*)&retVal;
+  int   size    = sizeof(T);
+  for (int i = 0; i < size; i++) {
+    pRetVal[size - 1 - i] = pVal[i];
+  }
+
+  return retVal;
+}
+
 #pragma region(Reader)
 
 class PacketReader {
@@ -42,12 +55,8 @@ private:
   T readInteger() {
     T rint;
     if (m_sock.read(&rint, sizeof(T))) {
-      switch (sizeof(T)) {
-        case 1: return rint;
-        case 2: return static_cast<T>(_byteswap_ushort(rint));
-        case 4: return static_cast<T>(_byteswap_ulong(rint));
-        case 8: return static_cast<T>(_byteswap_uint64(rint));
-      }
+      if (sizeof(T) == 1) return rint;
+      return bswap(rint);
     }
 
     throw ReadException();
@@ -59,7 +68,7 @@ private:
   T readFloating() {
     T rfloat;
     if (m_sock.read(&rfloat, sizeof(T))) {
-      return rfloat;
+      return bswap(rfloat);
     }
 
     throw ReadException();
@@ -106,22 +115,12 @@ class PacketWriter {
 
   template <typename T>
   void writeInteger(T wint) {
-    switch (sizeof(T)) {
-      case 1: {
-        m_data.push_back(wint);
-        return;
-      } break;
-      case 2: {
-        wint = static_cast<T>(_byteswap_ushort(wint));
-      } break;
-      case 4: {
-        wint = static_cast<T>(_byteswap_ulong(wint));
-      } break;
-      case 8: {
-        wint = static_cast<T>(_byteswap_uint64(wint));
-      } break;
+    if (sizeof(T) == 1) {
+      m_data.push_back(wint);
+      return;
     }
 
+    wint = bswap(wint);
     m_data.insert(m_data.end(), (char*)&wint, (char*)(&(&wint)[1]));
   }
 
@@ -129,6 +128,7 @@ class PacketWriter {
 
   template <typename T>
   void writeFloating(T wfloat) {
+    wfloat = bswap(wfloat);
     m_data.insert(m_data.end(), (char*)&wfloat, (char*)(&(&wfloat)[1]));
   }
 

@@ -18,9 +18,11 @@ class IPlayer: public EntityBase {
   virtual bool setTime(int16_t time) = 0;
 
   /* Movement control */
-  virtual bool setSpawnPosition(const IntVector3& pos) = 0;
+  virtual bool setSpawnPos(const IntVector3& pos) = 0;
 
-  virtual bool setPlayerPosition(IPlayer* player) = 0;
+  virtual void setPlayerPos(const DoubleVector3& pos) = 0;
+
+  virtual bool updPlayerPos(IPlayer* player) = 0;
 
   /* Authentication */
   virtual bool doLoginProcess() = 0;
