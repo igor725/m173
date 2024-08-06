@@ -6,8 +6,10 @@
 
 namespace Packet {
 namespace ToClient {
-class Ping: public PacketWriter {
+class Ping: private PacketWriter {
   public:
+  using PacketWriter::sendTo;
+
   Ping(): PacketWriter(Packet::IDs::KeepAlive) {}
 };
 } // namespace ToClient

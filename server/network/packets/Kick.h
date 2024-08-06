@@ -9,7 +9,7 @@ class Disconnect: private PacketReader {
   public:
   Disconnect(SafeSocket& sock): PacketReader(sock) { readString(m_reason); }
 
-  const auto& getName() const { return m_reason; }
+  const auto& getReason() const { return m_reason; }
 
   private:
   std::wstring m_reason;
@@ -17,8 +17,10 @@ class Disconnect: private PacketReader {
 } // namespace FromClient
 
 namespace ToClient {
-class Kick: public PacketWriter {
+class Kick: private PacketWriter {
   public:
+  using PacketWriter::sendTo;
+
   Kick(const std::wstring& reason): PacketWriter(Packet::IDs::Disconnect) { writeString(reason); }
 };
 } // namespace ToClient

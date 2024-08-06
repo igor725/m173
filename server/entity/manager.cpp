@@ -19,6 +19,23 @@ class EntityManager: public IEntityManager {
     return it->second.get();
   }
 
+  bool RemoveEntity(EntityId id) final {
+    auto it = m_loadedents.find(id);
+    if (it == m_loadedents.end()) return false;
+    m_loadedents.erase(it);
+    return true;
+  }
+
+  bool IterPlayers(PlayerIterCallback cb) final {
+    for (auto it = m_loadedents.begin(); it != m_loadedents.end(); ++it) {
+      if (auto entity = it->second.get()) {
+        if (entity->getType() == EntityBase::Type::Player && !cb(dynamic_cast<IPlayer*>(entity))) return false;
+      }
+    }
+
+    return true;
+  }
+
   private:
   std::unordered_map<EntityId, std::unique_ptr<EntityBase>> m_loadedents;
 };

@@ -5,8 +5,10 @@
 
 namespace Packet {
 namespace ToClient {
-class SignUpdate: public PacketWriter {
+class SignUpdate: private PacketWriter {
   public:
+  using PacketWriter::sendTo;
+
   SignUpdate(const IntVector3& pos, const std::wstring& data): PacketWriter(Packet::IDs::TimeUpdate) {
     writeInteger(pos.x);
     writeInteger<int16_t>(pos.y);

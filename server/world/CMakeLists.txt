@@ -1,4 +1,4 @@
-add_library(world STATIC
+add_library(world OBJECT
   world.cpp
 )
 

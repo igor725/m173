@@ -7,12 +7,17 @@
 
 class World: public IWorld {
   public:
-  World() { m_ldChunks.emplace(std::make_pair(0, Chunk())); }
+  World() {}
 
   virtual ~World() = default;
 
-  Chunk* getChunk(int32_t x, int32_t z) final {
-    auto it = m_ldChunks.find((int64_t)x << 32 | z);
+  Chunk* allocChunk(const IntVector2& pos) {
+    auto&& chunk = m_ldChunks.emplace(std::make_pair(0, Chunk()));
+    return &chunk.first->second;
+  }
+
+  Chunk* getChunk(const IntVector2& pos) final {
+    auto it = m_ldChunks.find(packChunkPos(pos));
     if (it == m_ldChunks.end()) return nullptr;
     return &it->second;
   }
@@ -45,6 +50,14 @@ class World: public IWorld {
 
     size = compr->getTotalOutput();
     return m_tempchunk.data();
+  }
+
+  bool setBlock(const IntVector3& pos, BlockId id, int8_t meta) final {
+    auto chunk = getChunk({pos.x >> 4, pos.z >> 4});
+    if (chunk == nullptr) return false;
+    chunk->m_blocks[chunk->getWorldIndex(pos)] = id;
+    // todo save meta too
+    return true;
   }
 
   private:

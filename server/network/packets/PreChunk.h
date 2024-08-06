@@ -6,8 +6,10 @@
 
 namespace Packet {
 namespace ToClient {
-class PreChunk: public PacketWriter {
+class PreChunk: private PacketWriter {
   public:
+  using PacketWriter::sendTo;
+
   PreChunk(const IntVector2& pos, bool init): PacketWriter(Packet::IDs::PreChunk) {
     writeInteger(pos.x);
     writeInteger(pos.z);

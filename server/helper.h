@@ -35,6 +35,10 @@ struct DoubleVector3 {
   double_t x, y, z;
 };
 
+struct FloatAngle {
+  float_t yaw, pitch;
+};
+
 struct FloatVector3 {
   float_t x, y, z;
 };

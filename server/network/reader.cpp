@@ -4,6 +4,7 @@
 #include "entity/player/player.h"
 #include "ids.h"
 #include "packets/Animation.h"
+#include "packets/Block.h"
 #include "packets/ChatMessage.h"
 #include "packets/EntityAction.h"
 #include "packets/Handshake.h"
@@ -61,22 +62,37 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
 
           linkedEntity = dynamic_cast<IPlayer*>(accessEntityManager().GetEntity(entId));
 
-          linkedEntity->doLoginProcess();
+          linkedEntity->doLoginProcess(data.getName());
 
           {
-            IntVector2                 cpos = {0, 0};
-            Packet::ToClient::PreChunk wdata_pc(cpos, true);
-            wdata_pc.sendTo(ss);
+            Packet::ToClient::PlayerSpawn wdata(linkedEntity);
+            accessEntityManager().IterPlayers([linkedEntity, &wdata](IPlayer* ply) -> bool {
+              if (ply != linkedEntity) {
+                wdata.sendTo(ply->getSocket());
+
+                Packet::ToClient::PlayerSpawn owdata(ply);
+                owdata.sendTo(linkedEntity->getSocket());
+              }
+              return true;
+            });
           }
 
           {
-            auto& world = accessWorld();
-            auto  chunk = world.getChunk(0, 0);
+            IntVector2 chunkpos = {0, 0};
+            auto&      world    = accessWorld();
+            auto       chunk    = world.getChunk(chunkpos);
 
-            for (int32_t x = 0; x < 16; ++x) {
-              for (int32_t y = 0; y < 4; ++y) {
-                for (int32_t z = 0; z < 16; ++z) {
-                  chunk->m_blocks[world.getIndex({x, y, z})] = y < 1 ? 7 : y < 3 ? 3 : 2;
+            Packet::ToClient::PreChunk wdata_pc(chunkpos, true);
+            wdata_pc.sendTo(ss);
+
+            if (chunk == nullptr) {
+              chunk = world.allocChunk(chunkpos);
+
+              for (int32_t x = 0; x < 16; ++x) {
+                for (int32_t y = 0; y < 4; ++y) {
+                  for (int32_t z = 0; z < 16; ++z) {
+                    chunk->m_blocks[chunk->getLocalIndex({x, y, z})] = y < 1 ? 7 : y < 3 ? 3 : 2;
+                  }
                 }
               }
             }
@@ -89,35 +105,6 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
 
             ss.write(gzchunk, gzsize);
           }
-          // {
-          //   std::ifstream file("datachunk.dat", std::ios::in | std::ios::binary);
-
-          //   file.seekg(0, std::ios::end);
-          //   auto sz = file.tellg();
-          //   file.seekg(0, std::ios::beg);
-
-          //   auto array_in  = new char[sz];
-          //   auto array_out = new char[sz];
-          //   file.read(array_in, sz);
-
-          //   auto compr = createCompressor();
-          //   compr->setInput(array_in, sz);
-          //   compr->setOutput(array_out, sz);
-          //   while (!compr->tick()) {
-          //     spdlog::trace("We need to compress {} more bytes", compr->getAvailableInput());
-          //   }
-
-          //   IntVector3                 cpos  = {0, 0, 0};
-          //   ByteVector3                csize = {15, 1, 15};
-          //   Packet::ToClient::MapChunk wdata_mc(cpos, csize, compr->getTotalOutput());
-          //   wdata_mc.sendTo(ss);
-          //   ss.write(array_out, compr->getTotalOutput()); // Sending the actual data
-          // }
-
-          // {
-          //   Packet::ToClient::HealthUpdate wdata_hu(0);
-          //   wdata_hu.sendTo(sock);
-          // }
         } break;
         case Packet::IDs::Handshake: {
           Packet::FromClient::Handshake data(ss);
@@ -129,6 +116,19 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
         } break;
         case Packet::IDs::ChatMessage: {
           Packet::FromClient::ChatMessage data(ss);
+
+          auto message = data.getMessage();
+
+          if (message.starts_with(L'/')) {
+            // todo chat command handler
+          } else {
+            Packet::ToClient::ChatMessage wdata(std::format(L"<{}>: {}", linkedEntity->getName(), message));
+
+            accessEntityManager().IterPlayers([&wdata](IPlayer* player) -> bool {
+              wdata.sendTo(player->getSocket());
+              return true;
+            });
+          }
         } break;
         case Packet::IDs::Respawn: {
           Packet::FromClient::Respawn data(ss);
@@ -143,25 +143,46 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
         } break;
         case Packet::IDs::PlayerPos: {
           Packet::FromClient::PlayerPos data(ss);
+          linkedEntity->setPosition(data.getPosition());
+          linkedEntity->setStance(data.getStance());
         } break;
         case Packet::IDs::PlayerLook: {
           Packet::FromClient::PlayerLook data(ss);
+          linkedEntity->setAngle(data.getAngle());
         } break;
-        case Packet::IDs::PlayerPnL: {
+        case Packet::IDs::PlayerPnL: { // todo
           Packet::FromClient::PlayerPosAndLook data(ss);
+          linkedEntity->setPosition(data.getPosition());
+          linkedEntity->setStance(data.getStance());
+          linkedEntity->setAngle(data.getAngle());
         } break;
         case Packet::IDs::PlayerDig: {
           Packet::FromClient::PlayerDig data(ss);
+
+          if (data.isDiggingFinished()) { // todo dig server event
+            accessWorld().setBlock(data.getPosition(), 0, 0);
+
+            Packet::ToClient::BlockChange wdata(data.getPosition(), 0, 0);
+            accessEntityManager().IterPlayers([&wdata](IPlayer* ply) -> bool {
+              wdata.sendTo(ply->getSocket());
+              return true;
+            });
+          }
         } break;
         case Packet::IDs::BlockPlace: {
           Packet::FromClient::BlockPlace data(ss);
         } break;
         case Packet::IDs::Animation: {
           Packet::FromClient::Animation data(ss);
+
+          Packet::ToClient::Animation wdata(linkedEntity->getEntityId(), data.getAnimation());
+          accessEntityManager().IterPlayers([&wdata, linkedEntity](IPlayer* ply) -> bool {
+            if (ply != linkedEntity) wdata.sendTo(ply->getSocket());
+            return true;
+          });
         } break;
         case Packet::IDs::EntityAct: {
           Packet::FromClient::EntityAction data(ss);
-          spdlog::info("Player performed action {}", data.getAction());
         } break;
         case Packet::IDs::CloseWindow: {
           Packet::FromClient::CloseWindow data(ss);
@@ -183,6 +204,8 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
         data.sendTo(ss);
         nextPing = ctime + pingFreq;
       }
+
+      ss.pushQueue();
     }
   } catch (std::exception& ex) {
     std::string_view exwhat(ex.what());
@@ -198,4 +221,5 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
   }
 
   spdlog::info("Client {} closed!", addr.to_string());
+  accessEntityManager().RemoveEntity(linkedEntity->getEntityId());
 }

@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <sockpp/tcp_socket.h>
+#include <string>
 
 class IPlayer: public EntityBase {
   public:
@@ -17,15 +18,28 @@ class IPlayer: public EntityBase {
   /* Environment control */
   virtual bool setTime(int16_t time) = 0;
 
+  /* Generic getters */
+
+  virtual int16_t getHeldItem() const = 0;
+
   /* Movement control */
   virtual bool setSpawnPos(const IntVector3& pos) = 0;
 
-  virtual void setPlayerPos(const DoubleVector3& pos) = 0;
+  virtual void setAngle(const FloatAngle& ang) = 0;
+
+  virtual void setPosition(const DoubleVector3& pos) = 0;
+
+  virtual void setStance(double_t stance) = 0;
+
+  virtual double_t getStance() const = 0;
 
   virtual bool updPlayerPos(IPlayer* player) = 0;
 
+  virtual SafeSocket& getSocket() const = 0;
+
   /* Authentication */
-  virtual bool doLoginProcess() = 0;
+  virtual const std::wstring& getName() const                          = 0;
+  virtual bool                doLoginProcess(const std::wstring& name) = 0;
 };
 
 std::unique_ptr<IPlayer> createPlayer(SafeSocket& sock);

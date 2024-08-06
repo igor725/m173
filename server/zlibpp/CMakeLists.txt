@@ -1,3 +1,3 @@
-add_library(zlibpp STATIC
+add_library(zlibpp OBJECT
   zlibpp.cpp
 )

@@ -5,9 +5,11 @@
 
 namespace Packet {
 namespace FromClient {
-class ChatMessage: public PacketReader {
+class ChatMessage: private PacketReader {
   public:
   ChatMessage(SafeSocket& sock): PacketReader(sock) { readString(m_message); }
+
+  const auto& getMessage() const { return m_message; }
 
   private:
   std::wstring m_message;
@@ -15,8 +17,10 @@ class ChatMessage: public PacketReader {
 } // namespace FromClient
 
 namespace ToClient {
-class ChatMessage: public PacketWriter {
+class ChatMessage: private PacketWriter {
   public:
+  using PacketWriter::sendTo;
+
   ChatMessage(const std::wstring& message): PacketWriter(Packet::IDs::ChatMessage) { writeString(message); }
 };
 } // namespace ToClient

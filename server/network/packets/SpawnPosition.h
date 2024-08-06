@@ -6,8 +6,10 @@
 
 namespace Packet {
 namespace ToClient {
-class SpawnPosition: public PacketWriter {
+class SpawnPosition: private PacketWriter {
   public:
+  using PacketWriter::sendTo;
+
   SpawnPosition(const IntVector3& pos): PacketWriter(Packet::IDs::SpawnPos) {
     writeInteger(pos.x);
     writeInteger(pos.y);

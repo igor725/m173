@@ -23,17 +23,24 @@ class IWorld {
     std::array<BlockPack, CHUNK_SIZE / 2> m_meta   = {};
     std::array<BlockPack, CHUNK_SIZE / 2> m_light  = {};
     std::array<BlockPack, CHUNK_SIZE / 2> m_sky    = {};
+
+    static inline int32_t getLocalIndex(const IntVector3& pos) { return pos.y + (pos.z * 127) + (pos.x * 127 * 16); }
+
+    static inline int32_t getWorldIndex(const IntVector3& pos) { return (pos.y & 127) + ((pos.z & 15) * 127) + ((pos.x & 15) * 127 * 16); }
+
+    static inline IntVector3 getPos(int32_t index) { return {index >> 11, index & 0x7f, (index & 0x780) >> 7}; }
   };
 
   IWorld()          = default;
   virtual ~IWorld() = default;
 
-  static inline int32_t getIndex(const IntVector3& pos) { return pos.y + (pos.z * 127) + (pos.x * 127 * 16); }
+  static inline uint64_t packChunkPos(const IntVector2& pos) { return (int64_t)pos.x << 32 | pos.z; }
 
-  static inline IntVector3 getPos(int32_t index) { return {index >> 11, index & 0x7f, (index & 0x780) >> 7}; }
-
-  virtual Chunk*      getChunk(int32_t x, int32_t z)                   = 0;
+  virtual Chunk*      getChunk(const IntVector2& pos)                  = 0;
+  virtual Chunk*      allocChunk(const IntVector2& pos)                = 0;
   virtual const void* compressChunk(Chunk* chunk, unsigned long& size) = 0;
+
+  virtual bool setBlock(const IntVector3& pos, BlockId id, int8_t meta) = 0;
 };
 
 IWorld& accessWorld();

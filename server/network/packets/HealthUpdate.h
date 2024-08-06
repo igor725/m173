@@ -5,8 +5,10 @@
 
 namespace Packet {
 namespace ToClient {
-class HealthUpdate: public PacketWriter {
+class HealthUpdate: private PacketWriter {
   public:
+  using PacketWriter::sendTo;
+
   HealthUpdate(int16_t health): PacketWriter(Packet::IDs::HealthUpdate) { writeInteger(health); }
 };
 } // namespace ToClient

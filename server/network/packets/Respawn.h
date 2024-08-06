@@ -5,7 +5,7 @@
 
 namespace Packet {
 namespace FromClient {
-class Respawn: public PacketReader {
+class Respawn: private PacketReader {
   public:
   Respawn(SafeSocket& sock): PacketReader(sock) {
     m_dim = readInteger<Dimension>(); // Dimension
@@ -19,8 +19,10 @@ class Respawn: public PacketReader {
 } // namespace FromClient
 
 namespace ToClient {
-class Respawn: public PacketWriter {
+class Respawn: private PacketWriter {
   public:
+  using PacketWriter::sendTo;
+
   Respawn(Dimension dim): PacketWriter(Packet::IDs::Respawn) { writeInteger<Dimension>(dim); }
 };
 } // namespace ToClient

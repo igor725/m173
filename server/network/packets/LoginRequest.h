@@ -14,6 +14,8 @@ class LoginRequest: private PacketReader {
     readInteger<int8_t>();  // Dimension, skipping too
   }
 
+  auto& getName() const { return m_name; }
+
   private:
   int32_t      m_protover;
   std::wstring m_name;
@@ -21,8 +23,10 @@ class LoginRequest: private PacketReader {
 } // namespace FromClient
 
 namespace ToClient {
-class LoginRequest: public PacketWriter {
+class LoginRequest: private PacketWriter {
   public:
+  using PacketWriter::sendTo;
+
   LoginRequest(int32_t entId, const std::wstring& svname, int8_t dimension): PacketWriter(Packet::IDs::Login) {
     writeInteger(entId);
     writeString(svname);

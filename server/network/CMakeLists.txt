@@ -1,4 +1,4 @@
-add_library(network STATIC
+add_library(network OBJECT
   reader.cpp
 )
 

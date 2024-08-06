@@ -6,8 +6,10 @@
 
 namespace Packet {
 namespace ToClient {
-class Thunderbolt: public PacketWriter {
+class Thunderbolt: private PacketWriter {
   public:
+  using PacketWriter::sendTo;
+
   Thunderbolt(EntityId eid, const IntVector3& pos): PacketWriter(Packet::IDs::Thunderbolt) {
     writeInteger(eid);
     writeBoolean(true);

@@ -6,8 +6,10 @@
 
 namespace Packet {
 namespace ToClient {
-class MapChunk: public PacketWriter {
+class MapChunk: private PacketWriter {
   public:
+  using PacketWriter::sendTo;
+
   MapChunk(const IntVector3& pos, const ByteVector3& size, int32_t datasize): PacketWriter(Packet::IDs::MapChunk) {
     writeInteger(pos.x);
     writeInteger<int16_t>(pos.y);

@@ -1,4 +1,4 @@
-add_library(entity STATIC
+add_library(entity OBJECT
   manager.cpp
   player/player.cpp
 )

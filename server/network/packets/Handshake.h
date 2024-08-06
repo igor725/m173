@@ -17,8 +17,10 @@ class Handshake: private PacketReader {
 } // namespace FromClient
 
 namespace ToClient {
-class Handshake: public PacketWriter {
+class Handshake: private PacketWriter {
   public:
+  using PacketWriter::sendTo;
+
   Handshake(const std::wstring& connhash): PacketWriter(Packet::IDs::Handshake) { writeString(connhash); }
 };
 } // namespace ToClient

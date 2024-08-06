@@ -49,7 +49,7 @@ private:
 
 #pragma endregion()
 
-  PacketReader(SafeSocket& sock, Direction dir = Direction::Both): m_sock(sock), m_dir(dir) {}
+  PacketReader(SafeSocket& sock): m_sock(sock) {}
 
   template <typename T>
   T readInteger() {
@@ -104,7 +104,6 @@ private:
 
   private:
   SafeSocket& m_sock;
-  Direction   m_dir;
 };
 
 #pragma endregion()

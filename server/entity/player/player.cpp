@@ -12,7 +12,9 @@ class Player: public IPlayer {
 
   bool sendData(const void* data, size_t dsize) final { return m_selfSock.write(data, dsize); }
 
-  bool doLoginProcess() {
+  bool doLoginProcess(const std::wstring& name) {
+    m_name = name;
+
     {
       std::wstring                   _str = L"Fuck you";
       Packet::ToClient::LoginRequest wdata_lr(this->getEntityId(), _str, this->getDimension());
@@ -21,13 +23,18 @@ class Player: public IPlayer {
 
     setSpawnPos({5, 10, 5});
     setTime(6000);
-    setPlayerPos({5.0, 10.0, 5.0});
+    setPosition({5.0, 10.0, 5.0});
     updPlayerPos(this);
 
     return true;
   }
 
-  void setPlayerPos(const DoubleVector3& pos) final { m_position = pos; }
+  void setAngle(const FloatAngle& ang) final { m_rotation = ang; }
+
+  void setPosition(const DoubleVector3& pos) final {
+    m_position = pos;
+    m_stance   = pos.y;
+  }
 
   bool updPlayerPos(IPlayer* player) final {
     // Receiving this packet by client concludes terrain downloading state
@@ -45,8 +52,21 @@ class Player: public IPlayer {
     return wdata.sendTo(m_selfSock);
   }
 
+  int16_t getHeldItem() const final { return m_heldItem; }
+
+  void setStance(double_t stance) final { m_stance = stance; }
+
+  double_t getStance() const final { return m_stance; }
+
+  SafeSocket& getSocket() const final { return m_selfSock; }
+
+  const std::wstring& getName() const final { return m_name; }
+
   private:
-  SafeSocket& m_selfSock;
+  int16_t      m_heldItem;
+  SafeSocket&  m_selfSock;
+  double_t     m_stance;
+  std::wstring m_name;
 };
 
 std::unique_ptr<IPlayer> createPlayer(SafeSocket& sock) {

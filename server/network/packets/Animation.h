@@ -13,7 +13,7 @@ class Animation: private PacketReader {
     m_anim = readInteger<AnimId>();
   }
 
-  const auto& getName() const { return m_anim; }
+  const auto& getAnimation() const { return m_anim; }
 
   private:
   AnimId m_anim;
@@ -21,8 +21,10 @@ class Animation: private PacketReader {
 } // namespace FromClient
 
 namespace ToClient {
-class Animation: public PacketWriter {
+class Animation: private PacketWriter {
   public:
+  using PacketWriter::sendTo;
+
   Animation(EntityId eid, AnimId aid): PacketWriter(Packet::IDs::Animation) {
     writeInteger(eid);
     writeInteger(aid);
