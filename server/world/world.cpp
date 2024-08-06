@@ -2,12 +2,30 @@
 
 #include "zlibpp/zlibpp.h"
 
+#include <thread>
 #include <unordered_map>
 #include <utility>
 
 class World: public IWorld {
   public:
-  World() {}
+  World() {
+    std::thread worldtick([]() {
+      auto& world = accessWorld();
+
+      auto curr = std::chrono::system_clock::now();
+      auto prev = std::chrono::system_clock::now();
+
+      while (true) {
+        prev = curr;
+        curr = std::chrono::system_clock::now();
+
+        world.advanceTick(std::chrono::duration_cast<std::chrono::milliseconds>(curr - prev).count());
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      }
+      //
+    });
+    worldtick.detach();
+  }
 
   virtual ~World() = default;
 
@@ -60,10 +78,18 @@ class World: public IWorld {
     return true;
   }
 
+  void advanceTick(int64_t delta) final {
+    m_wtime += delta * 0.02;
+    // todo physics
+  }
+
+  int64_t getTime() const final { return m_wtime; }
+
   private:
   std::array<uint8_t, CHUNK_COMPR_SIZE> m_tempchunk;
   std::unordered_map<int64_t, Chunk>    m_ldChunks;
-  int64_t                               m_seed = 0;
+  int64_t                               m_seed  = 0;
+  int64_t                               m_wtime = 0;
 };
 
 IWorld& accessWorld() {

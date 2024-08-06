@@ -22,9 +22,8 @@ class Player: public IPlayer {
     }
 
     setSpawnPos({5, 10, 5});
-    setTime(6000);
     setPosition({5.0, 10.0, 5.0});
-    updPlayerPos(this);
+    updPlayerPos();
 
     return true;
   }
@@ -36,9 +35,9 @@ class Player: public IPlayer {
     m_stance   = pos.y;
   }
 
-  bool updPlayerPos(IPlayer* player) final {
+  bool updPlayerPos() final {
     // Receiving this packet by client concludes terrain downloading state
-    Packet::ToClient::PlayerPosAndLook wdata_pl(player);
+    Packet::ToClient::PlayerPosAndLook wdata_pl(this);
     return wdata_pl.sendTo(m_selfSock);
   }
 

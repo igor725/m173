@@ -33,7 +33,7 @@ class IPlayer: public EntityBase {
 
   virtual double_t getStance() const = 0;
 
-  virtual bool updPlayerPos(IPlayer* player) = 0;
+  virtual bool updPlayerPos() = 0;
 
   virtual SafeSocket& getSocket() const = 0;
 

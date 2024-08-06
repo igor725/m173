@@ -82,6 +82,8 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
             auto&      world    = accessWorld();
             auto       chunk    = world.getChunk(chunkpos);
 
+            linkedEntity->setTime(world.getTime());
+
             Packet::ToClient::PreChunk wdata_pc(chunkpos, true);
             wdata_pc.sendTo(ss);
 
@@ -200,6 +202,8 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
 
       const auto ctime = std::chrono::system_clock::now();
       if (nextPing < ctime) {
+        linkedEntity->setTime(accessWorld().getTime()); // Sync world time, just in case
+
         Packet::ToClient::Ping data;
         data.sendTo(ss);
         nextPing = ctime + pingFreq;
