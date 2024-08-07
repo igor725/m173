@@ -1,8 +1,10 @@
 #pragma once
 
+#include <cstddef>
 #include <exception>
 #include <format>
 #include <fstream>
+#include <memory>
 #include <string>
 
 class IZLibPP {

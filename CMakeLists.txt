@@ -12,7 +12,6 @@ project(m173 VERSION 0.0.1)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 set(CMAKE_INSTALL_MESSAGE LAZY)
 
 set(CMAKE_PREFIX_PATH ${CMAKE_SOURCE_DIR}/3rd/install/lib/cmake)
@@ -34,7 +33,7 @@ add_subdirectory(server/entity)
 add_subdirectory(server/world)
 add_subdirectory(server/zlibpp)
 
-add_executable(server
+add_executable(m173_server
 	server/entry.cpp
 	$<TARGET_OBJECTS:network>
 	$<TARGET_OBJECTS:entity>
@@ -48,4 +47,4 @@ else()
   set(platform_libs z)
 endif()
 
-target_link_libraries(server PRIVATE Sockpp::sockpp-static spdlog::spdlog ${platform_libs})
+target_link_libraries(m173_server PRIVATE Sockpp::sockpp-static spdlog::spdlog ${platform_libs})
