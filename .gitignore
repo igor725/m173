@@ -2,5 +2,6 @@
 /3rd/install
 /build/*
 /client/*
+/orig_server/*
 !*/.gitkeep
 *.log

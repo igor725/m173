@@ -147,8 +147,26 @@ class PacketWriter {
     }
   }
 
+  void writeAIVector(const DoubleVector3& pos) {
+    writeInteger(floor_double(pos.x * 32.0));
+    writeInteger(floor_double(pos.y * 32.0));
+    writeInteger(floor_double(pos.z * 32.0));
+  }
+
+  void writeABVector(const DoubleVector3& pos) {
+    writeInteger<int8_t>(floor_double8(pos.x * 32.0));
+    writeInteger<int8_t>(floor_double8(pos.y * 32.0));
+    writeInteger<int8_t>(floor_double8(pos.z * 32.0));
+  }
+
   bool sendTo(SafeSocket& sock) { return sock.write(m_data.data(), m_data.size()); }
 
+  const std::vector<char>& getData() const { return m_data; }
+
   private:
+  inline int32_t floor_double(double_t d) { return int32_t(std::round(d)); }
+
+  inline int8_t floor_double8(double_t d) { return int8_t(std::round(d)); }
+
   std::vector<char> m_data;
 };

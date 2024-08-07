@@ -7,9 +7,9 @@
 #include "packets/Animation.h"
 #include "packets/Block.h"
 #include "packets/ChatMessage.h"
+#include "packets/Entity.h"
 #include "packets/EntityAction.h"
 #include "packets/Handshake.h"
-#include "packets/HealthUpdate.h"
 #include "packets/MapChunk.h"
 #include "packets/Ping.h"
 #include "packets/Player.h"
@@ -57,10 +57,12 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
   IPlayer* linkedEntity = nullptr;
 
   const auto joinTime = std::chrono::system_clock::now();
-  const auto pingFreq = std::chrono::seconds(15);
+  const auto pingFreq = std::chrono::seconds(1);
 
   auto lastInPing = joinTime;
   auto nextPing   = joinTime;
+
+  bool posUpdated = false, lookUpdated = false;
 
   try {
     PacketId id;
@@ -104,6 +106,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
 
             if (chunk == nullptr) {
               chunk = world.allocChunk(chunkpos);
+              chunk->m_light.fill(IWorld::Chunk::BlockPack(15, 15)); // All fullbright for now
 
               for (int32_t x = 0; x < 16; ++x) {
                 for (int32_t y = 0; y < 4; ++y) {
@@ -150,13 +153,13 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
             });
           }
         } break;
+        case Packet::IDs::EntityUse: {
+          Packet::FromClient::EntityClick data(ss);
+        } break;
         case Packet::IDs::PlayerRespawn: {
           Packet::FromClient::Respawn data(ss);
-
           /* todo: Teleport player to World's spawn point */
-
-          Packet::ToClient::PlayerRespawn wdata(data.getDimension());
-          wdata.sendTo(ss);
+          linkedEntity->respawn();
         } break;
         case Packet::IDs::PlayerFall: {
           Packet::FromClient::PlayerFall data(ss);
@@ -165,16 +168,19 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
           Packet::FromClient::PlayerPos data(ss);
           linkedEntity->setPosition(data.getPosition());
           linkedEntity->setStance(data.getStance());
+          posUpdated = true;
         } break;
         case Packet::IDs::PlayerLook: {
           Packet::FromClient::PlayerLook data(ss);
-          linkedEntity->setAngle(data.getAngle());
+          linkedEntity->setRotation(data.getAngle());
+          lookUpdated = true;
         } break;
         case Packet::IDs::PlayerPnL: { // todo
           Packet::FromClient::PlayerPosAndLook data(ss);
           linkedEntity->setPosition(data.getPosition());
           linkedEntity->setStance(data.getStance());
-          linkedEntity->setAngle(data.getAngle());
+          linkedEntity->setRotation(data.getAngle());
+          posUpdated = lookUpdated = true;
         } break;
         case Packet::IDs::PlayerDig: {
           Packet::FromClient::PlayerDig data(ss);
@@ -192,6 +198,9 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
         case Packet::IDs::BlockPlace: {
           Packet::FromClient::BlockPlace data(ss);
         } break;
+        case Packet::IDs::HoldChange: {
+          Packet::FromClient::PlayerHold data(ss);
+        } break;
         case Packet::IDs::Animation: {
           Packet::FromClient::Animation data(ss);
 
@@ -203,6 +212,17 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
         } break;
         case Packet::IDs::EntityAct: {
           Packet::FromClient::EntityAction data(ss);
+
+          switch (data.getAction()) {
+            case 1: {
+              linkedEntity->setCrouching(true);
+            } break;
+            case 2: {
+              linkedEntity->setCrouching(false);
+            } break;
+            case 3: {
+            } break;
+          }
         } break;
         case Packet::IDs::CloseWindow: {
           Packet::FromClient::CloseWindow data(ss);
@@ -229,6 +249,42 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
         nextPing = currTime + pingFreq;
       }
 
+      if (linkedEntity) { // todo fix this
+        // if (posUpdated) {
+        //   const auto dist = linkedEntity->getMoveDistance();
+
+        //   if (dist > 4) {
+        Packet::ToClient::EntitySetPos wdata_es(linkedEntity);
+        accessEntityManager().IterPlayers([&wdata_es, linkedEntity](IPlayer* ply) -> bool {
+          if (ply != linkedEntity) wdata_es.sendTo(ply->getSocket());
+          return true;
+        });
+        // } else if (lookUpdated) {
+        //   Packet::ToClient::EntityLookRM wdata_er(linkedEntity);
+        //   accessEntityManager().IterPlayers([&wdata_er, linkedEntity](IPlayer* ply) -> bool {
+        //     if (ply != linkedEntity) wdata_er.sendTo(ply->getSocket());
+        //     return true;
+        //   });
+        // }
+        // } else if (lookUpdated) {
+        //   Packet::ToClient::EntityLook wdata_el(linkedEntity);
+        //   accessEntityManager().IterPlayers([&wdata_el, linkedEntity](IPlayer* ply) -> bool {
+        //     if (ply != linkedEntity) wdata_el.sendTo(ply->getSocket());
+        //     return true;
+        //   });
+        // }
+
+        if (linkedEntity->isFlagsChanged()) {
+          Packet::ToClient::EntityMeta wdata_em(linkedEntity->getEntityId());
+          wdata_em.putByte(0, linkedEntity->popFlags());
+          wdata_em.finish();
+          accessEntityManager().IterPlayers([&wdata_em, linkedEntity](IPlayer* ply) -> bool {
+            if (ply != linkedEntity) wdata_em.sendTo(ply->getSocket());
+            return true;
+          });
+        }
+      }
+
       ss.pushQueue();
     }
 
@@ -251,6 +307,11 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
 
   spdlog::info("Client {} closed!", addr.to_string());
   if (linkedEntity) {
+    Packet::ToClient::EntityDestroy wdata_ed(linkedEntity->getEntityId());
+    accessEntityManager().IterPlayers([&wdata_ed](IPlayer* ply) -> bool {
+      wdata_ed.sendTo(ply->getSocket());
+      return true;
+    });
     accessEntityManager().RemoveEntity(linkedEntity->getEntityId());
     // todo another cleanup? like, unloading world's chunk if no more players there
   }

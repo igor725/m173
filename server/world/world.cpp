@@ -22,9 +22,10 @@ class World: public IWorld {
         world.advanceTick(std::chrono::duration_cast<std::chrono::milliseconds>(curr - prev).count());
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
       }
-      //
     });
     worldtick.detach();
+
+    m_spawnPoint = {5, 10, 5};
   }
 
   virtual ~World() = default;
@@ -79,17 +80,24 @@ class World: public IWorld {
   }
 
   void advanceTick(int64_t delta) final {
-    m_wtime += delta * 0.02;
+    if ((m_witime += delta) > 1000) {
+      m_wtime += 20;
+      m_witime = 0;
+    }
     // todo physics
   }
 
   int64_t getTime() const final { return m_wtime; }
 
+  const IntVector3& getSpawnPoint() const final { return m_spawnPoint; }
+
   private:
+  IntVector3                            m_spawnPoint;
   std::array<uint8_t, CHUNK_COMPR_SIZE> m_tempchunk;
   std::unordered_map<int64_t, Chunk>    m_ldChunks;
-  int64_t                               m_seed  = 0;
-  int64_t                               m_wtime = 0;
+  int64_t                               m_seed   = 0;
+  int64_t                               m_wtime  = 0;
+  int64_t                               m_witime = 0;
 };
 
 IWorld& accessWorld() {

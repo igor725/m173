@@ -22,7 +22,7 @@ class SafeSocket {
   }
 
   void pushQueue() {
-    std::unique_lock lock(m_rlock);
+    std::unique_lock lock(m_wlock);
 
     if (m_closed) {
       m_queue.clear();

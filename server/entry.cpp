@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
   sockpp::tcp_acceptor server(nport, qsize.getValue<uint32_t>());
 
   if (!server) {
-    spdlog::error("Failed to spawn server instance {}", server.last_error_str());
+    spdlog::error("Failed to spawn server instance: {}", server.last_error_str());
     return 1;
   } else {
     spdlog::info("Server now listening connections on *:{}", nport);

@@ -6,6 +6,7 @@
 #include "../../network/packets/SpawnPosition.h"
 #include "../../network/packets/TimeUpdate.h"
 #include "../../network/safesock.h"
+#include "world/world.h"
 
 class Player: public IPlayer {
   public:
@@ -19,26 +20,48 @@ class Player: public IPlayer {
     return wdata_cm.sendTo(getSocket());
   }
 
-  bool doLoginProcess(const std::wstring& name) {
+  bool doLoginProcess(const std::wstring& name) final {
     m_name = name;
 
     {
-      Packet::ToClient::LoginRequest wdata_lr(this->getEntityId(), L"Fuck you", this->getDimension());
+      Packet::ToClient::LoginRequest wdata_lr(this->getEntityId(), L"Yuck fou", this->getDimension());
       wdata_lr.sendTo(m_selfSock);
     }
 
-    setSpawnPos({5, 10, 5});
-    setPosition({5.0, 10.0, 5.0});
-    updPlayerPos();
+    auto& spawn = accessWorld().getSpawnPoint();
+    setSpawnPos(spawn);
+    teleportPlayer(spawn);
 
     return true;
   }
 
-  void setAngle(const FloatAngle& ang) final { m_rotation = ang; }
+  bool respawn() final {
+    Packet::ToClient::PlayerRespawn wdata(m_dimension);
+    return wdata.sendTo(m_selfSock);
+  }
 
-  void setPosition(const DoubleVector3& pos) final {
-    m_position = pos;
-    m_stance   = pos.y;
+  bool setHealth(int16_t health) final {
+    Packet::ToClient::PlayerHealth wdata_ph(m_health = health);
+    return wdata_ph.sendTo(m_selfSock);
+  }
+
+  bool teleportPlayer(const DoubleVector3& pos) final {
+    setPosition(pos);
+    return updPlayerPos();
+  }
+
+  bool teleportPlayer(const IntVector3& pos) final {
+    setPosition(DoubleVector3 {
+        .x = static_cast<double_t>(pos.x),
+        .y = static_cast<double_t>(pos.y),
+        .z = static_cast<double_t>(pos.z),
+    });
+    return updPlayerPos();
+  }
+
+  void setPosition(const DoubleVector3& pos) override final {
+    EntityBase::setPosition(pos);
+    m_stance = pos.y;
   }
 
   bool updPlayerPos() final {
@@ -68,9 +91,9 @@ class Player: public IPlayer {
   const std::wstring& getName() const final { return m_name; }
 
   private:
-  int16_t      m_heldItem;
+  int16_t      m_heldItem = 0;
   SafeSocket&  m_selfSock;
-  double_t     m_stance;
+  double_t     m_stance = 0.0;
   std::wstring m_name;
 };
 

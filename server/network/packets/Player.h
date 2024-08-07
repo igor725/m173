@@ -109,6 +109,18 @@ class PlayerDig: private PacketReader {
   IntVector3 m_pos;
 };
 
+class PlayerHold: private PacketReader {
+  public:
+  PlayerHold(SafeSocket& sock): PacketReader(sock) {
+    m_slot = readInteger<SlotId>(); // Slot Id
+  }
+
+  SlotId getSlotId() const { return m_slot; }
+
+  private:
+  SlotId m_slot;
+};
+
 class BlockPlace: private PacketReader {
   public:
   BlockPlace(SafeSocket& sock): PacketReader(sock) {
@@ -168,15 +180,13 @@ class PlayerSpawn: private PacketWriter {
     writeString(player->getName());
 
     /* Player position */
-    writeInteger<int32_t>(position.x);
-    writeInteger<int32_t>(position.y);
-    writeInteger<int32_t>(position.z);
+    writeInteger<int32_t>(static_cast<int32_t>(position.x * 32.0));
+    writeInteger<int32_t>(static_cast<int32_t>(position.y * 32.0));
+    writeInteger<int32_t>(static_cast<int32_t>(position.z * 32.0));
 
     /* Player rotation */
-    writeInteger<int8_t>(0); // Yaw
-    writeInteger<int8_t>(0); // Pitch
-    // writeFloating(rotation[0]);
-    // writeFloating(rotation[1]);
+    writeInteger<int8_t>(rotation.yawToByte());   // Yaw
+    writeInteger<int8_t>(rotation.pitchToByte()); // Pitch
 
     /* Other data */
     writeInteger(player->getHeldItem());

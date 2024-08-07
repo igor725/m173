@@ -45,6 +45,8 @@ class IWorld {
   virtual void advanceTick(int64_t delta) = 0;
 
   virtual int64_t getTime() const = 0;
+
+  virtual const IntVector3& getSpawnPoint() const = 0;
 };
 
 IWorld& accessWorld();

@@ -17,6 +17,11 @@ class IPlayer: public EntityBase {
 
   virtual bool sendChat(std::wstring& message) = 0;
 
+  /* Health control functions */
+
+  virtual bool setHealth(int16_t health) = 0;
+  virtual bool respawn()                 = 0;
+
   /* Environment control */
   virtual bool setTime(int16_t time) = 0;
 
@@ -27,8 +32,6 @@ class IPlayer: public EntityBase {
   /* Movement control */
   virtual bool setSpawnPos(const IntVector3& pos) = 0;
 
-  virtual void setAngle(const FloatAngle& ang) = 0;
-
   virtual void setPosition(const DoubleVector3& pos) = 0;
 
   virtual void setStance(double_t stance) = 0;
@@ -38,6 +41,10 @@ class IPlayer: public EntityBase {
   virtual bool updPlayerPos() = 0;
 
   virtual SafeSocket& getSocket() const = 0;
+
+  virtual bool teleportPlayer(const DoubleVector3& pos) = 0;
+
+  virtual bool teleportPlayer(const IntVector3& pos) = 0;
 
   /* Authentication */
   virtual const std::wstring& getName() const                          = 0;
