@@ -3,3 +3,4 @@
 /build/*
 /client/*
 !*/.gitkeep
+*.log

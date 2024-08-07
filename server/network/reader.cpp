@@ -202,7 +202,9 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
 
       const auto ctime = std::chrono::system_clock::now();
       if (nextPing < ctime) {
-        linkedEntity->setTime(accessWorld().getTime()); // Sync world time, just in case
+        if (linkedEntity) {
+          linkedEntity->setTime(accessWorld().getTime()); // Sync world time, just in case
+        }
 
         Packet::ToClient::Ping data;
         data.sendTo(ss);
@@ -225,5 +227,8 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
   }
 
   spdlog::info("Client {} closed!", addr.to_string());
-  accessEntityManager().RemoveEntity(linkedEntity->getEntityId());
+  if (linkedEntity) {
+    accessEntityManager().RemoveEntity(linkedEntity->getEntityId());
+    // todo another cleanup? like, unloading world's chunk if no more players there
+  }
 }

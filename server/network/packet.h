@@ -87,7 +87,8 @@ private:
         case 1: {
           sym = readInteger<int8_t>();
         } break;
-        case 2: {
+        case 2:
+        case 4: {
           sym = readInteger<int16_t>();
         } break;
 
@@ -135,8 +136,14 @@ class PacketWriter {
   void writeString(T& str) {
     writeInteger(static_cast<int16_t>(str.size()));
 
-    for (auto it = str.begin(); it != str.end(); ++it) {
-      writeInteger(static_cast<T::value_type>(*it));
+    if (sizeof(typename T::value_type) < 4) { // Fix some Linux fuckery
+      for (auto it = str.begin(); it != str.end(); ++it) {
+        writeInteger(static_cast<T::value_type>(*it));
+      }
+    } else {
+      for (auto it = str.begin(); it != str.end(); ++it) {
+        writeInteger(static_cast<int16_t>(*it));
+      }
     }
   }
 
