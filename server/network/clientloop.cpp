@@ -1,5 +1,6 @@
-#include "reader.h"
+#include "clientloop.h"
 
+#include "commands/command.h"
 #include "entity/manager.h"
 #include "entity/player/player.h"
 #include "ids.h"
@@ -28,12 +29,22 @@
 #include <thread>
 #include <zlib.h>
 
-CreateReader::CreateReader(sockpp::tcp_socket& sock, sockpp::inet_address& addr) {
+class UnknownPacketException: public std::exception {
+  public:
+  UnknownPacketException(int8_t id) { m_what = std::format("Unknown packet id {:02x}", id); }
+
+  const char* what() const noexcept override { return m_what.c_str(); }
+
+  private:
+  std::string m_what;
+};
+
+ClientLoop::ClientLoop(sockpp::tcp_socket& sock, sockpp::inet_address& addr) {
   std::thread reader(ThreadLoop, std::move(sock), std::move(addr));
   reader.detach();
 }
 
-void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) {
+void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) {
   SafeSocket ss(std::move(sock), std::move(addr));
 
   bool     isReaderRunning = true;
@@ -122,7 +133,12 @@ void CreateReader::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr
           auto message = data.getMessage();
 
           if (message.starts_with(L'/')) {
-            // todo chat command handler
+            std::wstring out;
+            if (!accessCommandHandler().execute(linkedEntity, message, out)) {
+              out = L"Command execution failed!";
+            }
+
+            linkedEntity->sendChat(out);
           } else {
             Packet::ToClient::ChatMessage wdata(std::format(L"<{}>: {}", linkedEntity->getName(), message));
 

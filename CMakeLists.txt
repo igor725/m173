@@ -28,6 +28,8 @@ link_directories(BEFORE
 find_package(spdlog REQUIRED)
 find_package(sockpp REQUIRED)
 
+add_subdirectory(server/config)
+add_subdirectory(server/commands)
 add_subdirectory(server/network)
 add_subdirectory(server/entity)
 add_subdirectory(server/world)
@@ -35,6 +37,8 @@ add_subdirectory(server/zlibpp)
 
 add_executable(m173_server
 	server/entry.cpp
+	$<TARGET_OBJECTS:config>
+	$<TARGET_OBJECTS:commands>
 	$<TARGET_OBJECTS:network>
 	$<TARGET_OBJECTS:entity>
 	$<TARGET_OBJECTS:world>

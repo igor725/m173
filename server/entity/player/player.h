@@ -15,6 +15,8 @@ class IPlayer: public EntityBase {
 
   virtual bool sendData(const void* data, size_t dsize) = 0;
 
+  virtual bool sendChat(std::wstring& message) = 0;
+
   /* Environment control */
   virtual bool setTime(int16_t time) = 0;
 

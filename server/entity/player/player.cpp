@@ -1,5 +1,6 @@
 #include "player.h"
 
+#include "../../network/packets/ChatMessage.h"
 #include "../../network/packets/LoginRequest.h"
 #include "../../network/packets/Player.h"
 #include "../../network/packets/SpawnPosition.h"
@@ -11,6 +12,12 @@ class Player: public IPlayer {
   Player(SafeSocket& sock): m_selfSock(sock) {}
 
   bool sendData(const void* data, size_t dsize) final { return m_selfSock.write(data, dsize); }
+
+  bool sendChat(std::wstring& message) final {
+    if (message.empty()) return true; // No need to send those
+    Packet::ToClient::ChatMessage wdata_cm(message);
+    return wdata_cm.sendTo(getSocket());
+  }
 
   bool doLoginProcess(const std::wstring& name) {
     m_name = name;
