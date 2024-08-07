@@ -1,7 +1,7 @@
 #include "player.h"
 
 #include "../../network/packets/ChatMessage.h"
-#include "../../network/packets/LoginRequest.h"
+#include "../../network/packets/Handshake.h"
 #include "../../network/packets/Player.h"
 #include "../../network/packets/SpawnPosition.h"
 #include "../../network/packets/TimeUpdate.h"
@@ -23,8 +23,7 @@ class Player: public IPlayer {
     m_name = name;
 
     {
-      std::wstring                   _str = L"Fuck you";
-      Packet::ToClient::LoginRequest wdata_lr(this->getEntityId(), _str, this->getDimension());
+      Packet::ToClient::LoginRequest wdata_lr(this->getEntityId(), L"Fuck you", this->getDimension());
       wdata_lr.sendTo(m_selfSock);
     }
 

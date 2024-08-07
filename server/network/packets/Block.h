@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../../entity/player/player.h"
 #include "../ids.h"
 #include "../packet.h"
 

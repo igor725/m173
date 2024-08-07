@@ -11,12 +11,10 @@
 #include "packets/Handshake.h"
 #include "packets/HealthUpdate.h"
 #include "packets/Kick.h"
-#include "packets/LoginRequest.h"
 #include "packets/MapChunk.h"
 #include "packets/Ping.h"
 #include "packets/Player.h"
 #include "packets/PreChunk.h"
-#include "packets/Respawn.h"
 #include "packets/Window.h"
 #include "safesock.h"
 #include "world/world.h"
@@ -122,9 +120,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
         case Packet::IDs::Handshake: {
           Packet::FromClient::Handshake data(ss);
 
-          std::wstring chash = L"-";
-
-          Packet::ToClient::Handshake wdata(chash);
+          Packet::ToClient::Handshake wdata(L"-");
           wdata.sendTo(ss);
         } break;
         case Packet::IDs::ChatMessage: {
@@ -148,12 +144,12 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
             });
           }
         } break;
-        case Packet::IDs::Respawn: {
+        case Packet::IDs::PlayerRespawn: {
           Packet::FromClient::Respawn data(ss);
 
           /* todo: Teleport player to World's spawn point */
 
-          Packet::ToClient::Respawn wdata(data.getDimension());
+          Packet::ToClient::PlayerRespawn wdata(data.getDimension());
           wdata.sendTo(ss);
         } break;
         case Packet::IDs::PlayerFall: {

@@ -6,6 +6,18 @@
 
 namespace Packet {
 namespace FromClient {
+class Respawn: private PacketReader {
+  public:
+  Respawn(SafeSocket& sock): PacketReader(sock) {
+    m_dim = readInteger<Dimension>(); // Dimension
+  }
+
+  const auto getDimension() const { return m_dim; }
+
+  private:
+  Dimension m_dim;
+};
+
 class PlayerPosAndLook: private PacketReader {
   public:
   PlayerPosAndLook(SafeSocket& sock): PacketReader(sock) {
@@ -120,6 +132,20 @@ class BlockPlace: private PacketReader {
 } // namespace FromClient
 
 namespace ToClient {
+class PlayerHealth: private PacketWriter {
+  public:
+  using PacketWriter::sendTo;
+
+  PlayerHealth(int16_t health): PacketWriter(Packet::IDs::PlayerHealth) { writeInteger(health); }
+};
+
+class PlayerRespawn: private PacketWriter {
+  public:
+  using PacketWriter::sendTo;
+
+  PlayerRespawn(Dimension dim): PacketWriter(Packet::IDs::PlayerRespawn) { writeInteger<Dimension>(dim); }
+};
+
 class PlayerSpawn: private PacketWriter {
   public:
   using PacketWriter::sendTo;
