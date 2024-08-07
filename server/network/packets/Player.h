@@ -129,6 +129,16 @@ class BlockPlace: private PacketReader {
   int16_t    m_damage;
   int16_t    m_item_or_block;
 };
+
+class Disconnect: private PacketReader {
+  public:
+  Disconnect(SafeSocket& sock): PacketReader(sock) { readString(m_reason); }
+
+  const auto& getReason() const { return m_reason; }
+
+  private:
+  std::wstring m_reason;
+};
 } // namespace FromClient
 
 namespace ToClient {
@@ -194,6 +204,13 @@ class PlayerPosAndLook: private PacketWriter {
     /* Player physics values */
     writeBoolean(player->isOnGround());
   }
+};
+
+class PlayerKick: private PacketWriter {
+  public:
+  using PacketWriter::sendTo;
+
+  PlayerKick(const std::wstring& reason): PacketWriter(Packet::IDs::ConnectionFin) { writeString(reason); }
 };
 } // namespace ToClient
 } // namespace Packet

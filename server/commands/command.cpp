@@ -45,7 +45,7 @@ class CommandHandler: public ICommandHandler {
       }
     }
 
-    out = std::format(L"Command \"{}\" not found!", cmdname);
+    out = std::format(L"Unknown command: \"{}\"!", cmdname);
     return true;
   }
 

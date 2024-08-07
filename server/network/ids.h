@@ -59,5 +59,5 @@ constexpr PacketId TransactWindow = 0x6a;
 constexpr PacketId SignUpdate     = 0x82;
 constexpr PacketId ItemData       = 0x83;
 constexpr PacketId IncrementStat  = 0xc8;
-constexpr PacketId Disconnect     = 0xff;
+constexpr PacketId ConnectionFin  = 0xff;
 } // namespace Packet::IDs

@@ -10,7 +10,6 @@
 #include "packets/EntityAction.h"
 #include "packets/Handshake.h"
 #include "packets/HealthUpdate.h"
-#include "packets/Kick.h"
 #include "packets/MapChunk.h"
 #include "packets/Ping.h"
 #include "packets/Player.h"
@@ -37,6 +36,16 @@ class UnknownPacketException: public std::exception {
   std::string m_what;
 };
 
+class UngracefulClosingException: public std::exception {
+  public:
+  UngracefulClosingException() { m_what = "Connection was closed ungracefully!"; }
+
+  const char* what() const noexcept override { return m_what.c_str(); }
+
+  private:
+  std::string m_what;
+};
+
 ClientLoop::ClientLoop(sockpp::tcp_socket& sock, sockpp::inet_address& addr) {
   std::thread reader(ThreadLoop, std::move(sock), std::move(addr));
   reader.detach();
@@ -45,25 +54,22 @@ ClientLoop::ClientLoop(sockpp::tcp_socket& sock, sockpp::inet_address& addr) {
 void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) {
   SafeSocket ss(std::move(sock), std::move(addr));
 
-  bool     isReaderRunning = true;
-  IPlayer* linkedEntity    = nullptr;
+  IPlayer* linkedEntity = nullptr;
 
-  const auto pingFreq = std::chrono::seconds(2);
-  auto       nextPing = std::chrono::system_clock::now() + pingFreq;
+  const auto joinTime = std::chrono::system_clock::now();
+  const auto pingFreq = std::chrono::seconds(15);
+
+  auto lastInPing = joinTime;
+  auto nextPing   = joinTime;
 
   try {
-    while (isReaderRunning) {
-      PacketId id;
-      if (!ss.read(&id, sizeof(PacketId))) {
-        isReaderRunning = false;
-        break;
-      }
+    PacketId id;
+    while (ss.read(&id, sizeof(PacketId))) {
+      const auto currTime = std::chrono::system_clock::now();
 
       spdlog::trace("Received packet {:02x} from {}", id, addr.to_string());
 
       switch (id) {
-        case Packet::IDs::KeepAlive: {
-        } break;
         case Packet::IDs::Login: {
           Packet::FromClient::LoginRequest data(ss);
 
@@ -204,26 +210,31 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
         case Packet::IDs::ClickWindow: {
           Packet::FromClient::ClickWindow data(ss);
         } break;
-        case Packet::IDs::Disconnect: {
+        case Packet::IDs::ConnectionFin: {
           Packet::FromClient::Disconnect data(ss);
-          isReaderRunning = false;
+          ss.close();
         } break;
 
         default: throw UnknownPacketException(id);
       }
 
-      const auto ctime = std::chrono::system_clock::now();
-      if (nextPing < ctime) {
+      if (nextPing < currTime) {
         if (linkedEntity) {
           linkedEntity->setTime(accessWorld().getTime()); // Sync world time, just in case
         }
 
         Packet::ToClient::Ping data;
         data.sendTo(ss);
-        nextPing = ctime + pingFreq;
+
+        nextPing = currTime + pingFreq;
       }
 
       ss.pushQueue();
+    }
+
+    if (!ss.isClosed()) {
+      ss.close();
+      throw UngracefulClosingException();
     }
   } catch (std::exception& ex) {
     std::string_view exwhat(ex.what());
@@ -232,7 +243,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
 
     auto fmtreason = std::format(L"Client thread exception: {}", reason);
 
-    Packet::ToClient::Kick wdata(fmtreason);
+    Packet::ToClient::PlayerKick wdata(fmtreason);
     wdata.sendTo(ss);
 
     spdlog::error("Exception thrown on {} handling: {}", addr.to_string(), ex.what());
