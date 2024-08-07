@@ -64,6 +64,8 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
 
   bool posUpdated = false, lookUpdated = false;
 
+  int32_t posUpdateNum = 0;
+
   try {
     PacketId id;
     while (ss.read(&id, sizeof(PacketId))) {
@@ -249,30 +251,38 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
         nextPing = currTime + pingFreq;
       }
 
-      if (linkedEntity) { // todo fix this
-        // if (posUpdated) {
-        //   const auto dist = linkedEntity->getMoveDistance();
-
-        //   if (dist > 4) {
-        Packet::ToClient::EntitySetPos wdata_es(linkedEntity);
-        accessEntityManager().IterPlayers([&wdata_es, linkedEntity](IPlayer* ply) -> bool {
-          if (ply != linkedEntity) wdata_es.sendTo(ply->getSocket());
-          return true;
-        });
-        // } else if (lookUpdated) {
-        //   Packet::ToClient::EntityLookRM wdata_er(linkedEntity);
-        //   accessEntityManager().IterPlayers([&wdata_er, linkedEntity](IPlayer* ply) -> bool {
-        //     if (ply != linkedEntity) wdata_er.sendTo(ply->getSocket());
-        //     return true;
-        //   });
-        // }
-        // } else if (lookUpdated) {
-        //   Packet::ToClient::EntityLook wdata_el(linkedEntity);
-        //   accessEntityManager().IterPlayers([&wdata_el, linkedEntity](IPlayer* ply) -> bool {
-        //     if (ply != linkedEntity) wdata_el.sendTo(ply->getSocket());
-        //     return true;
-        //   });
-        // }
+      if (linkedEntity) {
+        if (posUpdated) {
+          /**
+           * @brief The original server sents teleport packet to the clients every
+           * 400 movement packets, just to sync the thing. We will keep it that way too.
+           */
+          if (++posUpdateNum >= 400 || linkedEntity->getMoveDistance() > 4) {
+            Packet::ToClient::EntitySetPos wdata_es(linkedEntity);
+            accessEntityManager().IterPlayers([&wdata_es, linkedEntity](IPlayer* ply) -> bool {
+              if (ply != linkedEntity) wdata_es.sendTo(ply->getSocket());
+              return true;
+            });
+          } else if (lookUpdated) {
+            Packet::ToClient::EntityLookRM wdata_er(linkedEntity);
+            accessEntityManager().IterPlayers([&wdata_er, linkedEntity](IPlayer* ply) -> bool {
+              if (ply != linkedEntity) wdata_er.sendTo(ply->getSocket());
+              return true;
+            });
+          } else {
+            Packet::ToClient::EntityRelaMove wdata_erm(linkedEntity);
+            accessEntityManager().IterPlayers([&wdata_erm, linkedEntity](IPlayer* ply) -> bool {
+              if (ply != linkedEntity) wdata_erm.sendTo(ply->getSocket());
+              return true;
+            });
+          }
+        } else if (lookUpdated) {
+          Packet::ToClient::EntityLook wdata_el(linkedEntity);
+          accessEntityManager().IterPlayers([&wdata_el, linkedEntity](IPlayer* ply) -> bool {
+            if (ply != linkedEntity) wdata_el.sendTo(ply->getSocket());
+            return true;
+          });
+        }
 
         if (linkedEntity->isFlagsChanged()) {
           Packet::ToClient::EntityMeta wdata_em(linkedEntity->getEntityId());
