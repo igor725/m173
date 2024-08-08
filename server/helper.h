@@ -58,7 +58,7 @@ enum DigStatus : int8_t {
   DropItem = 4,
 };
 
-enum SlotId : int8_t {
+enum SlotId : int16_t {
   CraftResult,
   CraftSlot_0,
   CraftSlot_1,
