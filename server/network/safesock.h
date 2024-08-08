@@ -6,7 +6,9 @@
 
 class SafeSocket {
   public:
-  SafeSocket(sockpp::tcp_socket&& sock, sockpp::inet_address&& addr): m_sock(sock), m_addr(addr), m_closed(false) {}
+  SafeSocket(sockpp::tcp_socket&& sock, sockpp::inet_address&& addr): m_sock(sock), m_addr(addr), m_closed(false) {
+    m_sock.write_timeout(std::chrono::milliseconds(100));
+  }
 
   bool write(const void* data, size_t dsize) {
     std::unique_lock lock(m_wlock);
@@ -29,9 +31,16 @@ class SafeSocket {
       return;
     }
 
-    while (m_queue.size() > 0) {
+    while (!m_closed && m_queue.size() > 0) {
       auto sent = m_sock.write(m_queue.data(), m_queue.size());
-      if (sent > 0) m_queue.erase(m_queue.begin(), m_queue.begin() + sent);
+      if (sent > 0)
+        m_queue.erase(m_queue.begin(), m_queue.begin() + sent);
+      else {
+        if (++m_fails < 10)
+          break;
+        else
+          close();
+      }
     }
   }
 
@@ -49,4 +58,5 @@ class SafeSocket {
   sockpp::tcp_socket&   m_sock;
   sockpp::inet_address& m_addr;
   bool                  m_closed;
+  int32_t               m_fails;
 };

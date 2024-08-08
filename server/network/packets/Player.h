@@ -92,6 +92,12 @@ class PlayerFall: private PacketReader {
 
 class PlayerDig: private PacketReader {
   public:
+  enum DigStatus : int8_t {
+    Started  = 0,
+    Finished = 2,
+    DropItem = 4,
+  };
+
   PlayerDig(SafeSocket& sock): PacketReader(sock) {
     m_status = readInteger<DigStatus>(); // Status
     m_pos.x  = readInteger<int32_t>();   // X
@@ -101,6 +107,8 @@ class PlayerDig: private PacketReader {
   }
 
   bool isDiggingFinished() const { return m_status == DigStatus::Finished; }
+
+  bool isDroppingBlock() const { return m_status == DigStatus::DropItem; }
 
   const IntVector3& getPosition() const { return m_pos; }
 
@@ -132,10 +140,26 @@ class BlockPlace: private PacketReader {
       m_amount = readInteger<int8_t>();                   // Amount
       m_damage = readInteger<int16_t>();                  // Damage
     }
+
+    m_bpos = m_pos;
+    switch (m_direction) {
+      case 0: m_bpos.y -= 1; break;
+      case 1: m_bpos.y += 1; break;
+      case 2: m_bpos.z -= 1; break;
+      case 3: m_bpos.z += 1; break;
+      case 4: m_bpos.x -= 1; break;
+      case 6: m_bpos.x += 1; break;
+    }
   }
 
+  const IntVector3& getClickPosition() const { return m_pos; }
+
+  const IntVector3& getBlockPosition() const { return m_bpos; }
+
+  int16_t getId() const { return m_item_or_block; }
+
   private:
-  IntVector3 m_pos;
+  IntVector3 m_pos, m_bpos;
   int8_t     m_direction;
   int8_t     m_amount;
   int16_t    m_damage;

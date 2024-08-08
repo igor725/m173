@@ -42,6 +42,8 @@ class IWorld {
 
   virtual bool setBlock(const IntVector3& pos, BlockId id, int8_t meta) = 0;
 
+  virtual BlockId getBlock(const IntVector3& pos, int8_t* meta = nullptr) = 0;
+
   virtual void advanceTick(int64_t delta) = 0;
 
   virtual int64_t getTime() const = 0;

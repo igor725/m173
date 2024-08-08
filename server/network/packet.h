@@ -168,5 +168,6 @@ class PacketWriter {
 
   inline int8_t floor_double8(double_t d) { return int8_t(std::round(d)); }
 
+  protected:
   std::vector<char> m_data;
 };

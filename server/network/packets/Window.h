@@ -55,6 +55,28 @@ class CloseWindow: private PacketWriter {
   CloseWindow(WinId wid): PacketWriter(Packet::IDs::CloseWindow) { writeInteger(wid); }
 };
 
+class ItemsWindow: private PacketWriter {
+  public:
+  using PacketWriter::sendTo;
+
+  ItemsWindow(WinId wid): PacketWriter(Packet::IDs::ItemsWindow) {
+    writeInteger<int8_t>(wid);
+    writeInteger<int16_t>(m_count = 0);
+  }
+
+  void addItem(ItemId iid, int8_t count, int16_t uses) {
+    (*(reinterpret_cast<int16_t*>(m_data.data() + 2))) = bswap(++m_count);
+    writeInteger<int16_t>(iid);
+    if (iid >= 0) {
+      writeInteger<int8_t>(count);
+      writeInteger<int16_t>(uses);
+    }
+  }
+
+  private:
+  int16_t m_count;
+};
+
 class UpdateWindow: private PacketWriter {
   public:
   using PacketWriter::sendTo;

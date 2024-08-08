@@ -52,9 +52,3 @@ enum Dimension : int8_t {
   Overworld = 0,
   Nether    = -1,
 };
-
-enum DigStatus : int8_t {
-  Started  = 0,
-  Finished = 2,
-  DropItem = 4,
-};

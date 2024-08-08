@@ -79,6 +79,12 @@ class World: public IWorld {
     return true;
   }
 
+  BlockId getBlock(const IntVector3& pos, int8_t* meta) final {
+    auto chunk = getChunk({pos.x >> 4, pos.z >> 4});
+    if (chunk == nullptr) return false;
+    return chunk->m_blocks[chunk->getWorldIndex(pos)];
+  }
+
   void advanceTick(int64_t delta) final {
     if ((m_witime += delta) > 1000) {
       m_wtime += 20;

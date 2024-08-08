@@ -41,6 +41,43 @@ class UngracefulClosingException: public std::exception {
   std::string m_what;
 };
 
+class HackedClientException: public std::exception {
+  public:
+  enum Reasons {
+    WrongBlockPlace,
+    _ReasonsCount,
+  };
+
+  HackedClientException(Reasons r) { m_what = std::format("It appear your client is hacked! ({})", ReasonNames[r]); }
+
+  const char* what() const noexcept override { return m_what.c_str(); }
+
+  private:
+  const char* ReasonNames[_ReasonsCount] = {
+      "WrongBlockPlace",
+  };
+
+  std::string m_what;
+};
+
+bool isBlockInteractive(BlockId block) {
+  switch (block) {
+    case 23:
+    case 25:
+    case 26:
+    case 54:
+    case 58:
+    case 61:
+    case 62:
+    case 64:
+    case 71:
+    case 77:
+    case 84: return true;
+
+    default: return false;
+  }
+}
+
 ClientLoop::ClientLoop(sockpp::tcp_socket& sock, sockpp::inet_address& addr) {
   std::thread reader(ThreadLoop, std::move(sock), std::move(addr));
   reader.detach();
@@ -92,35 +129,54 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
           }
 
           {
-            IntVector2 chunkpos = {0, 0};
-            auto&      world    = accessWorld();
-            auto       chunk    = world.getChunk(chunkpos);
+            auto& world = accessWorld();
 
             linkedEntity->setTime(world.getTime());
 
-            Packet::ToClient::PreChunk wdata_pc(chunkpos, true);
-            wdata_pc.sendTo(ss);
+            for (int32_t cx = -10; cx <= 10; ++cx) {
+              for (int32_t cz = -10; cz <= 10; ++cz) {
+                IntVector2 chunkpos = {cx, cz};
+                auto       chunk    = world.getChunk(chunkpos);
 
-            if (chunk == nullptr) {
-              chunk = world.allocChunk(chunkpos);
-              chunk->m_light.fill(IWorld::Chunk::BlockPack(15, 15)); // All fullbright for now
+                Packet::ToClient::PreChunk wdata_pc(chunkpos, true);
+                wdata_pc.sendTo(ss);
 
-              for (int32_t x = 0; x < 16; ++x) {
-                for (int32_t y = 0; y < 4; ++y) {
-                  for (int32_t z = 0; z < 16; ++z) {
-                    chunk->m_blocks[chunk->getLocalIndex({x, y, z})] = y < 1 ? 7 : y < 3 ? 3 : 2;
+                if (chunk == nullptr) {
+                  chunk = world.allocChunk(chunkpos);
+                  chunk->m_light.fill(IWorld::Chunk::BlockPack(15, 15)); // All fullbright for now
+
+                  for (int32_t x = 0; x < 16; ++x) {
+                    for (int32_t y = 0; y < 4; ++y) {
+                      for (int32_t z = 0; z < 16; ++z) {
+                        chunk->m_blocks[chunk->getLocalIndex({x, y, z})] = y < 1 ? 7 : y < 3 ? 3 : 2;
+                      }
+                    }
                   }
                 }
+
+                unsigned long gzsize;
+                const auto    gzchunk = world.compressChunk(chunk, gzsize);
+
+                Packet::ToClient::MapChunk wdata_mc({cx * 16, 0, cz * 16}, CHUNK_DIMS, gzsize);
+                wdata_mc.sendTo(ss);
+
+                ss.write(gzchunk, gzsize);
               }
             }
+          }
 
-            unsigned long gzsize;
-            const auto    gzchunk = world.compressChunk(chunk, gzsize);
-
-            Packet::ToClient::MapChunk wdata_mc({0, 0, 0}, CHUNK_DIMS, gzsize);
-            wdata_mc.sendTo(ss);
-
-            ss.write(gzchunk, gzsize);
+          {
+            std::vector<ItemId>           m_items = {23, 25, 54, 61, 330, 324, 355};
+            Packet::ToClient::ItemsWindow wdata(0);
+            for (SlotId i = 0; i < 45; ++i) {
+              ItemId iid = -1;
+              if (i >= 36 && m_items.size() > 0) {
+                iid = m_items.back();
+                m_items.pop_back();
+              }
+              wdata.addItem(iid, 2, 0);
+            }
+            wdata.sendTo(ss);
           }
         } break;
         case Packet::IDs::Handshake: {
@@ -190,10 +246,48 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
               wdata.sendTo(ply->getSocket());
               return true;
             });
+          } else if (data.isDroppingBlock()) {
+            // todo drop block
           }
         } break;
         case Packet::IDs::BlockPlace: {
           Packet::FromClient::BlockPlace data(ss);
+
+          if (auto activatedBlock = accessWorld().getBlock(data.getClickPosition())) {
+            if (isBlockInteractive(activatedBlock)) {
+              switch (activatedBlock) {
+                case 23: {
+                  Packet::ToClient::OpenWindow wdata(1, 3, "Dispenser", 9);
+                  wdata.sendTo(ss);
+                } break;
+                case 58: {
+                  Packet::ToClient::OpenWindow wdata(1, 1, "Crafting", 9);
+                  wdata.sendTo(ss);
+                } break;
+                case 61: {
+                  Packet::ToClient::OpenWindow wdata(1, 2, "Furnace", 9);
+                  wdata.sendTo(ss);
+                } break;
+              }
+              break;
+            }
+          }
+
+          if (auto id = data.getId()) {
+            if (id > 255) break;
+
+            accessWorld().setBlock(data.getBlockPosition(), id, 0);
+
+            Packet::ToClient::BlockChange wdata(data.getBlockPosition(), id, 0);
+            accessEntityManager().IterPlayers([&wdata](IPlayer* ply) -> bool {
+              wdata.sendTo(ply->getSocket());
+              return true;
+            });
+
+            break;
+          }
+
+          throw HackedClientException(HackedClientException::WrongBlockPlace);
         } break;
         case Packet::IDs::HoldChange: {
           Packet::FromClient::PlayerHold data(ss);
