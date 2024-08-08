@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../../entity/player/player.h"
 #include "../ids.h"
 #include "../packet.h"
+#include "entity/player/player.h"
 
 namespace Packet {
 namespace FromClient {
@@ -142,6 +142,32 @@ class BlockPlace: private PacketReader {
   int16_t    m_item_or_block;
 };
 
+class PlayerAnim: private PacketReader {
+  public:
+  PlayerAnim(SafeSocket& sock): PacketReader(sock) {
+    readInteger<int32_t>();
+    m_anim = readInteger<AnimId>();
+  }
+
+  const auto& getAnimation() const { return m_anim; }
+
+  private:
+  AnimId m_anim;
+};
+
+class PlayerActionion: private PacketReader {
+  public:
+  PlayerActionion(SafeSocket& sock): PacketReader(sock) {
+    readInteger<EntityId>();
+    m_action = readInteger<int8_t>();
+  }
+
+  const auto& getAction() const { return m_action; }
+
+  private:
+  int8_t m_action;
+};
+
 class Disconnect: private PacketReader {
   public:
   Disconnect(SafeSocket& sock): PacketReader(sock) { readString(m_reason); }
@@ -166,6 +192,16 @@ class PlayerRespawn: private PacketWriter {
   using PacketWriter::sendTo;
 
   PlayerRespawn(Dimension dim): PacketWriter(Packet::IDs::PlayerRespawn) { writeInteger<Dimension>(dim); }
+};
+
+class PlayerAnim: private PacketWriter {
+  public:
+  using PacketWriter::sendTo;
+
+  PlayerAnim(EntityId eid, AnimId aid): PacketWriter(Packet::IDs::PlayerAnim) {
+    writeInteger(eid);
+    writeInteger(aid);
+  }
 };
 
 class PlayerSpawn: private PacketWriter {

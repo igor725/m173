@@ -4,17 +4,12 @@
 #include "entity/manager.h"
 #include "entity/player/player.h"
 #include "ids.h"
-#include "packets/Animation.h"
-#include "packets/Block.h"
 #include "packets/ChatMessage.h"
 #include "packets/Entity.h"
-#include "packets/EntityAction.h"
 #include "packets/Handshake.h"
-#include "packets/MapChunk.h"
-#include "packets/Ping.h"
 #include "packets/Player.h"
-#include "packets/PreChunk.h"
 #include "packets/Window.h"
+#include "packets/World.h"
 #include "safesock.h"
 #include "world/world.h"
 #include "zlibpp/zlibpp.h"
@@ -203,17 +198,18 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
         case Packet::IDs::HoldChange: {
           Packet::FromClient::PlayerHold data(ss);
         } break;
-        case Packet::IDs::Animation: {
-          Packet::FromClient::Animation data(ss);
+        case Packet::IDs::PlayerAnim: {
+          Packet::FromClient::PlayerAnim data(ss);
 
-          Packet::ToClient::Animation wdata(linkedEntity->getEntityId(), data.getAnimation());
+          // Just forwarding the packet for now, I don't want to handle it (just yet)
+          Packet::ToClient::PlayerAnim wdata(linkedEntity->getEntityId(), data.getAnimation());
           accessEntityManager().IterPlayers([&wdata, linkedEntity](IPlayer* ply) -> bool {
             if (ply != linkedEntity) wdata.sendTo(ply->getSocket());
             return true;
           });
         } break;
-        case Packet::IDs::EntityAct: {
-          Packet::FromClient::EntityAction data(ss);
+        case Packet::IDs::PlayerAction: {
+          Packet::FromClient::PlayerActionion data(ss);
 
           switch (data.getAction()) {
             case 1: {
@@ -223,6 +219,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
               linkedEntity->setCrouching(false);
             } break;
             case 3: {
+              // todo something up with the bed action
             } break;
           }
         } break;
@@ -245,7 +242,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
           linkedEntity->setTime(accessWorld().getTime()); // Sync world time, just in case
         }
 
-        Packet::ToClient::Ping data;
+        Packet::ToClient::KeepAlive data;
         data.sendTo(ss);
 
         nextPing = currTime + pingFreq;

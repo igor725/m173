@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../network/safesock.h"
 #include "../entitybase.h"
+#include "network/safesock.h"
 
 #include <memory>
 #include <sockpp/tcp_socket.h>

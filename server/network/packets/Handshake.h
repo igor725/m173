@@ -3,38 +3,6 @@
 #include "../ids.h"
 #include "../packet.h"
 
-#include <exception>
-
-class InvalidNameException: public std::exception {
-  public:
-  enum Reason {
-    NameTooLong,
-    ProhibitSymbols,
-  };
-
-  InvalidNameException(Reason r, uint32_t add) {
-    switch (r) {
-      case NameTooLong: {
-        m_what = std::format("Your name is {} symbols long, 16 is maximum allowed!", add);
-      } break;
-      case ProhibitSymbols: {
-        m_what = std::format("Your name contains {} prohibited symbols!", add);
-      } break;
-    }
-  }
-
-  const char* what() const noexcept override { return m_what.c_str(); }
-
-  private:
-  std::string m_what;
-};
-
-static inline void testUserName(const std::wstring& name) {
-  const auto nameLen = name.size();
-  if (nameLen > 16) throw InvalidNameException(InvalidNameException::NameTooLong, nameLen);
-  // todo prohibited symbols test
-}
-
 namespace Packet {
 namespace FromClient {
 class LoginRequest: private PacketReader {
@@ -51,6 +19,9 @@ class LoginRequest: private PacketReader {
   auto& getName() const { return m_name; }
 
   private:
+  void testProtoVer(int32_t proto);
+  void testUserName(const std::wstring& name);
+
   int32_t      m_protover;
   std::wstring m_name;
 };
@@ -70,6 +41,13 @@ class Handshake: private PacketReader {
 } // namespace FromClient
 
 namespace ToClient {
+class KeepAlive: private PacketWriter {
+  public:
+  using PacketWriter::sendTo;
+
+  KeepAlive(): PacketWriter(Packet::IDs::KeepAlive) {}
+};
+
 class LoginRequest: private PacketWriter {
   public:
   using PacketWriter::sendTo;

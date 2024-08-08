@@ -1,11 +1,10 @@
 #include "player.h"
 
-#include "../../network/packets/ChatMessage.h"
-#include "../../network/packets/Handshake.h"
-#include "../../network/packets/Player.h"
-#include "../../network/packets/SpawnPosition.h"
-#include "../../network/packets/TimeUpdate.h"
-#include "../../network/safesock.h"
+#include "network/packets/ChatMessage.h"
+#include "network/packets/Handshake.h"
+#include "network/packets/Player.h"
+#include "network/packets/World.h"
+#include "network/safesock.h"
 #include "world/world.h"
 
 class Player: public IPlayer {

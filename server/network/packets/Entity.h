@@ -123,5 +123,18 @@ class EntityMeta: private PacketWriter {
 
   void finish() { writeInteger<int8_t>(0x7f); }
 };
+
+class SpawnThunderbolt: private PacketWriter {
+  public:
+  using PacketWriter::sendTo;
+
+  SpawnThunderbolt(EntityId eid, const IntVector3& pos): PacketWriter(Packet::IDs::Thunderbolt) {
+    writeInteger(eid);
+    writeBoolean(true);
+    writeInteger(pos.x);
+    writeInteger(pos.y);
+    writeInteger(pos.z);
+  }
+};
 } // namespace ToClient
 } // namespace Packet
