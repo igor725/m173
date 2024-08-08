@@ -20,7 +20,7 @@ class ClickWindow: private PacketReader {
   public:
   ClickWindow(SafeSocket& sock): PacketReader(sock) {
     readInteger<WinId>();                        // Window ID
-    readInteger<int16_t>();                      // Slot number
+    readInteger<SlotId>();                       // Slot number
     readBoolean();                               // Is right click
     readInteger<int16_t>();                      // Action number
     readBoolean();                               // Is shift pressed

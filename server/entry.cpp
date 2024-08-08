@@ -1,6 +1,7 @@
 #include "commands/command.h"
 #include "config/config.h"
 #include "network/clientloop.h"
+#include "world/world.h"
 
 #include <sockpp/tcp_acceptor.h>
 #include <spdlog/spdlog.h>
@@ -11,6 +12,7 @@ int main(int argc, char* argv[]) {
   sockpp::initialize();
   (void)accessCommandHandler();
   (void)accessConfig();
+  (void)accessWorld();
   spdlog::info("Loading config...");
   {
     auto& lvl    = accessConfig().getItem("logging.level");

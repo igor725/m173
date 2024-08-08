@@ -18,6 +18,7 @@ typedef int8_t  AnimId;
 typedef int8_t  WinId;
 typedef int8_t  InvId;
 typedef uint8_t PacketId;
+typedef int16_t SlotId;
 
 struct IntVector2 {
   int32_t x, z;
@@ -56,52 +57,4 @@ enum DigStatus : int8_t {
   Started  = 0,
   Finished = 2,
   DropItem = 4,
-};
-
-enum SlotId : int16_t {
-  CraftResult,
-  CraftSlot_0,
-  CraftSlot_1,
-  CraftSlot_2,
-  CraftSlot_3,
-  ArmorHead,
-  ArmorChest,
-  ArmorPants,
-  ArmorLegs,
-  InvSlot_1x1,
-  InvSlot_1x2,
-  InvSlot_1x3,
-  InvSlot_1x4,
-  InvSlot_1x5,
-  InvSlot_1x6,
-  InvSlot_1x7,
-  InvSlot_1x8,
-  InvSlot_1x9,
-  InvSlot_2x1,
-  InvSlot_2x2,
-  InvSlot_2x3,
-  InvSlot_2x4,
-  InvSlot_2x5,
-  InvSlot_2x6,
-  InvSlot_2x7,
-  InvSlot_2x8,
-  InvSlot_2x9,
-  InvSlot_3x1,
-  InvSlot_3x2,
-  InvSlot_3x3,
-  InvSlot_3x4,
-  InvSlot_3x5,
-  InvSlot_3x6,
-  InvSlot_3x7,
-  InvSlot_3x8,
-  InvSlot_3x9,
-  Hotbar_0,
-  Hotbar_1,
-  Hotbar_2,
-  Hotbar_3,
-  Hotbar_4,
-  Hotbar_5,
-  Hotbar_6,
-  Hotbar_7,
-  Hotbar_8,
 };
