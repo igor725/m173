@@ -179,9 +179,9 @@ class PlayerAnim: private PacketReader {
   AnimId m_anim;
 };
 
-class PlayerActionion: private PacketReader {
+class PlayerAction: private PacketReader {
   public:
-  PlayerActionion(SafeSocket& sock): PacketReader(sock) {
+  PlayerAction(SafeSocket& sock): PacketReader(sock) {
     readInteger<EntityId>();
     m_action = readInteger<int8_t>();
   }
@@ -204,34 +204,26 @@ class Disconnect: private PacketReader {
 } // namespace FromClient
 
 namespace ToClient {
-class PlayerHealth: private PacketWriter {
+class PlayerHealth: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   PlayerHealth(int16_t health): PacketWriter(Packet::IDs::PlayerHealth) { writeInteger(health); }
 };
 
-class PlayerRespawn: private PacketWriter {
+class PlayerRespawn: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   PlayerRespawn(Dimension dim): PacketWriter(Packet::IDs::PlayerRespawn) { writeInteger<Dimension>(dim); }
 };
 
-class PlayerAnim: private PacketWriter {
+class PlayerAnim: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   PlayerAnim(EntityId eid, AnimId aid): PacketWriter(Packet::IDs::PlayerAnim) {
     writeInteger(eid);
     writeInteger(aid);
   }
 };
 
-class PlayerSpawn: private PacketWriter {
+class PlayerSpawn: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   PlayerSpawn(IPlayer* player): PacketWriter(Packet::IDs::PlayerSpawn) {
     auto& position = player->getPosition();
     auto& rotation = player->getRotation();
@@ -253,18 +245,16 @@ class PlayerSpawn: private PacketWriter {
   }
 };
 
-class PlayerPosAndLook: private PacketWriter {
+class PlayerPosAndLook: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   PlayerPosAndLook(IPlayer* player): PacketWriter(Packet::IDs::PlayerPnL) {
     auto& position = player->getPosition();
     auto& rotation = player->getRotation();
 
     /* Player position */
     writeFloating(position.x);
-    writeFloating(player->getStance());
     writeFloating(position.y);
+    writeFloating(player->getStance());
     writeFloating(position.z);
 
     /* Player rotation */
@@ -276,10 +266,8 @@ class PlayerPosAndLook: private PacketWriter {
   }
 };
 
-class PlayerKick: private PacketWriter {
+class PlayerKick: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   PlayerKick(const std::wstring& reason): PacketWriter(Packet::IDs::ConnectionFin) { writeString(reason); }
 };
 } // namespace ToClient

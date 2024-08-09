@@ -6,17 +6,13 @@
 
 namespace Packet {
 namespace ToClient {
-class TimeUpdate: private PacketWriter {
+class TimeUpdate: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   TimeUpdate(int64_t time): PacketWriter(Packet::IDs::TimeUpdate) { writeInteger(time); }
 };
 
-class SpawnPosition: private PacketWriter {
+class SpawnPosition: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   SpawnPosition(const IntVector3& pos): PacketWriter(Packet::IDs::SpawnPos) {
     writeInteger(pos.x);
     writeInteger(pos.y);
@@ -24,10 +20,8 @@ class SpawnPosition: private PacketWriter {
   }
 };
 
-class BlockChange: private PacketWriter {
+class BlockChange: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   BlockChange(const IntVector3& pos, BlockId type, int8_t meta): PacketWriter(Packet::IDs::BlockChg) {
     writeInteger(pos.x);
     writeInteger<int8_t>(pos.y);
@@ -37,10 +31,8 @@ class BlockChange: private PacketWriter {
   }
 };
 
-class PreChunk: private PacketWriter {
+class PreChunk: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   PreChunk(const IntVector2& pos, bool init): PacketWriter(Packet::IDs::PreChunk) {
     writeInteger(pos.x);
     writeInteger(pos.z);
@@ -48,10 +40,8 @@ class PreChunk: private PacketWriter {
   }
 };
 
-class MapChunk: private PacketWriter {
+class MapChunk: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   MapChunk(const IntVector3& pos, const ByteVector3& size, int32_t datasize): PacketWriter(Packet::IDs::MapChunk) {
     writeInteger(pos.x);
     writeInteger<int16_t>(pos.y);
@@ -63,10 +53,8 @@ class MapChunk: private PacketWriter {
   }
 };
 
-class SignUpdate: private PacketWriter {
+class SignUpdate: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   SignUpdate(const IntVector3& pos, const std::wstring& data);
 
   private:

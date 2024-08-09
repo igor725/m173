@@ -1,4 +1,4 @@
-#include "command.h"
+#include "handler.h"
 
 class CommandHandler: public ICommandHandler {
   public:

@@ -1,4 +1,3 @@
-#include "commands/command.h"
 #include "config/config.h"
 #include "network/clientloop.h"
 #include "world/world.h"
@@ -10,7 +9,6 @@ int main(int argc, char* argv[]) {
   // spdlog::set_level(spdlog::level::trace);
   spdlog::info("Initializing libraries...");
   sockpp::initialize();
-  (void)accessCommandHandler();
   (void)accessConfig();
   (void)accessWorld();
   spdlog::info("Loading config...");
@@ -21,21 +19,6 @@ int main(int argc, char* argv[]) {
     spdlog::set_level(spdlvl);
   }
   spdlog::info("Registering base commands...");
-  {
-    class Test: public Command {
-  public:
-      Test(): Command(L"test", L"Test message") {}
-
-      bool execute(IPlayer* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
-        (void)caller;
-        (void)args;
-        out = L"Yay! Test command!!!";
-        return true;
-      }
-    };
-
-    static Test reg;
-  }
 
   auto& port  = accessConfig().getItem("bind.port");
   auto& qsize = accessConfig().getItem("bind.queue_size");

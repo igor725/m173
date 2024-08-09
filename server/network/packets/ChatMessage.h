@@ -17,11 +17,9 @@ class ChatMessage: private PacketReader {
 } // namespace FromClient
 
 namespace ToClient {
-class ChatMessage: private PacketWriter {
+class ChatMessage: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
-  ChatMessage(const std::wstring& message): PacketWriter(Packet::IDs::ChatMessage) { writeString(message); }
+    ChatMessage(const std::wstring& message): PacketWriter(Packet::IDs::ChatMessage) { writeString(message); }
 };
 } // namespace ToClient
 } // namespace Packet

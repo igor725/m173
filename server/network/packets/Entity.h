@@ -23,24 +23,18 @@ class EntityClick: private PacketReader {
 } // namespace FromClient
 
 namespace ToClient {
-class EntityDestroy: private PacketWriter {
+class EntityDestroy: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   EntityDestroy(EntityId eid): PacketWriter(Packet::IDs::EntityDestroy) { writeInteger(eid); }
 };
 
-class EntityIdle: private PacketWriter {
+class EntityIdle: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   EntityIdle(EntityId eid): PacketWriter(Packet::IDs::EntityIdle) { writeInteger(eid); }
 };
 
-class EntityRelaMove: private PacketWriter {
+class EntityRelaMove: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   EntityRelaMove(EntityBase* entity): PacketWriter(Packet::IDs::EntityRelMove) {
     DoubleVector3 diff;
     entity->popPositionDiff(diff);
@@ -50,10 +44,8 @@ class EntityRelaMove: private PacketWriter {
   }
 };
 
-class EntityLook: private PacketWriter {
+class EntityLook: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   EntityLook(EntityBase* entity): PacketWriter(Packet::IDs::EntityLook) {
     auto& rot = entity->getRotation();
     writeInteger(entity->getEntityId());
@@ -62,10 +54,8 @@ class EntityLook: private PacketWriter {
   }
 };
 
-class EntityLookRM: private PacketWriter {
+class EntityLookRM: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   EntityLookRM(EntityBase* entity): PacketWriter(Packet::IDs::EntityLookRM) {
     DoubleVector3 diff;
     entity->popPositionDiff(diff);
@@ -78,10 +68,8 @@ class EntityLookRM: private PacketWriter {
   }
 };
 
-class EntitySetPos: private PacketWriter {
+class EntitySetPos: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   EntitySetPos(EntityBase* entity): PacketWriter(Packet::IDs::EntitySetPos) {
     auto& pos = entity->getPosition();
     auto& rot = entity->getRotation();
@@ -93,10 +81,28 @@ class EntitySetPos: private PacketWriter {
   }
 };
 
-class EntityMeta: private PacketWriter {
+class EntityStatus: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
+  enum Type : int8_t {
+    Unknown1,
+    Unknown2,
+    Hurted,
+    Dead,
+    Unknown3,
+    Unknown4,
+    WolfHeartsFX_off,
+    WolfHeartsFX_on,
+    WolfShaking, // ???
+  };
 
+  EntityStatus(EntityId eid, Type type): PacketWriter(Packet::IDs::EntityStatus) {
+    writeInteger(eid);
+    writeInteger(type);
+  }
+};
+
+class EntityMeta: public PacketWriter {
+  public:
   EntityMeta(EntityId eid): PacketWriter(Packet::IDs::EntityMeta) { writeInteger(eid); }
 
   void putHeader(int8_t type, int8_t valueid) { writeInteger<int8_t>((type << 5 | valueid & 31) & 255); }
@@ -124,10 +130,8 @@ class EntityMeta: private PacketWriter {
   void finish() { writeInteger<int8_t>(0x7f); }
 };
 
-class SpawnThunderbolt: private PacketWriter {
+class SpawnThunderbolt: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   SpawnThunderbolt(EntityId eid, const IntVector3& pos): PacketWriter(Packet::IDs::Thunderbolt) {
     writeInteger(eid);
     writeBoolean(true);

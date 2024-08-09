@@ -36,6 +36,14 @@ class EntityManager: public IEntityManager {
     return true;
   }
 
+  bool IterEntities(EntityIterCallback cb) final {
+    for (auto it = m_loadedents.begin(); it != m_loadedents.end(); ++it) {
+      if (!cb(it->second.get())) return false;
+    }
+
+    return true;
+  }
+
   private:
   std::unordered_map<EntityId, std::unique_ptr<EntityBase>> m_loadedents;
 };

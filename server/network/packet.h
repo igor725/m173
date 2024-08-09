@@ -26,16 +26,6 @@ T bswap(T val) {
 
 class PacketReader {
   public:
-#pragma region(Reader::Types)
-
-  enum class Direction {
-    Both,
-    ToClient,
-    ToServer,
-  };
-
-#pragma endregion()
-
 #pragma region(Exceptions)
 
   class ReadException: public std::exception {
@@ -51,6 +41,7 @@ private:
 
   PacketReader(SafeSocket& sock): m_sock(sock) {}
 
+  protected:
   template <typename T>
   T readInteger() {
     T rint;
@@ -113,6 +104,9 @@ class PacketWriter {
   public:
   PacketWriter(PacketId id) { writeInteger<int8_t>(id); }
 
+  bool sendTo(SafeSocket& sock) { return sock.write(m_data.data(), m_data.size()); }
+
+  protected:
   template <typename T>
   void writeInteger(T wint) {
     if (sizeof(T) == 1) {
@@ -158,10 +152,6 @@ class PacketWriter {
     writeInteger<int8_t>(floor_double8(pos.y * 32.0));
     writeInteger<int8_t>(floor_double8(pos.z * 32.0));
   }
-
-  bool sendTo(SafeSocket& sock) { return sock.write(m_data.data(), m_data.size()); }
-
-  const std::vector<char>& getData() const { return m_data; }
 
   private:
   inline int32_t floor_double(double_t d) { return int32_t(std::round(d)); }

@@ -17,6 +17,7 @@ constexpr size_t CONFIG_MAX_STRING_SIZE = 32;
 typedef uint8_t ConfigFlags; // This type should be increased if flags count > 8
 
 constexpr ConfigFlags CONFIG_ITEM_FLAG_CHANGED = 1 << 0;
+constexpr ConfigFlags CONFIG_ITEM_FLAG_LOADED  = 1 << 1;
 
 // Config exceptions
 class ConfigUnknownEntryException: public std::exception {
@@ -117,6 +118,10 @@ class ConfigItem {
     m_flags |= CONFIG_ITEM_FLAG_CHANGED;
   }
 
+  void markAsLoaded() { m_flags |= CONFIG_ITEM_FLAG_LOADED; }
+
+  bool isLoaded() const { return m_flags & CONFIG_ITEM_FLAG_LOADED; }
+
   bool isChanged() const { return m_flags & CONFIG_ITEM_FLAG_CHANGED; }
 
   void clearChanged() { m_flags &= ~CONFIG_ITEM_FLAG_CHANGED; }
@@ -129,13 +134,11 @@ class IConfig {
   IConfig()          = default;
   virtual ~IConfig() = default;
 
-  virtual void loadData()  = 0;
-  virtual void saveData()  = 0;
-  virtual bool isChanged() = 0;
+  virtual void loadData()                   = 0;
+  virtual void saveData(bool force = false) = 0;
+  virtual bool isChanged()                  = 0;
 
   virtual ConfigItem& getItem(std::string_view name) = 0;
-
-  private:
 };
 
 IConfig& accessConfig();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../entitybase.h"
+#include "network/packet.h"
 #include "network/safesock.h"
 
 #include <memory>
@@ -16,6 +17,13 @@ class IPlayer: public EntityBase {
   virtual bool sendData(const void* data, size_t dsize) = 0;
 
   virtual bool sendChat(std::wstring& message) = 0;
+
+  /* Entity tracking */
+
+  virtual bool updateTrackedEntities()                                   = 0;
+  virtual void sendToTrackedPlayers(PacketWriter& pw, bool self = false) = 0;
+  virtual bool addTrackedEntity(EntityBase* ent)                         = 0;
+  virtual bool removeTrackedEntity(EntityBase* ent)                      = 0;
 
   /* Health control functions */
 

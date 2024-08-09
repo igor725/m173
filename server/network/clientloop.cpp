@@ -1,6 +1,6 @@
 #include "clientloop.h"
 
-#include "commands/command.h"
+#include "commands/handler.h"
 #include "entity/manager.h"
 #include "entity/player/player.h"
 #include "ids.h"
@@ -118,19 +118,6 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
           linkedEntity->updateWorldChunks(true);
 
           {
-            Packet::ToClient::PlayerSpawn wdata(linkedEntity);
-            accessEntityManager().IterPlayers([linkedEntity, &wdata](IPlayer* ply) -> bool {
-              if (ply != linkedEntity) {
-                wdata.sendTo(ply->getSocket());
-
-                Packet::ToClient::PlayerSpawn owdata(ply);
-                owdata.sendTo(linkedEntity->getSocket());
-              }
-              return true;
-            });
-          }
-
-          {
             std::vector<ItemId>           m_items = {23, 25, 54, 61, 330, 324, 355};
             Packet::ToClient::ItemsWindow wdata(0);
             for (SlotId i = 0; i < 45; ++i) {
@@ -176,8 +163,8 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
         } break;
         case Packet::IDs::PlayerRespawn: {
           Packet::FromClient::Respawn data(ss);
-          /* todo: Teleport player to World's spawn point */
           linkedEntity->respawn();
+          linkedEntity->teleportPlayer(accessWorld().getSpawnPoint());
         } break;
         case Packet::IDs::PlayerFall: {
           Packet::FromClient::PlayerFall data(ss);
@@ -193,7 +180,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
           linkedEntity->setRotation(data.getAngle());
           lookUpdated = true;
         } break;
-        case Packet::IDs::PlayerPnL: { // todo
+        case Packet::IDs::PlayerPnL: {
           Packet::FromClient::PlayerPosAndLook data(ss);
           linkedEntity->setPosition(data.getPosition());
           linkedEntity->setStance(data.getStance());
@@ -207,11 +194,10 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
             accessWorld().setBlock(data.getPosition(), 0, 0);
 
             Packet::ToClient::BlockChange wdata(data.getPosition(), 0, 0);
-            accessEntityManager().IterPlayers([&wdata](IPlayer* ply) -> bool {
-              wdata.sendTo(ply->getSocket());
-              return true;
-            });
+            linkedEntity->sendToTrackedPlayers(wdata, true);
           } else if (data.isDroppingBlock()) {
+            Packet::ToClient::ChatMessage wdata(L"* Item dropping is not implemented yet :(");
+            wdata.sendTo(linkedEntity->getSocket());
             // todo drop block
           }
         } break;
@@ -239,16 +225,12 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
           }
 
           if (auto id = data.getId()) {
-            if (id > 255) break;
+            if (id < 1 || id > 255) break;
 
             accessWorld().setBlock(data.getBlockPosition(), id, 0);
 
             Packet::ToClient::BlockChange wdata(data.getBlockPosition(), id, 0);
-            accessEntityManager().IterPlayers([&wdata](IPlayer* ply) -> bool {
-              wdata.sendTo(ply->getSocket());
-              return true;
-            });
-
+            linkedEntity->sendToTrackedPlayers(wdata, true);
             break;
           }
 
@@ -262,13 +244,10 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
 
           // Just forwarding the packet for now, I don't want to handle it (just yet)
           Packet::ToClient::PlayerAnim wdata(linkedEntity->getEntityId(), data.getAnimation());
-          accessEntityManager().IterPlayers([&wdata, linkedEntity](IPlayer* ply) -> bool {
-            if (ply != linkedEntity) wdata.sendTo(ply->getSocket());
-            return true;
-          });
+          linkedEntity->sendToTrackedPlayers(wdata);
         } break;
         case Packet::IDs::PlayerAction: {
-          Packet::FromClient::PlayerActionion data(ss);
+          Packet::FromClient::PlayerAction data(ss);
 
           switch (data.getAction()) {
             case 1: {
@@ -318,39 +297,24 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
 
           if (++posUpdateNum >= 400 || linkedEntity->getMoveDistance() > 4) {
             Packet::ToClient::EntitySetPos wdata_es(linkedEntity);
-            accessEntityManager().IterPlayers([&wdata_es, linkedEntity](IPlayer* ply) -> bool {
-              if (ply != linkedEntity) wdata_es.sendTo(ply->getSocket());
-              return true;
-            });
+            linkedEntity->sendToTrackedPlayers(wdata_es);
           } else if (lookUpdated) {
             Packet::ToClient::EntityLookRM wdata_er(linkedEntity);
-            accessEntityManager().IterPlayers([&wdata_er, linkedEntity](IPlayer* ply) -> bool {
-              if (ply != linkedEntity) wdata_er.sendTo(ply->getSocket());
-              return true;
-            });
+            linkedEntity->sendToTrackedPlayers(wdata_er);
           } else {
             Packet::ToClient::EntityRelaMove wdata_erm(linkedEntity);
-            accessEntityManager().IterPlayers([&wdata_erm, linkedEntity](IPlayer* ply) -> bool {
-              if (ply != linkedEntity) wdata_erm.sendTo(ply->getSocket());
-              return true;
-            });
+            linkedEntity->sendToTrackedPlayers(wdata_erm);
           }
         } else if (lookUpdated) {
           Packet::ToClient::EntityLook wdata_el(linkedEntity);
-          accessEntityManager().IterPlayers([&wdata_el, linkedEntity](IPlayer* ply) -> bool {
-            if (ply != linkedEntity) wdata_el.sendTo(ply->getSocket());
-            return true;
-          });
+          linkedEntity->sendToTrackedPlayers(wdata_el);
         }
 
         if (linkedEntity->isFlagsChanged()) {
           Packet::ToClient::EntityMeta wdata_em(linkedEntity->getEntityId());
           wdata_em.putByte(0, linkedEntity->popFlags());
           wdata_em.finish();
-          accessEntityManager().IterPlayers([&wdata_em, linkedEntity](IPlayer* ply) -> bool {
-            if (ply != linkedEntity) wdata_em.sendTo(ply->getSocket());
-            return true;
-          });
+          linkedEntity->sendToTrackedPlayers(wdata_em);
         }
       }
 
@@ -376,11 +340,6 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
 
   spdlog::info("Client {} closed!", addr.to_string());
   if (linkedEntity) {
-    Packet::ToClient::EntityDestroy wdata_ed(linkedEntity->getEntityId());
-    accessEntityManager().IterPlayers([&wdata_ed](IPlayer* ply) -> bool {
-      wdata_ed.sendTo(ply->getSocket());
-      return true;
-    });
     accessEntityManager().RemoveEntity(linkedEntity->getEntityId());
     // todo another cleanup? like, unloading world's chunk if no more players there
   }

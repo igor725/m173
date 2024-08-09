@@ -6,10 +6,8 @@
 
 namespace Packet {
 namespace ToClient {
-class SoundEffect: private PacketWriter {
+class SoundEffect: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   enum EffectId {
     Click2     = 1000,
     Click1     = 1001,

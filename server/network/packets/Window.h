@@ -36,10 +36,8 @@ class ClickWindow: private PacketReader {
 } // namespace FromClient
 
 namespace ToClient {
-class OpenWindow: private PacketWriter {
+class OpenWindow: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   OpenWindow(WinId wid, InvId iid, const std::string& name, int8_t numslots): PacketWriter(Packet::IDs::NewWindow) {
     writeInteger(wid);
     writeInteger(iid);
@@ -48,17 +46,13 @@ class OpenWindow: private PacketWriter {
   }
 };
 
-class CloseWindow: private PacketWriter {
+class CloseWindow: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   CloseWindow(WinId wid): PacketWriter(Packet::IDs::CloseWindow) { writeInteger(wid); }
 };
 
-class ItemsWindow: private PacketWriter {
+class ItemsWindow: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   ItemsWindow(WinId wid): PacketWriter(Packet::IDs::ItemsWindow) {
     writeInteger<int8_t>(wid);
     writeInteger<int16_t>(m_count = 0);
@@ -77,10 +71,8 @@ class ItemsWindow: private PacketWriter {
   int16_t m_count;
 };
 
-class UpdateWindow: private PacketWriter {
+class UpdateWindow: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   UpdateWindow(WinId wid, int16_t type, int16_t value): PacketWriter(Packet::IDs::UpdateWindow) {
     writeInteger(wid);
     writeInteger(type);
@@ -88,10 +80,8 @@ class UpdateWindow: private PacketWriter {
   }
 };
 
-class TransactionWindow: private PacketWriter {
+class TransactionWindow: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   TransactionWindow(WinId wid, int16_t anum, bool accepted): PacketWriter(Packet::IDs::TransactWindow) {
     writeInteger(wid);
     writeInteger(anum);

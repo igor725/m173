@@ -18,7 +18,7 @@ class Config: public IConfig {
 
     std::ifstream cfile(CONFIG_NAME.data(), std::ios::in);
     if (!cfile.is_open()) {
-      saveData();
+      saveData(true);
       return;
     }
 
@@ -28,7 +28,7 @@ class Config: public IConfig {
 
       try {
         auto& item = getItem(tempstr);
-        std::getline(cfile, tempstr);
+        std::getline(cfile, tempstr); // Receiving the value
 
         switch (item.getType()) {
           case ConfigType::BOOL: {
@@ -54,14 +54,22 @@ class Config: public IConfig {
 
         // No need to keep "changed" flag for loaded entry
         item.clearChanged();
+        item.markAsLoaded();
       } catch (ConfigUnknownEntryException& ex) {
         // This exception can be safely ignored
       }
     }
+
+    for (auto it = m_list.begin(); it != m_list.end(); ++it) {
+      if (!it->second.isLoaded()) {
+        saveData(true);
+        return;
+      }
+    }
   }
 
-  void saveData() final {
-    if (!isChanged()) return;
+  void saveData(bool force = false) final {
+    if (!force && !isChanged()) return;
 
     std::ofstream cfile(CONFIG_NAME.data(), std::ios::out);
 
@@ -110,7 +118,7 @@ IConfig& accessConfig() {
       {"logging.level", {"info"}},
       {"bind.port", {25565u}},
       {"bind.queue_size", {4u}},
-      {"chunk.load_distance", {20u}},
+      {"chunk.load_distance", {10u}},
   });
   return inst;
 }

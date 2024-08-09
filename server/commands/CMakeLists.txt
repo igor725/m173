@@ -1,5 +1,6 @@
 add_library(commands OBJECT
-  command.cpp
+  handler.cpp
+  clist.cpp
 )
 
 target_link_libraries(commands PRIVATE spdlog::spdlog)

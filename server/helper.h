@@ -34,6 +34,25 @@ struct IntVector3 {
 
 struct DoubleVector3 {
   double_t x, y, z;
+
+  double_t distanceToNoHeight(const DoubleVector3& ovec) const {
+    const DoubleVector3 diff = {
+        .x = x - ovec.x,
+        .z = z - ovec.z,
+    };
+
+    return std::sqrt(diff.x * diff.x + diff.z * diff.z);
+  }
+
+  double_t distanceTo(const DoubleVector3& ovec) const {
+    const DoubleVector3 diff = {
+        .x = x - ovec.x,
+        .y = y - ovec.y,
+        .z = z - ovec.z,
+    };
+
+    return std::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
+  }
 };
 
 struct FloatAngle {

@@ -42,17 +42,13 @@ class Handshake: private PacketReader {
 } // namespace FromClient
 
 namespace ToClient {
-class KeepAlive: private PacketWriter {
+class KeepAlive: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   KeepAlive(): PacketWriter(Packet::IDs::KeepAlive) {}
 };
 
-class LoginRequest: private PacketWriter {
+class LoginRequest: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   LoginRequest(int32_t entId, const std::wstring& svname, int8_t dimension): PacketWriter(Packet::IDs::Login) {
     writeInteger(entId);
     writeString(svname);
@@ -61,10 +57,8 @@ class LoginRequest: private PacketWriter {
   }
 };
 
-class Handshake: private PacketWriter {
+class Handshake: public PacketWriter {
   public:
-  using PacketWriter::sendTo;
-
   Handshake(const std::wstring& connhash): PacketWriter(Packet::IDs::Handshake) { writeString(connhash); }
 };
 } // namespace ToClient

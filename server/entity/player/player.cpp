@@ -1,6 +1,9 @@
 #include "player.h"
 
+#include "config/config.h"
+#include "entity/manager.h"
 #include "network/packets/ChatMessage.h"
+#include "network/packets/Entity.h"
 #include "network/packets/Handshake.h"
 #include "network/packets/Player.h"
 #include "network/packets/World.h"
@@ -11,7 +14,23 @@
 
 class Player: public IPlayer {
   public:
-  Player(SafeSocket& sock): m_selfSock(sock) {}
+  Player(SafeSocket& sock): m_selfSock(sock) {
+    auto& dist = accessConfig().getItem("chunk.load_distance");
+
+    m_trackDistance = dist.getValue<uint32_t>();
+  }
+
+  ~Player() {
+    auto& em = accessEntityManager();
+
+    for (auto it = m_trackedEntities.begin(); it != m_trackedEntities.end(); ++it) {
+      auto ent = em.GetEntity(*it);
+      if (ent->getType() == EntityBase::Player) {
+        auto ply = dynamic_cast<IPlayer*>(ent);
+        ply->removeTrackedEntity(this);
+      }
+    }
+  }
 
   bool sendData(const void* data, size_t dsize) final { return m_selfSock.write(data, dsize); }
 
@@ -37,13 +56,29 @@ class Player: public IPlayer {
   }
 
   bool respawn() final {
-    Packet::ToClient::PlayerRespawn wdata(m_dimension);
+    using namespace Packet::ToClient;
+
+    // Mojang... Just why...
+    EntityDestroy wdata_es(getEntityId());
+    sendToTrackedPlayers(wdata_es, false);
+    PlayerSpawn wdata_ps(this);
+    sendToTrackedPlayers(wdata_ps, false);
+
+    PlayerRespawn wdata(m_dimension);
     return wdata.sendTo(m_selfSock);
   }
 
   bool setHealth(int16_t health) final {
-    Packet::ToClient::PlayerHealth wdata_ph(m_health = health);
-    return wdata_ph.sendTo(m_selfSock);
+    using namespace Packet::ToClient;
+    PlayerHealth wdata_ph(m_health = health);
+    EntityStatus wdata_es(getEntityId(), m_health > 0 ? EntityStatus::Hurted : EntityStatus::Dead);
+
+    if (wdata_ph.sendTo(m_selfSock)) {
+      sendToTrackedPlayers(wdata_es, true);
+      return true;
+    }
+
+    return false;
   }
 
   bool teleportPlayer(const DoubleVector3& pos) final {
@@ -66,6 +101,8 @@ class Player: public IPlayer {
   }
 
   bool updateWorldChunks(bool force) final {
+    std::unique_lock lock(m_lock);
+
     const auto prevchunk_pos = IWorld::Chunk::toChunkCoords({
         static_cast<int32_t>(std::round(m_prevPosition.x)),
         static_cast<int32_t>(std::round(m_prevPosition.z)),
@@ -81,7 +118,7 @@ class Player: public IPlayer {
     for (auto it = m_loadedChunks.begin(); it != m_loadedChunks.end();) {
       const auto diff = IntVector2 {it->x - currchunk_pos.x, it->z - currchunk_pos.z};
       const auto dist = std::sqrt((diff.x * diff.x) + (diff.z * diff.z));
-      if (dist > 10.0 * 2.0) {
+      if (dist > m_trackDistance * 1.5) {
         spdlog::trace("Unloading distant chunk Vec2({}, {}), distance: {}", it->x, it->z, dist);
         Packet::ToClient::PreChunk wdata_uc(*it, false);
         wdata_uc.sendTo(m_selfSock);
@@ -119,14 +156,16 @@ class Player: public IPlayer {
       dmod = {1, 1};
     }
 
+    auto dist = static_cast<int32_t>(m_trackDistance);
+
     const IntVector2 opos = {
-        .x = currchunk_pos.x + omod.x * 10 /* todo load distance config */,
-        .z = currchunk_pos.z + omod.z * 10,
+        .x = currchunk_pos.x + omod.x * dist,
+        .z = currchunk_pos.z + omod.z * dist,
     };
 
     const IntVector2 dpos = {
-        .x = currchunk_pos.x + dmod.x * 10 /* todo load distance config */,
-        .z = currchunk_pos.z + dmod.z * 10,
+        .x = currchunk_pos.x + dmod.x * dist,
+        .z = currchunk_pos.z + dmod.z * dist,
     };
 
     for (int32_t cx = opos.x; cx <= dpos.x; ++cx) {
@@ -162,6 +201,126 @@ class Player: public IPlayer {
         if (!m_selfSock.write(gzchunk, gzsize)) return false;
       }
     }
+
+    return updateTrackedEntities();
+  }
+
+  bool addTrackedEntity(EntityBase* ent) final {
+    if (ent == this) return false;
+    std::unique_lock lock(m_lock);
+
+    auto eid = ent->getEntityId();
+
+    for (auto it = m_trackedEntities.begin(); it != m_trackedEntities.end(); ++it) {
+      if (*it == eid) return true;
+    }
+
+    m_trackedEntities.push_back(eid);
+
+    switch (auto t = ent->getType()) {
+      case EntityBase::Player: {
+        auto ply = dynamic_cast<IPlayer*>(ent);
+        ply->addTrackedEntity(this);
+
+        Packet::ToClient::PlayerSpawn wdata_spawn(ply);
+        wdata_spawn.sendTo(m_selfSock);
+      } break;
+
+      default: {
+        spdlog::warn("Unhandled tracked entity type {}!", (int8_t)t);
+      } break;
+    }
+
+    return true;
+  }
+
+  auto removeTrackedEntity(std::vector<EntityId>::iterator it) {
+    auto eid = *it;
+
+    Packet::ToClient::EntityDestroy wdata_ed(eid);
+    wdata_ed.sendTo(m_selfSock);
+
+    auto nit = m_trackedEntities.erase(it);
+
+    if (auto ent = accessEntityManager().GetEntity(eid)) {
+      switch (auto t = ent->getType()) {
+        case EntityBase::Player: {
+          auto ply = dynamic_cast<IPlayer*>(ent);
+          ply->removeTrackedEntity(this);
+        } break;
+
+        default: {
+          spdlog::warn("Unhandled entity type: {}!", (int8_t)t);
+        } break;
+      }
+    }
+
+    return nit;
+  }
+
+  bool removeTrackedEntity(EntityBase* ent) final {
+    if (ent == this) return false;
+    std::unique_lock lock(m_lock);
+
+    auto eid = ent->getEntityId();
+
+    for (auto it = m_trackedEntities.begin(); it != m_trackedEntities.end(); ++it) {
+      if (*it == eid) {
+        it = removeTrackedEntity(it);
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  void sendToTrackedPlayers(PacketWriter& pw, bool self) final {
+    if (self) pw.sendTo(m_selfSock);
+
+    std::unique_lock lock(m_lock);
+
+    auto& em = accessEntityManager();
+
+    for (auto it = m_trackedEntities.begin(); it != m_trackedEntities.end();) {
+      auto ent = em.GetEntity(*it);
+
+      if (!ent) {
+        it = removeTrackedEntity(it);
+        continue;
+      }
+
+      if (ent->getType() == EntityBase::Player) {
+        pw.sendTo(dynamic_cast<IPlayer*>(ent)->getSocket());
+      }
+
+      ++it;
+    }
+  }
+
+  bool isEntityCloseEnough(EntityBase* ent) {
+    // 1.5 modifier there just in case, won't hurt much to have a bit more tracked entities
+    return ent->getPosition().distanceToNoHeight(m_position) < m_trackDistance * 1.5 * 16.0;
+  }
+
+  bool updateTrackedEntities() final {
+    std::unique_lock lock(m_lock);
+
+    auto& em = accessEntityManager();
+
+    for (auto it = m_trackedEntities.begin(); it != m_trackedEntities.end();) {
+      auto ent = em.GetEntity(*it);
+      if (ent == nullptr || !isEntityCloseEnough(ent)) {
+        it = removeTrackedEntity(it);
+        continue;
+      }
+
+      ++it;
+    }
+
+    em.IterEntities([this](EntityBase* ent) -> bool {
+      if (ent != this && isEntityCloseEnough(ent)) addTrackedEntity(ent);
+      return true;
+    });
 
     return true;
   }
@@ -203,9 +362,12 @@ class Player: public IPlayer {
 
   int16_t                 m_heldItem = 0;
   SafeSocket&             m_selfSock;
-  double_t                m_stance = 0.0;
+  double_t                m_stance        = 0.0;
+  double_t                m_trackDistance = 0.0;
   std::wstring            m_name;
   std::vector<IntVector2> m_loadedChunks;
+  std::vector<EntityId>   m_trackedEntities;
+  std::recursive_mutex    m_lock;
 };
 
 std::unique_ptr<IPlayer> createPlayer(SafeSocket& sock) {
