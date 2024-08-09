@@ -14,7 +14,9 @@ class EntityClick: private PacketReader {
     m_isLeftClick = readBoolean();
   }
 
-  const auto getTarget() const { return m_target; }
+  auto getTarget() const { return m_target; }
+
+  auto isLeftClick() const { return m_isLeftClick; }
 
   private:
   EntityId m_target;
@@ -23,6 +25,16 @@ class EntityClick: private PacketReader {
 } // namespace FromClient
 
 namespace ToClient {
+class EntityVelocity: public PacketWriter {
+  public:
+  EntityVelocity(EntityId eid, const DoubleVector3& motion): PacketWriter(Packet::IDs::EntityVel) {
+    writeInteger(eid);
+    writeInteger(static_cast<int16_t>(motion.x * 8000.0));
+    writeInteger(static_cast<int16_t>(motion.y * 8000.0));
+    writeInteger(static_cast<int16_t>(motion.z * 8000.0));
+  }
+};
+
 class EntityDestroy: public PacketWriter {
   public:
   EntityDestroy(EntityId eid): PacketWriter(Packet::IDs::EntityDestroy) { writeInteger(eid); }

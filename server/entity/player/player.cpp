@@ -64,6 +64,8 @@ class Player: public IPlayer {
     PlayerSpawn wdata_ps(this);
     sendToTrackedPlayers(wdata_ps, false);
 
+    m_health = m_maxHealth;
+
     PlayerRespawn wdata(m_dimension);
     return wdata.sendTo(m_selfSock);
   }
@@ -202,20 +204,24 @@ class Player: public IPlayer {
       }
     }
 
+    lock.unlock();
     return updateTrackedEntities();
   }
 
   bool addTrackedEntity(EntityBase* ent) final {
     if (ent == this) return false;
-    std::unique_lock lock(m_lock);
 
-    auto eid = ent->getEntityId();
+    {
+      std::unique_lock lock(m_lock);
 
-    for (auto it = m_trackedEntities.begin(); it != m_trackedEntities.end(); ++it) {
-      if (*it == eid) return true;
+      auto eid = ent->getEntityId();
+
+      for (auto it = m_trackedEntities.begin(); it != m_trackedEntities.end(); ++it) {
+        if (*it == eid) return true;
+      }
+
+      m_trackedEntities.push_back(eid);
     }
-
-    m_trackedEntities.push_back(eid);
 
     switch (auto t = ent->getType()) {
       case EntityBase::Player: {
@@ -303,18 +309,20 @@ class Player: public IPlayer {
   }
 
   bool updateTrackedEntities() final {
-    std::unique_lock lock(m_lock);
-
     auto& em = accessEntityManager();
 
-    for (auto it = m_trackedEntities.begin(); it != m_trackedEntities.end();) {
-      auto ent = em.GetEntity(*it);
-      if (ent == nullptr || !isEntityCloseEnough(ent)) {
-        it = removeTrackedEntity(it);
-        continue;
-      }
+    {
+      std::unique_lock lock(m_lock);
 
-      ++it;
+      for (auto it = m_trackedEntities.begin(); it != m_trackedEntities.end();) {
+        auto ent = em.GetEntity(*it);
+        if (ent == nullptr || !isEntityCloseEnough(ent)) {
+          it = removeTrackedEntity(it);
+          continue;
+        }
+
+        ++it;
+      }
     }
 
     em.IterEntities([this](EntityBase* ent) -> bool {
@@ -331,6 +339,11 @@ class Player: public IPlayer {
     return wdata_pl.sendTo(m_selfSock);
   }
 
+  bool addVelocity(const DoubleVector3& motion) final {
+    Packet::ToClient::EntityVelocity wdata_ev(getEntityId(), motion);
+    return wdata_ev.sendTo(m_selfSock);
+  }
+
   bool setSpawnPos(const IntVector3& pos) final {
     Packet::ToClient::SpawnPosition wdata_sp(pos);
     return wdata_sp.sendTo(m_selfSock);
@@ -339,6 +352,18 @@ class Player: public IPlayer {
   bool setTime(int16_t time) final {
     Packet::ToClient::TimeUpdate wdata(time);
     return wdata.sendTo(m_selfSock);
+  }
+
+  bool canHitEntity() final {
+    auto time = std::chrono::system_clock::now();
+    auto nhit = std::chrono::system_clock::from_time_t(m_nextHit);
+
+    if (nhit < time) {
+      m_nextHit = std::chrono::system_clock::to_time_t(time + std::chrono::milliseconds(1200));
+      return true;
+    }
+
+    return false;
   }
 
   int16_t getHeldItem() const final { return m_heldItem; }
@@ -360,8 +385,11 @@ class Player: public IPlayer {
     return false;
   }
 
+  const int16_t m_maxHealth = 20;
+
   int16_t                 m_heldItem = 0;
   SafeSocket&             m_selfSock;
+  int64_t                 m_nextHit;
   double_t                m_stance        = 0.0;
   double_t                m_trackDistance = 0.0;
   std::wstring            m_name;

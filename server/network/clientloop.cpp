@@ -60,6 +60,16 @@ class HackedClientException: public std::exception {
   std::string m_what;
 };
 
+class InvalidEntityIndexException: public std::exception {
+  public:
+  InvalidEntityIndexException(EntityId id) { m_what = std::format("Invalid entity id ({}) passed to EntityAction packet!", id); }
+
+  const char* what() const noexcept override { return m_what.c_str(); }
+
+  private:
+  std::string m_what;
+};
+
 bool isBlockInteractive(BlockId block) {
   switch (block) {
     case 23:
@@ -160,6 +170,37 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
         } break;
         case Packet::IDs::EntityUse: {
           Packet::FromClient::EntityClick data(ss);
+
+          auto target = accessEntityManager().GetEntity(data.getTarget());
+          if (target == nullptr) throw InvalidEntityIndexException(data.getTarget());
+
+          if (data.isLeftClick() && linkedEntity->canHitEntity()) {
+            switch (target->getType()) {
+              case EntityBase::Player: {
+                auto ply_target = dynamic_cast<IPlayer*>(target);
+                ply_target->setHealth(ply_target->getHealth() - 2 /* todo different damage depends on held item */);
+
+                auto& kicker_pos   = linkedEntity->getPosition();
+                auto& receiver_pos = ply_target->getPosition();
+
+                constexpr double_t knock_strength = 0.25; // todo different values? may be random?
+
+                const DoubleVector3 knockback = {
+                    .x = (receiver_pos.x - kicker_pos.x) * knock_strength,
+                    .y = knock_strength,
+                    .z = (receiver_pos.z - kicker_pos.z) * knock_strength,
+                };
+
+                ply_target->addVelocity(knockback);
+              } break;
+
+              default: {
+                spdlog::warn("Unknown entity clicked!");
+              } break;
+            }
+          } else {
+            // todo eh?..
+          }
         } break;
         case Packet::IDs::PlayerRespawn: {
           Packet::FromClient::Respawn data(ss);

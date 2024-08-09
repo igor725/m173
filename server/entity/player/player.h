@@ -33,15 +33,18 @@ class IPlayer: public EntityBase {
   /* Environment control */
   virtual bool setTime(int16_t time) = 0;
 
-  /* Ingame world manipualtions */
+  /* Ingame world/entity manipualtions */
 
   virtual bool updateWorldChunks(bool force = false) = 0;
+  virtual bool canHitEntity()                        = 0;
 
   /* Generic getters */
 
   virtual int16_t getHeldItem() const = 0;
 
   /* Movement control */
+  virtual bool addVelocity(const DoubleVector3& motion) = 0;
+
   virtual bool setSpawnPos(const IntVector3& pos) = 0;
 
   virtual void setPosition(const DoubleVector3& pos) = 0;
