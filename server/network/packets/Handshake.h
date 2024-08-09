@@ -13,6 +13,7 @@ class LoginRequest: private PacketReader {
     readInteger<int64_t>(); // Seed, just skipping the thing
     readInteger<int8_t>();  // Dimension, skipping too
 
+    testProtoVer(m_protover);
     testUserName(m_name);
   }
 

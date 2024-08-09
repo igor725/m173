@@ -103,11 +103,11 @@ class Player: public IPlayer {
     auto dmod = IntVector2 {};
 
     if (movedir.x > 0) {
-      omod = {+1, -1};
+      omod = {-1, -1};
       dmod = {+1, +1};
     } else if (movedir.x < 0) {
       omod = {-1, -1};
-      dmod = {-1, +1};
+      dmod = {+1, +1};
     } else if (movedir.z > 0) {
       omod = {-1, +1};
       dmod = {+1, +1};

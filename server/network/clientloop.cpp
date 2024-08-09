@@ -309,12 +309,12 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
 
       if (linkedEntity) {
         if (posUpdated) {
+          linkedEntity->updateWorldChunks();
+
           /**
            * @brief The original server sents teleport packet to the clients every
            * 400 movement packets, just to sync the thing. We will keep it that way too.
            */
-
-          linkedEntity->updateWorldChunks();
 
           if (++posUpdateNum >= 400 || linkedEntity->getMoveDistance() > 4) {
             Packet::ToClient::EntitySetPos wdata_es(linkedEntity);
