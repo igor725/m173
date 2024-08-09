@@ -32,6 +32,8 @@ class EntityBase {
 
   const DoubleVector3& getPosition() const { return m_position; }
 
+  const DoubleVector3& getPreviousPosition() const { return m_prevPosition; }
+
   void popPositionDiff(DoubleVector3& pos) {
     getPositionDiff(pos);
     m_prevPosition = m_position;

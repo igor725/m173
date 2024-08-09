@@ -7,6 +7,8 @@
 #include "network/safesock.h"
 #include "world/world.h"
 
+#include <spdlog/spdlog.h>
+
 class Player: public IPlayer {
   public:
   Player(SafeSocket& sock): m_selfSock(sock) {}
@@ -63,6 +65,107 @@ class Player: public IPlayer {
     m_stance = pos.y;
   }
 
+  bool updateWorldChunks(bool force) final {
+    const auto prevchunk_pos = IWorld::Chunk::toChunkCoords({
+        static_cast<int32_t>(std::round(m_prevPosition.x)),
+        static_cast<int32_t>(std::round(m_prevPosition.z)),
+    });
+
+    const auto currchunk_pos = IWorld::Chunk::toChunkCoords({
+        static_cast<int32_t>(std::round(m_position.x)),
+        static_cast<int32_t>(std::round(m_position.z)),
+    });
+
+    if (!force && (currchunk_pos.x == prevchunk_pos.x && currchunk_pos.z == prevchunk_pos.z)) return true;
+
+    for (auto it = m_loadedChunks.begin(); it != m_loadedChunks.end();) {
+      const auto diff = IntVector2 {it->x - currchunk_pos.x, it->z - currchunk_pos.z};
+      const auto dist = std::sqrt((diff.x * diff.x) + (diff.z * diff.z));
+      if (dist > 10.0 * 2.0) {
+        spdlog::trace("Unloading distant chunk Vec2({}, {}), distance: {}", it->x, it->z, dist);
+        Packet::ToClient::PreChunk wdata_uc(*it, false);
+        wdata_uc.sendTo(m_selfSock);
+        it = m_loadedChunks.erase(it);
+        continue;
+      }
+
+      ++it;
+    }
+
+    auto& world = accessWorld();
+
+    const auto movedir = IntVector2 {
+        .x = currchunk_pos.x - prevchunk_pos.x,
+        .z = currchunk_pos.z - prevchunk_pos.z,
+    };
+
+    auto omod = IntVector2 {};
+    auto dmod = IntVector2 {};
+
+    if (movedir.x > 0) {
+      omod = {+1, -1};
+      dmod = {+1, +1};
+    } else if (movedir.x < 0) {
+      omod = {-1, -1};
+      dmod = {-1, +1};
+    } else if (movedir.z > 0) {
+      omod = {-1, +1};
+      dmod = {+1, +1};
+    } else if (movedir.z < 0) {
+      omod = {-1, -1};
+      dmod = {+1, -1};
+    } else {
+      omod = {-1, -1};
+      dmod = {1, 1};
+    }
+
+    const IntVector2 opos = {
+        .x = currchunk_pos.x + omod.x * 10 /* todo load distance config */,
+        .z = currchunk_pos.z + omod.z * 10,
+    };
+
+    const IntVector2 dpos = {
+        .x = currchunk_pos.x + dmod.x * 10 /* todo load distance config */,
+        .z = currchunk_pos.z + dmod.z * 10,
+    };
+
+    for (int32_t cx = opos.x; cx <= dpos.x; ++cx) {
+      for (int32_t cz = opos.z; cz <= dpos.z; ++cz) {
+        IntVector2 chunkpos = {cx, cz};
+        if (isChunkAlreadyLoaded(chunkpos)) continue;
+        spdlog::trace("Loading chunk Vec2({}:{})", cx, cz);
+
+        m_loadedChunks.push_back(chunkpos);
+        auto chunk = world.getChunk(chunkpos);
+
+        Packet::ToClient::PreChunk wdata_pc(chunkpos, true);
+        if (!wdata_pc.sendTo(m_selfSock)) return false;
+
+        if (chunk == nullptr) {
+          chunk = world.allocChunk(chunkpos);
+          chunk->m_light.fill(IWorld::Chunk::BlockPack(15, 15)); // All fullbright for now
+
+          for (int32_t x = 0; x < 16; ++x) {
+            for (int32_t y = 0; y < 4; ++y) {
+              for (int32_t z = 0; z < 16; ++z) {
+                chunk->m_blocks[chunk->getLocalIndex({x, y, z})] = y < 1 ? 7 : y < 3 ? 3 : 2;
+              }
+            }
+          }
+        }
+
+        unsigned long gzsize;
+        const auto    gzchunk = world.compressChunk(chunk, gzsize);
+
+        Packet::ToClient::MapChunk wdata_mc({cx * 16, 0, cz * 16}, CHUNK_DIMS, gzsize);
+        if (!wdata_mc.sendTo(m_selfSock)) return false;
+        if (!m_selfSock.write(gzchunk, gzsize)) return false;
+      }
+    }
+
+    return true;
+  }
+
   bool updPlayerPos() final {
     // Receiving this packet by client concludes terrain downloading state
     Packet::ToClient::PlayerPosAndLook wdata_pl(this);
@@ -90,10 +193,19 @@ class Player: public IPlayer {
   const std::wstring& getName() const final { return m_name; }
 
   private:
-  int16_t      m_heldItem = 0;
-  SafeSocket&  m_selfSock;
-  double_t     m_stance = 0.0;
-  std::wstring m_name;
+  bool isChunkAlreadyLoaded(const IntVector2& pos) {
+    for (auto it = m_loadedChunks.begin(); it != m_loadedChunks.end(); ++it) {
+      if (it->x == pos.x && it->z == pos.z) return true;
+    }
+
+    return false;
+  }
+
+  int16_t                 m_heldItem = 0;
+  SafeSocket&             m_selfSock;
+  double_t                m_stance = 0.0;
+  std::wstring            m_name;
+  std::vector<IntVector2> m_loadedChunks;
 };
 
 std::unique_ptr<IPlayer> createPlayer(SafeSocket& sock) {

@@ -114,6 +114,8 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
           linkedEntity = dynamic_cast<IPlayer*>(accessEntityManager().GetEntity(entId));
 
           linkedEntity->doLoginProcess(data.getName());
+          linkedEntity->setTime(accessWorld().getTime());
+          linkedEntity->updateWorldChunks(true);
 
           {
             Packet::ToClient::PlayerSpawn wdata(linkedEntity);
@@ -126,43 +128,6 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
               }
               return true;
             });
-          }
-
-          {
-            auto& world = accessWorld();
-
-            linkedEntity->setTime(world.getTime());
-
-            for (int32_t cx = -10; cx <= 10; ++cx) {
-              for (int32_t cz = -10; cz <= 10; ++cz) {
-                IntVector2 chunkpos = {cx, cz};
-                auto       chunk    = world.getChunk(chunkpos);
-
-                Packet::ToClient::PreChunk wdata_pc(chunkpos, true);
-                wdata_pc.sendTo(ss);
-
-                if (chunk == nullptr) {
-                  chunk = world.allocChunk(chunkpos);
-                  chunk->m_light.fill(IWorld::Chunk::BlockPack(15, 15)); // All fullbright for now
-
-                  for (int32_t x = 0; x < 16; ++x) {
-                    for (int32_t y = 0; y < 4; ++y) {
-                      for (int32_t z = 0; z < 16; ++z) {
-                        chunk->m_blocks[chunk->getLocalIndex({x, y, z})] = y < 1 ? 7 : y < 3 ? 3 : 2;
-                      }
-                    }
-                  }
-                }
-
-                unsigned long gzsize;
-                const auto    gzchunk = world.compressChunk(chunk, gzsize);
-
-                Packet::ToClient::MapChunk wdata_mc({cx * 16, 0, cz * 16}, CHUNK_DIMS, gzsize);
-                wdata_mc.sendTo(ss);
-
-                ss.write(gzchunk, gzsize);
-              }
-            }
           }
 
           {
@@ -348,6 +313,9 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
            * @brief The original server sents teleport packet to the clients every
            * 400 movement packets, just to sync the thing. We will keep it that way too.
            */
+
+          linkedEntity->updateWorldChunks();
+
           if (++posUpdateNum >= 400 || linkedEntity->getMoveDistance() > 4) {
             Packet::ToClient::EntitySetPos wdata_es(linkedEntity);
             accessEntityManager().IterPlayers([&wdata_es, linkedEntity](IPlayer* ply) -> bool {

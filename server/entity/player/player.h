@@ -25,6 +25,10 @@ class IPlayer: public EntityBase {
   /* Environment control */
   virtual bool setTime(int16_t time) = 0;
 
+  /* Ingame world manipualtions */
+
+  virtual bool updateWorldChunks(bool force = false) = 0;
+
   /* Generic getters */
 
   virtual int16_t getHeldItem() const = 0;
