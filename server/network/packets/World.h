@@ -5,6 +5,30 @@
 #include "helper.h"
 
 namespace Packet {
+#ifdef M173_ACTIVATE_READER_API
+namespace FromClient {
+class SignCreate: private PacketReader {
+  public:
+  SignCreate(SafeSocket& sock): PacketReader(sock) {
+    m_pos.x = readInteger<int32_t>();
+    m_pos.y = readInteger<int16_t>();
+    m_pos.z = readInteger<int32_t>();
+
+    for (int32_t i = 0; i < 4; ++i) {
+      std::wstring temp;
+      readString(temp);
+      m_lines += temp;
+      if (i != 3) m_lines.push_back(L'\n');
+    }
+  }
+
+  private:
+  IntVector3   m_pos;
+  std::wstring m_lines;
+};
+} // namespace FromClient
+#endif
+
 namespace ToClient {
 class TimeUpdate: public PacketWriter {
   public:
@@ -87,26 +111,4 @@ class SignUpdate: public PacketWriter {
   int32_t m_lineCount;
 };
 } // namespace ToClient
-
-namespace FromClient {
-class SignCreate: private PacketReader {
-  public:
-  SignCreate(SafeSocket& sock): PacketReader(sock) {
-    m_pos.x = readInteger<int32_t>();
-    m_pos.y = readInteger<int16_t>();
-    m_pos.z = readInteger<int32_t>();
-
-    for (int32_t i = 0; i < 4; ++i) {
-      std::wstring temp;
-      readString(temp);
-      m_lines += temp;
-      if (i != 3) m_lines.push_back(L'\n');
-    }
-  }
-
-  private:
-  IntVector3   m_pos;
-  std::wstring m_lines;
-};
-} // namespace FromClient
 } // namespace Packet

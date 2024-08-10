@@ -5,6 +5,7 @@
 #include "entity/entitybase.h"
 
 namespace Packet {
+#ifdef M173_ACTIVATE_READER_API
 namespace FromClient {
 class EntityClick: private PacketReader {
   public:
@@ -23,6 +24,7 @@ class EntityClick: private PacketReader {
   bool     m_isLeftClick;
 };
 } // namespace FromClient
+#endif
 
 namespace ToClient {
 class EntityEquipment: public PacketWriter {

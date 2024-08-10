@@ -5,6 +5,7 @@
 #include "helper.h"
 
 namespace Packet {
+#ifdef M173_ACTIVATE_READER_API
 namespace FromClient {
 class CloseWindow: private PacketReader {
   public:
@@ -34,6 +35,7 @@ class ClickWindow: private PacketReader {
   ItemId m_iid;
 };
 } // namespace FromClient
+#endif
 
 namespace ToClient {
 class OpenWindow: public PacketWriter {

@@ -4,6 +4,7 @@
 #include "../packet.h"
 
 namespace Packet {
+#ifdef M173_ACTIVATE_READER_API
 namespace FromClient {
 class ChatMessage: private PacketReader {
   public:
@@ -15,6 +16,7 @@ class ChatMessage: private PacketReader {
   std::wstring m_message;
 };
 } // namespace FromClient
+#endif
 
 namespace ToClient {
 class ChatMessage: public PacketWriter {

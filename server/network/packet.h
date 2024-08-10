@@ -1,11 +1,9 @@
 #pragma once
 
 #include "helper.h"
-#include "safesock.h"
 
 #include <cstdint>
 #include <exception>
-#include <sockpp/tcp_socket.h>
 #include <string>
 #include <vector>
 
@@ -22,7 +20,10 @@ T bswap(T val) {
   return retVal;
 }
 
+#ifdef M173_ACTIVATE_READER_API
 #pragma region(Reader)
+
+#include "safesock.h"
 
 class PacketReader {
   public:
@@ -99,6 +100,7 @@ private:
 };
 
 #pragma endregion()
+#endif
 
 #pragma region(Writer)
 
@@ -111,7 +113,10 @@ class PacketWriter {
     writeInteger<int8_t>(id);
   }
 
-  bool sendTo(SafeSocket& sock) { return sock.write(m_data.data(), m_data.size()); }
+  template <typename T>
+  bool sendTo(T& sock) {
+    return sock.write(m_data.data(), m_data.size());
+  }
 
   protected:
   template <typename T>

@@ -5,6 +5,7 @@
 #include "entity/player/player.h"
 
 namespace Packet {
+#ifdef M173_ACTIVATE_READER_API
 namespace FromClient {
 class Respawn: private PacketReader {
   public:
@@ -202,6 +203,7 @@ class Disconnect: private PacketReader {
   std::wstring m_reason;
 };
 } // namespace FromClient
+#endif
 
 namespace ToClient {
 class PlayerHealth: public PacketWriter {

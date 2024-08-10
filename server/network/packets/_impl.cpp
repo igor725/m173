@@ -1,3 +1,4 @@
+#define M173_ACTIVATE_READER_API
 #include "Handshake.h"
 #include "World.h"
 

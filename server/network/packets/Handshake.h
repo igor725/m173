@@ -4,6 +4,7 @@
 #include "../packet.h"
 
 namespace Packet {
+#ifdef M173_ACTIVATE_READER_API
 namespace FromClient {
 class LoginRequest: private PacketReader {
   public:
@@ -40,6 +41,7 @@ class Handshake: private PacketReader {
   std::wstring m_name_or_hash;
 };
 } // namespace FromClient
+#endif
 
 namespace ToClient {
 class KeepAlive: public PacketWriter {
