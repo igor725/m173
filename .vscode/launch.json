@@ -8,7 +8,7 @@
       "name": "(gdb) Launch",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceRoot}/build/m173_server",
+      "program": "${workspaceRoot}/install/Debug/m173_server",
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceRoot}/build",
@@ -36,7 +36,7 @@
       "program": "m173_server.exe",
       "args": [],
       "stopAtEntry": false,
-      "cwd": "${workspaceRoot}/build",
+      "cwd": "${workspaceRoot}/install/Debug",
       "environment": [],
       "console": "integratedTerminal",
       "preLaunchTask": "CMake: build"

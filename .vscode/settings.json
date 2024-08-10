@@ -1,5 +1,8 @@
 {
   "editor.insertSpaces": true,
   "editor.tabSize": 2,
-  "C_Cpp.autoAddFileAssociations": false
+  "C_Cpp.autoAddFileAssociations": false,
+  "cmake.configureSettings": {
+    "CMAKE_INSTALL_PREFIX": "${workspaceFolder}/install"
+  },
 }

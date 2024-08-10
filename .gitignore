@@ -1,6 +1,7 @@
 /3rd/build
 /3rd/install
 /build/*
+/install/*
 /client/*
 /orig_server/*
 !*/.gitkeep
