@@ -57,6 +57,6 @@ class SafeSocket {
   std::vector<char>     m_queue;
   sockpp::tcp_socket&   m_sock;
   sockpp::inet_address& m_addr;
-  bool                  m_closed;
-  int32_t               m_fails;
+  bool                  m_closed = false;
+  int32_t               m_fails  = 0;
 };
