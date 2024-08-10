@@ -31,10 +31,10 @@ static class BlockRegistrator {
   std::vector<ItemBlock> m_list = {};
 } blocks;
 
-static ItemSword    ironSword(11, ItemSword::Iron);
-static ItemSword    woodenSword(12, ItemSword::Wood);
-static ItemSword    diamondSword(20, ItemSword::Diamond);
-static ItemSword    goldSword(27, ItemSword::Gold);
+static ItemSword    ironSword(11, ToolMaterial::Iron);
+static ItemSword    woodenSword(12, ToolMaterial::Wood);
+static ItemSword    diamondSword(20, ToolMaterial::Diamond);
+static ItemSword    goldSword(27, ToolMaterial::Gold);
 static ItemSnowball snowBall(76);
 
 Item::Item(ItemId iid): shiftedIndex(256 + iid) {

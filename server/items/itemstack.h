@@ -4,15 +4,6 @@
 #include "helper.h"
 
 struct ItemStack {
-  struct VsDamageInfo {
-    int16_t  damage;
-    double_t kbackStrength;
-
-    VsDamageInfo(): damage(1), kbackStrength(0.1) {}
-
-    VsDamageInfo(int16_t dmg, double_t kb): damage(dmg), kbackStrength(kb) {}
-  };
-
   int16_t stackSize;
   ItemId  itemId;
   int16_t itemDamage;

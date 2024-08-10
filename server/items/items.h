@@ -7,16 +7,14 @@
 #include <array>
 #include <cstdint>
 #include <spdlog/spdlog.h>
-#include <string>
 
 class Item {
   public:
   ItemId shiftedIndex;
 
   private:
-  int16_t      maxDamage     = 0;
-  Item*        containerItem = nullptr;
-  std::wstring itemName;
+  int16_t maxDamage     = 0;
+  Item*   containerItem = nullptr;
 
   protected:
   int16_t maxStackSize;
@@ -69,10 +67,8 @@ class Item {
 
   virtual bool hitEntity(ItemStack& is, EntityBase* attacker, EntityBase* victim) { return false; }
 
-  virtual const ItemStack::VsDamageInfo& getDamageVsEntity(EntityBase* ent) {
-    static const ItemStack::VsDamageInfo baseDamage(1, 0.1);
+  virtual const VsDamageInfo& getDamageVsEntity(EntityBase* ent) {
+    static const VsDamageInfo baseDamage(1, 0.1);
     return baseDamage;
   }
-
-  Item* setItemname(const std::wstring& name) { itemName = std::wstring(L"item.") + name; }
 };

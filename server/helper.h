@@ -71,3 +71,12 @@ enum Dimension : int8_t {
   Overworld = 0,
   Nether    = -1,
 };
+
+struct VsDamageInfo {
+  int16_t  damage;
+  double_t kbackStrength;
+
+  VsDamageInfo(): damage(1), kbackStrength(0.1) {}
+
+  VsDamageInfo(int16_t dmg, double_t kb): damage(dmg), kbackStrength(kb) {}
+};

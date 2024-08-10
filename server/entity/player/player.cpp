@@ -92,8 +92,19 @@ class Player: public IPlayer {
 
   bool setHealth(int16_t health) final {
     using namespace Packet::ToClient;
-    PlayerHealth wdata_ph(m_health = health);
+    auto prevHealth = m_health;
+
+    PlayerHealth wdata_ph(m_health = std::min(health, m_maxHealth));
+    if (m_health >= prevHealth) {
+      return wdata_ph.sendTo(m_selfSock);
+    }
+
     EntityStatus wdata_es(getEntityId(), m_health > 0 ? EntityStatus::Hurted : EntityStatus::Dead);
+
+    if (m_health <= 0) { // Prevent client-side loot dropping from players
+      EntityEquipment wdata_eq(getEntityId(), 0, {-1});
+      sendToTrackedPlayers(wdata_eq, false);
+    }
 
     if (wdata_ph.sendTo(m_selfSock)) {
       sendToTrackedPlayers(wdata_es, true);

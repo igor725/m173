@@ -1,28 +1,25 @@
 #pragma once
 
 #include "../items.h"
+#include "../toolmaterial.h"
 
 class ItemSword: public Item {
-  public:
-  enum Material {
-    Wood,
-    Stone,
-    Iron,
-    Gold,
-    Diamond,
-  };
+  private:
+  const ToolMaterial& m_tm;
+  VsDamageInfo        m_damage;
 
-  ItemSword(ItemId iid, Material m): Item(iid) {}
+  public:
+  ItemSword(ItemId iid, ToolMaterial::Index m): Item(iid), m_tm(ToolMaterial::select(m)) {
+    m_damage = VsDamageInfo(4 + m_tm.getDamageVsEntity() * 2, 0.08 + (m_tm.getDamageVsEntity() / 15.0));
+    setMaxDamage(m_tm.getMaxUses());
+  }
 
   bool hitEntity(ItemStack& is, EntityBase* atacker, EntityBase* victim) override {
     is.damageItem(1, atacker);
     return true;
   }
 
-  const ItemStack::VsDamageInfo& getDamageVsEntity(EntityBase* ent) {
-    static const ItemStack::VsDamageInfo baseDamage(4, 0.24);
-    return baseDamage;
-  }
+  const VsDamageInfo& getDamageVsEntity(EntityBase* ent) { return m_damage; }
 
   bool onBlockDestroyed(ItemStack& is, const IntVector3& pos, BlockId id, EntityBase* destroyer) override {
     is.damageItem(2, destroyer);

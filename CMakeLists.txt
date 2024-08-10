@@ -17,7 +17,7 @@ set(CMAKE_INSTALL_MESSAGE LAZY)
 set(CMAKE_PREFIX_PATH ${CMAKE_SOURCE_DIR}/3rd/install/lib/cmake)
 
 include_directories(BEFORE
-	${CMAKE_SOURCE_DIR}/3rd/install/include
+  ${CMAKE_SOURCE_DIR}/3rd/install/include
   ${CMAKE_SOURCE_DIR}/server
 )
 
@@ -25,8 +25,10 @@ link_directories(BEFORE
   ${CMAKE_SOURCE_DIR}/3rd/install/lib
 )
 
-find_package(spdlog REQUIRED)
-find_package(sockpp REQUIRED)
+find_package(spdlog "1.14.1" REQUIRED)
+find_package(sockpp "1.0.0" REQUIRED)
+
+add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN)
 
 add_subdirectory(server/config)
 add_subdirectory(server/commands)
