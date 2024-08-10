@@ -9,6 +9,7 @@ class ItemSnowball: public Item {
 
   ItemStack& onItemRightClick(ItemStack& is, EntityBase* clicker) {
     if (!is.decrementBy(1)) dynamic_cast<IPlayer*>(clicker)->updateEquipedItem();
+    dynamic_cast<IPlayer*>(clicker)->sendChat(L"Pew-pew");
     // todo spawn thrown snowball entity
     return is;
   }

@@ -42,7 +42,7 @@ class Player: public IPlayer {
 
   bool sendData(const void* data, size_t dsize) final { return m_selfSock.write(data, dsize); }
 
-  bool sendChat(std::wstring& message) final {
+  bool sendChat(const std::wstring& message) final {
     if (message.empty()) return true; // No need to send those
     Packet::ToClient::ChatMessage wdata_cm(message);
     return wdata_cm.sendTo(getSocket());
