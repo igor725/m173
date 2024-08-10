@@ -49,7 +49,7 @@ class KeepAlive: public PacketWriter {
 
 class LoginRequest: public PacketWriter {
   public:
-  LoginRequest(int32_t entId, const std::wstring& svname, int8_t dimension): PacketWriter(Packet::IDs::Login) {
+  LoginRequest(EntityId entId, const std::wstring& svname, int8_t dimension): PacketWriter(Packet::IDs::Login) {
     writeInteger(entId);
     writeString(svname);
     writeInteger(0ll); // todo world seed

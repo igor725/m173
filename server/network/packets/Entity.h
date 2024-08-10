@@ -71,8 +71,8 @@ class EntityLook: public PacketWriter {
   EntityLook(EntityBase* entity): PacketWriter(Packet::IDs::EntityLook) {
     auto& rot = entity->getRotation();
     writeInteger(entity->getEntityId());
-    writeInteger<int8_t>(rot.yawToByte());
-    writeInteger<int8_t>(rot.pitchToByte());
+    writeInteger(rot.yawToByte());
+    writeInteger(rot.pitchToByte());
   }
 };
 
@@ -85,8 +85,8 @@ class EntityLookRM: public PacketWriter {
 
     writeInteger(entity->getEntityId());
     writeABVector(diff);
-    writeInteger<int8_t>(rot.yawToByte());
-    writeInteger<int8_t>(rot.pitchToByte());
+    writeInteger(rot.yawToByte());
+    writeInteger(rot.pitchToByte());
   }
 };
 
@@ -98,8 +98,8 @@ class EntitySetPos: public PacketWriter {
 
     writeInteger(entity->getEntityId());
     writeAIVector(pos);
-    writeInteger<int8_t>(rot.yawToByte());
-    writeInteger<int8_t>(rot.pitchToByte());
+    writeInteger(rot.yawToByte());
+    writeInteger(rot.pitchToByte());
   }
 };
 
