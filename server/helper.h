@@ -75,9 +75,12 @@ struct ItemStack {
   ItemStack(ItemId iid, int16_t ss): stackSize(ss), itemId(iid), itemDamage(0) {}
 
   bool decrementBy(int16_t sz) {
+    if (sz < 1 || stackSize < sz) return false;
     if ((stackSize -= sz) == 0) itemId = -1;
     return stackSize > 0;
   }
+
+  void fullStack() { stackSize = 64; }
 };
 
 struct FloatVector3 {
