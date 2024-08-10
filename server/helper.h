@@ -72,7 +72,7 @@ struct ItemStack {
 
   ItemStack(ItemId iid): stackSize(0), itemId(iid), itemDamage(0) {}
 
-  ItemStack(ItemId iid, int16_t ss): stackSize(ss), itemId(iid) {}
+  ItemStack(ItemId iid, int16_t ss): stackSize(ss), itemId(iid), itemDamage(0) {}
 
   bool decrementBy(int16_t sz) {
     if ((stackSize -= sz) == 0) itemId = -1;
