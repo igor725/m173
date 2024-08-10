@@ -53,6 +53,36 @@ class MapChunk: public PacketWriter {
   }
 };
 
+class NoteBlockPlay: public PacketWriter {
+  public:
+  enum Instrument : int8_t {
+    Harp,
+    DoubleBass,
+    SnareDrum,
+    Sticks,
+    BassDrum,
+  };
+
+  NoteBlockPlay(const IntVector3& pos, Instrument instr, int8_t pitch): PacketWriter(Packet::IDs::BlockAction) {
+    writeInteger(pos.x);
+    writeInteger<int16_t>(pos.y);
+    writeInteger(pos.z);
+    writeInteger(instr);
+    writeInteger(pitch);
+  }
+};
+
+class SetState: public PacketWriter {
+  public:
+  enum State : int8_t {
+    InvalidBed,
+    RainStart,
+    RainEnd,
+  };
+
+  SetState(State s): PacketWriter(Packet::IDs::SetState) { writeInteger(s); }
+};
+
 class SignUpdate: public PacketWriter {
   public:
   SignUpdate(const IntVector3& pos, const std::wstring& data);

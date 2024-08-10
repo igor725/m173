@@ -25,6 +25,16 @@ class EntityClick: private PacketReader {
 } // namespace FromClient
 
 namespace ToClient {
+class EntityEquipment: public PacketWriter {
+  public:
+  EntityEquipment(EntityId eid, SlotId sid, ItemId iid, int16_t damage): PacketWriter(Packet::IDs::EntityEquip) {
+    writeInteger(eid);
+    writeInteger(sid);
+    writeInteger(iid);
+    writeInteger(damage);
+  }
+};
+
 class EntityVelocity: public PacketWriter {
   public:
   EntityVelocity(EntityId eid, const DoubleVector3& motion): PacketWriter(Packet::IDs::EntityVel) {
@@ -137,6 +147,23 @@ class EntityMeta: public PacketWriter {
   void putFloat(int valueid, float_t value) {
     putHeader(3, valueid);
     writeFloating(value);
+  }
+
+  void putString(int valueid, const std::wstring& str) {
+    putHeader(4, valueid);
+    writeString(str);
+  }
+
+  void putItem(int valueid, ItemId iid, int8_t count, int16_t damage) {
+    putHeader(5, valueid);
+    writeInteger(iid);
+    writeInteger(count);
+    writeInteger(damage);
+  }
+
+  void putVector(int valueid, const IntVector3& vec) {
+    putHeader(5, valueid);
+    writeIVector(vec);
   }
 
   void finish() { writeInteger<int8_t>(0x7f); }

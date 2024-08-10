@@ -128,7 +128,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
           linkedEntity->updateWorldChunks(true);
 
           {
-            std::vector<ItemId>           m_items = {23, 25, 54, 61, 330, 324, 355};
+            std::vector<ItemId>           m_items = {276, 267, 268, 283, 25};
             Packet::ToClient::ItemsWindow wdata(0);
             for (SlotId i = 0; i < 45; ++i) {
               ItemId iid = -1;
@@ -136,7 +136,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
                 iid = m_items.back();
                 m_items.pop_back();
               }
-              wdata.addItem(iid, 2, 0);
+              wdata.addItem(iid, 1, 0);
             }
             wdata.sendTo(ss);
           }
@@ -260,6 +260,10 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
                   Packet::ToClient::OpenWindow wdata(1, 2, "Furnace", 9);
                   wdata.sendTo(ss);
                 } break;
+                case 25: { // todo actual minecraft behavior
+                  Packet::ToClient::NoteBlockPlay wdata(data.getClickPosition(), Packet::ToClient::NoteBlockPlay::Harp, std::rand() % 24);
+                  linkedEntity->sendToTrackedPlayers(wdata, true);
+                } break;
               }
               break;
             }
@@ -283,7 +287,6 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
         case Packet::IDs::PlayerAnim: {
           Packet::FromClient::PlayerAnim data(ss);
 
-          // Just forwarding the packet for now, I don't want to handle it (just yet)
           Packet::ToClient::PlayerAnim wdata(linkedEntity->getEntityId(), data.getAnimation());
           linkedEntity->sendToTrackedPlayers(wdata);
         } break;
@@ -382,6 +385,5 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
   spdlog::info("Client {} closed!", addr.to_string());
   if (linkedEntity) {
     accessEntityManager().RemoveEntity(linkedEntity->getEntityId());
-    // todo another cleanup? like, unloading world's chunk if no more players there
   }
 }

@@ -141,6 +141,12 @@ class PacketWriter {
     }
   }
 
+  void writeIVector(const IntVector3& vec) {
+    writeInteger(vec.x);
+    writeInteger(vec.y);
+    writeInteger(vec.z);
+  }
+
   void writeAIVector(const DoubleVector3& pos) {
     writeInteger(floor_double(pos.x * 32.0));
     writeInteger(floor_double(pos.y * 32.0));

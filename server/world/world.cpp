@@ -31,7 +31,7 @@ class World: public IWorld {
   virtual ~World() = default;
 
   Chunk* allocChunk(const IntVector2& pos) {
-    auto&& chunk = m_ldChunks.emplace(std::make_pair(0, Chunk()));
+    auto&& chunk = m_ldChunks.emplace(std::make_pair(packChunkPos(pos), Chunk()));
     return &chunk.first->second;
   }
 

@@ -378,6 +378,8 @@ class Player: public IPlayer {
 
   private:
   bool isChunkAlreadyLoaded(const IntVector2& pos) {
+    std::unique_lock lock(m_lock);
+
     for (auto it = m_loadedChunks.begin(); it != m_loadedChunks.end(); ++it) {
       if (it->x == pos.x && it->z == pos.z) return true;
     }

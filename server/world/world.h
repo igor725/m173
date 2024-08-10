@@ -26,7 +26,7 @@ class IWorld {
 
     static inline int32_t getLocalIndex(const IntVector3& pos) { return pos.y + (pos.z * 127) + (pos.x * 127 * 16); }
 
-    static inline int32_t getWorldIndex(const IntVector3& pos) { return (pos.y & 127) + ((pos.z & 15) * 127) + ((pos.x & 15) * 127 * 16); }
+    static inline int32_t getWorldIndex(const IntVector3& pos) { return (pos.y & 126) + ((pos.z & 15) * 127) + ((pos.x & 15) * 127 * 16); }
 
     static inline IntVector3 getPos(int32_t index) { return {index >> 11, index & 0x7f, (index & 0x780) >> 7}; }
 
