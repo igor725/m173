@@ -35,12 +35,17 @@ class IPlayer: public EntityBase {
 
   /* Ingame world/entity manipualtions */
 
+  virtual void updateEquipedItem()                   = 0;
   virtual bool updateWorldChunks(bool force = false) = 0;
   virtual bool canHitEntity()                        = 0;
 
-  /* Generic getters */
+  /* Inventory manipulations */
 
-  virtual int16_t getHeldItem() const = 0;
+  virtual SlotId     getHeldSlot() const      = 0;
+  virtual ItemStack& getHeldItem()            = 0;
+  virtual bool       setHeldSlot(SlotId slot) = 0;
+  virtual bool       updateInventory()        = 0;
+  virtual bool       resendHeldItem()         = 0;
 
   /* Movement control */
   virtual bool addVelocity(const DoubleVector3& motion) = 0;

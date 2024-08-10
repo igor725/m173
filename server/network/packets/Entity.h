@@ -27,11 +27,11 @@ class EntityClick: private PacketReader {
 namespace ToClient {
 class EntityEquipment: public PacketWriter {
   public:
-  EntityEquipment(EntityId eid, SlotId sid, ItemId iid, int16_t damage): PacketWriter(Packet::IDs::EntityEquip) {
+  EntityEquipment(EntityId eid, SlotId sid, const ItemStack& is): PacketWriter(Packet::IDs::EntityEquip) {
     writeInteger(eid);
     writeInteger(sid);
-    writeInteger(iid);
-    writeInteger(damage);
+    writeInteger(is.itemId);
+    writeInteger(is.itemDamage);
   }
 };
 

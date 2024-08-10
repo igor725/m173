@@ -6,6 +6,7 @@
 #include "network/packets/Entity.h"
 #include "network/packets/Handshake.h"
 #include "network/packets/Player.h"
+#include "network/packets/Window.h"
 #include "network/packets/World.h"
 #include "network/safesock.h"
 #include "world/world.h"
@@ -14,10 +15,16 @@
 
 class Player: public IPlayer {
   public:
-  Player(SafeSocket& sock): m_selfSock(sock) {
+  Player(SafeSocket& sock): m_selfSock(sock), m_inventory({}) {
     auto& dist = accessConfig().getItem("chunk.load_distance");
 
     m_trackDistance = dist.getValue<uint32_t>();
+
+    m_inventory[36] = ItemStack(276, 1);
+    m_inventory[37] = ItemStack(267, 1);
+    m_inventory[38] = ItemStack(268, 1);
+    m_inventory[39] = ItemStack(283, 1);
+    m_inventory[40] = ItemStack(25, 4);
   }
 
   ~Player() {
@@ -51,12 +58,24 @@ class Player: public IPlayer {
     auto& spawn = accessWorld().getSpawnPoint();
     setSpawnPos(spawn);
     teleportPlayer(spawn);
-
+    updateInventory();
     return true;
+  }
+
+  bool updateInventory() final {
+    Packet::ToClient::ItemsWindow wdata(0);
+    for (SlotId i = 0; i < m_inventory.size(); ++i) {
+      wdata.addItem(m_inventory[i]);
+    }
+    return wdata.sendTo(m_selfSock);
   }
 
   bool respawn() final {
     using namespace Packet::ToClient;
+
+    m_health = m_maxHealth;
+    m_inventory.fill(ItemStack());
+    updateInventory();
 
     // Mojang... Just why...
     EntityDestroy wdata_es(getEntityId());
@@ -64,7 +83,7 @@ class Player: public IPlayer {
     PlayerSpawn wdata_ps(this);
     sendToTrackedPlayers(wdata_ps, false);
 
-    m_health = m_maxHealth;
+    updateEquipedItem(); // Should be called after player's spawn packet
 
     PlayerRespawn wdata(m_dimension);
     return wdata.sendTo(m_selfSock);
@@ -366,7 +385,27 @@ class Player: public IPlayer {
     return false;
   }
 
-  int16_t getHeldItem() const final { return m_heldItem; }
+  void updateEquipedItem() final {
+    Packet::ToClient::EntityEquipment wdata_eq(getEntityId(), 0, getHeldItem());
+    sendToTrackedPlayers(wdata_eq, false);
+  }
+
+  bool resendHeldItem() final {
+    Packet::ToClient::SetSlotWindow wdata_ss(0, 36 + m_heldSlot, getHeldItem());
+    return wdata_ss.sendTo(m_selfSock);
+  }
+
+  SlotId getHeldSlot() const final { return m_heldSlot; }
+
+  ItemStack& getHeldItem() final { return m_inventory[36 + m_heldSlot]; }
+
+  bool setHeldSlot(SlotId slot) final {
+    if (slot < 0 || slot > 8) return false;
+    m_heldSlot = slot;
+
+    updateEquipedItem();
+    return true;
+  }
 
   void setStance(double_t stance) final { m_stance = stance; }
 
@@ -389,15 +428,16 @@ class Player: public IPlayer {
 
   const int16_t m_maxHealth = 20;
 
-  int16_t                 m_heldItem = 0;
-  SafeSocket&             m_selfSock;
-  int64_t                 m_nextHit;
-  double_t                m_stance        = 0.0;
-  double_t                m_trackDistance = 0.0;
-  std::wstring            m_name;
-  std::vector<IntVector2> m_loadedChunks;
-  std::vector<EntityId>   m_trackedEntities;
-  std::recursive_mutex    m_lock;
+  SlotId                    m_heldSlot = 0;
+  SafeSocket&               m_selfSock;
+  int64_t                   m_nextHit       = 0;
+  double_t                  m_stance        = 0.0;
+  double_t                  m_trackDistance = 0.0;
+  std::wstring              m_name;
+  std::vector<IntVector2>   m_loadedChunks;
+  std::vector<EntityId>     m_trackedEntities;
+  std::recursive_mutex      m_lock;
+  std::array<ItemStack, 45> m_inventory;
 };
 
 std::unique_ptr<IPlayer> createPlayer(SafeSocket& sock) {

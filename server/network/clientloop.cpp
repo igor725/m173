@@ -45,6 +45,7 @@ class HackedClientException: public std::exception {
   public:
   enum Reasons {
     WrongBlockPlace,
+    WrongHoldSlot,
     _ReasonsCount,
   };
 
@@ -55,6 +56,7 @@ class HackedClientException: public std::exception {
   private:
   const char* ReasonNames[_ReasonsCount] = {
       "WrongBlockPlace",
+      "WrongHoldSlot",
   };
 
   std::string m_what;
@@ -126,20 +128,6 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
           linkedEntity->doLoginProcess(data.getName());
           linkedEntity->setTime(accessWorld().getTime());
           linkedEntity->updateWorldChunks(true);
-
-          {
-            std::vector<ItemId>           m_items = {276, 267, 268, 283, 25};
-            Packet::ToClient::ItemsWindow wdata(0);
-            for (SlotId i = 0; i < 45; ++i) {
-              ItemId iid = -1;
-              if (i >= 36 && m_items.size() > 0) {
-                iid = m_items.back();
-                m_items.pop_back();
-              }
-              wdata.addItem(iid, 1, 0);
-            }
-            wdata.sendTo(ss);
-          }
         } break;
         case Packet::IDs::Handshake: {
           Packet::FromClient::Handshake data(ss);
@@ -272,10 +260,21 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
           if (auto id = data.getId()) {
             if (id < 1 || id > 255) break;
 
-            accessWorld().setBlock(data.getBlockPosition(), id, 0);
+            auto& is = linkedEntity->getHeldItem();
+            if (is.itemId != id || is.stackSize == 0) throw HackedClientException(HackedClientException::WrongBlockPlace);
 
-            Packet::ToClient::BlockChange wdata(data.getBlockPosition(), id, 0);
-            linkedEntity->sendToTrackedPlayers(wdata, true);
+            if (accessWorld().setBlock(data.getBlockPosition(), id, 0)) {
+              Packet::ToClient::BlockChange wdata(data.getBlockPosition(), id, 0);
+              linkedEntity->sendToTrackedPlayers(wdata, true);
+              if (!is.decrementBy(1)) linkedEntity->updateEquipedItem();
+            } else {
+              auto bid = accessWorld().getBlock(data.getBlockPosition());
+
+              Packet::ToClient::BlockChange wdata(data.getBlockPosition(), bid, 0);
+              wdata.sendTo(linkedEntity->getSocket());
+              linkedEntity->resendHeldItem();
+            }
+
             break;
           }
 
@@ -283,6 +282,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
         } break;
         case Packet::IDs::HoldChange: {
           Packet::FromClient::PlayerHold data(ss);
+          if (!linkedEntity->setHeldSlot(data.getSlotId())) throw HackedClientException(HackedClientException::WrongHoldSlot);
         } break;
         case Packet::IDs::PlayerAnim: {
           Packet::FromClient::PlayerAnim data(ss);

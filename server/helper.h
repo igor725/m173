@@ -63,6 +63,23 @@ struct FloatAngle {
   inline int8_t pitchToByte() const { return (pitch / 360) * 255; }
 };
 
+struct ItemStack {
+  int16_t stackSize;
+  ItemId  itemId;
+  int16_t itemDamage;
+
+  ItemStack(): stackSize(0), itemId(-1), itemDamage(0) {}
+
+  ItemStack(ItemId iid): stackSize(0), itemId(iid), itemDamage(0) {}
+
+  ItemStack(ItemId iid, int16_t ss): stackSize(ss), itemId(iid) {}
+
+  bool decrementBy(int16_t sz) {
+    if ((stackSize -= sz) == 0) itemId = -1;
+    return stackSize > 0;
+  }
+};
+
 struct FloatVector3 {
   float_t x, y, z;
 };

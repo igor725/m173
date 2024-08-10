@@ -51,6 +51,19 @@ class CloseWindow: public PacketWriter {
   CloseWindow(WinId wid): PacketWriter(Packet::IDs::CloseWindow) { writeInteger(wid); }
 };
 
+class SetSlotWindow: public PacketWriter {
+  public:
+  SetSlotWindow(WinId wid, SlotId slot, const ItemStack& is): PacketWriter(Packet::IDs::SetSlot) {
+    writeInteger<WinId>(wid);
+    writeInteger<SlotId>(slot);
+    writeInteger<ItemId>(is.itemId);
+    if (is.itemId != -1) {
+      writeInteger<int8_t>(is.stackSize);
+      writeInteger<int16_t>(is.itemDamage);
+    }
+  }
+};
+
 class ItemsWindow: public PacketWriter {
   public:
   ItemsWindow(WinId wid): PacketWriter(Packet::IDs::ItemsWindow) {
@@ -58,12 +71,12 @@ class ItemsWindow: public PacketWriter {
     writeInteger<int16_t>(m_count = 0);
   }
 
-  void addItem(ItemId iid, int8_t count, int16_t uses) {
+  void addItem(const ItemStack& is) {
     (*(reinterpret_cast<int16_t*>(m_data.data() + 2))) = bswap(++m_count);
-    writeInteger<int16_t>(iid);
-    if (iid >= 0) {
-      writeInteger<int8_t>(count);
-      writeInteger<int16_t>(uses);
+    writeInteger<int16_t>(is.itemId);
+    if (is.itemId >= 0) {
+      writeInteger<int8_t>(is.stackSize);
+      writeInteger<int16_t>(is.itemDamage);
     }
   }
 

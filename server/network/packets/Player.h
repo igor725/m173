@@ -241,7 +241,7 @@ class PlayerSpawn: public PacketWriter {
     writeInteger<int8_t>(rotation.pitchToByte()); // Pitch
 
     /* Other data */
-    writeInteger(player->getHeldItem());
+    writeInteger(player->getHeldItem().itemId);
   }
 };
 
