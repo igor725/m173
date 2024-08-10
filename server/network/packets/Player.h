@@ -241,7 +241,7 @@ class PlayerSpawn: public PacketWriter {
     writeInteger<int8_t>(rotation.pitchToByte()); // Pitch
 
     /* Other data */
-    writeInteger(player->getHeldItem().itemId);
+    writeInteger<ItemId>(player->getHeldItem().itemId);
   }
 };
 
@@ -252,14 +252,14 @@ class PlayerPosAndLook: public PacketWriter {
     auto& rotation = player->getRotation();
 
     /* Player position */
-    writeFloating(position.x);
-    writeFloating(position.y);
-    writeFloating(player->getStance());
-    writeFloating(position.z);
+    writeFloating<double_t>(position.x);
+    writeFloating<double_t>(position.y);
+    writeFloating<double_t>(player->getStance());
+    writeFloating<double_t>(position.z);
 
     /* Player rotation */
-    writeFloating(rotation.yaw);
-    writeFloating(rotation.pitch);
+    writeFloating<float_t>(rotation.yaw);
+    writeFloating<float_t>(rotation.pitch);
 
     /* Player physics values */
     writeBoolean(player->isOnGround());

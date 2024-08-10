@@ -20,11 +20,11 @@ class SoundEffect: public PacketWriter {
   };
 
   SoundEffect(EffectId eid, const IntVector3& pos): PacketWriter(Packet::IDs::SoundEffect) {
-    writeInteger(eid);
+    writeInteger<EntityId>(eid);
     writeBoolean(true);
-    writeInteger(pos.x);
+    writeInteger<int32_t>(pos.x);
     writeInteger<int8_t>(pos.y);
-    writeInteger(pos.z);
+    writeInteger<int32_t>(pos.z);
   }
 };
 } // namespace ToClient

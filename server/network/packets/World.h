@@ -8,34 +8,34 @@ namespace Packet {
 namespace ToClient {
 class TimeUpdate: public PacketWriter {
   public:
-  TimeUpdate(int64_t time): PacketWriter(Packet::IDs::TimeUpdate) { writeInteger(time); }
+  TimeUpdate(int64_t time): PacketWriter(Packet::IDs::TimeUpdate) { writeInteger<int64_t>(time); }
 };
 
 class SpawnPosition: public PacketWriter {
   public:
   SpawnPosition(const IntVector3& pos): PacketWriter(Packet::IDs::SpawnPos) {
-    writeInteger(pos.x);
-    writeInteger(pos.y);
-    writeInteger(pos.z);
+    writeInteger<int32_t>(pos.x);
+    writeInteger<int32_t>(pos.y);
+    writeInteger<int32_t>(pos.z);
   }
 };
 
 class BlockChange: public PacketWriter {
   public:
   BlockChange(const IntVector3& pos, BlockId type, int8_t meta): PacketWriter(Packet::IDs::BlockChg) {
-    writeInteger(pos.x);
+    writeInteger<int32_t>(pos.x);
     writeInteger<int8_t>(pos.y);
-    writeInteger(pos.z);
-    writeInteger(type);
-    writeInteger(meta);
+    writeInteger<int32_t>(pos.z);
+    writeInteger<BlockId>(type);
+    writeInteger<int8_t>(meta);
   }
 };
 
 class PreChunk: public PacketWriter {
   public:
   PreChunk(const IntVector2& pos, bool init): PacketWriter(Packet::IDs::PreChunk) {
-    writeInteger(pos.x);
-    writeInteger(pos.z);
+    writeInteger<int32_t>(pos.x);
+    writeInteger<int32_t>(pos.z);
     writeBoolean(init);
   }
 };
@@ -43,13 +43,13 @@ class PreChunk: public PacketWriter {
 class MapChunk: public PacketWriter {
   public:
   MapChunk(const IntVector3& pos, const ByteVector3& size, int32_t datasize): PacketWriter(Packet::IDs::MapChunk) {
-    writeInteger(pos.x);
+    writeInteger<int32_t>(pos.x);
     writeInteger<int16_t>(pos.y);
-    writeInteger(pos.z);
-    writeInteger(size.x);
-    writeInteger(size.y);
-    writeInteger(size.z);
-    writeInteger(datasize);
+    writeInteger<int32_t>(pos.z);
+    writeInteger<int8_t>(size.x);
+    writeInteger<int8_t>(size.y);
+    writeInteger<int8_t>(size.z);
+    writeInteger<int32_t>(datasize);
   }
 };
 
@@ -64,11 +64,11 @@ class NoteBlockPlay: public PacketWriter {
   };
 
   NoteBlockPlay(const IntVector3& pos, Instrument instr, int8_t pitch): PacketWriter(Packet::IDs::BlockAction) {
-    writeInteger(pos.x);
+    writeInteger<int32_t>(pos.x);
     writeInteger<int16_t>(pos.y);
-    writeInteger(pos.z);
-    writeInteger(instr);
-    writeInteger(pitch);
+    writeInteger<int32_t>(pos.z);
+    writeInteger<Instrument>(instr);
+    writeInteger<int8_t>(pitch);
   }
 };
 
@@ -80,7 +80,7 @@ class SetState: public PacketWriter {
     RainEnd,
   };
 
-  SetState(State s): PacketWriter(Packet::IDs::SetState) { writeInteger(s); }
+  SetState(State s): PacketWriter(Packet::IDs::SetState) { writeInteger<State>(s); }
 };
 
 class SignUpdate: public PacketWriter {

@@ -28,31 +28,31 @@ namespace ToClient {
 class EntityEquipment: public PacketWriter {
   public:
   EntityEquipment(EntityId eid, SlotId sid, const ItemStack& is): PacketWriter(Packet::IDs::EntityEquip) {
-    writeInteger(eid);
-    writeInteger(sid);
-    writeInteger(is.itemId);
-    writeInteger(is.itemDamage);
+    writeInteger<EntityId>(eid);
+    writeInteger<SlotId>(sid);
+    writeInteger<ItemId>(is.itemId);
+    writeInteger<int16_t>(is.itemDamage);
   }
 };
 
 class EntityVelocity: public PacketWriter {
   public:
   EntityVelocity(EntityId eid, const DoubleVector3& motion): PacketWriter(Packet::IDs::EntityVel) {
-    writeInteger(eid);
-    writeInteger(static_cast<int16_t>(motion.x * 8000.0));
-    writeInteger(static_cast<int16_t>(motion.y * 8000.0));
-    writeInteger(static_cast<int16_t>(motion.z * 8000.0));
+    writeInteger<EntityId>(eid);
+    writeInteger<int16_t>(static_cast<int16_t>(motion.x * 8000.0));
+    writeInteger<int16_t>(static_cast<int16_t>(motion.y * 8000.0));
+    writeInteger<int16_t>(static_cast<int16_t>(motion.z * 8000.0));
   }
 };
 
 class EntityDestroy: public PacketWriter {
   public:
-  EntityDestroy(EntityId eid): PacketWriter(Packet::IDs::EntityDestroy) { writeInteger(eid); }
+  EntityDestroy(EntityId eid): PacketWriter(Packet::IDs::EntityDestroy) { writeInteger<EntityId>(eid); }
 };
 
 class EntityIdle: public PacketWriter {
   public:
-  EntityIdle(EntityId eid): PacketWriter(Packet::IDs::EntityIdle) { writeInteger(eid); }
+  EntityIdle(EntityId eid): PacketWriter(Packet::IDs::EntityIdle) { writeInteger<EntityId>(eid); }
 };
 
 class EntityRelaMove: public PacketWriter {
@@ -61,7 +61,7 @@ class EntityRelaMove: public PacketWriter {
     DoubleVector3 diff;
     entity->popPositionDiff(diff);
 
-    writeInteger(entity->getEntityId());
+    writeInteger<EntityId>(entity->getEntityId());
     writeABVector(diff);
   }
 };
@@ -70,9 +70,9 @@ class EntityLook: public PacketWriter {
   public:
   EntityLook(EntityBase* entity): PacketWriter(Packet::IDs::EntityLook) {
     auto& rot = entity->getRotation();
-    writeInteger(entity->getEntityId());
-    writeInteger(rot.yawToByte());
-    writeInteger(rot.pitchToByte());
+    writeInteger<EntityId>(entity->getEntityId());
+    writeInteger<int8_t>(rot.yawToByte());
+    writeInteger<int8_t>(rot.pitchToByte());
   }
 };
 
@@ -83,10 +83,10 @@ class EntityLookRM: public PacketWriter {
     entity->popPositionDiff(diff);
     auto& rot = entity->getRotation();
 
-    writeInteger(entity->getEntityId());
+    writeInteger<EntityId>(entity->getEntityId());
     writeABVector(diff);
-    writeInteger(rot.yawToByte());
-    writeInteger(rot.pitchToByte());
+    writeInteger<int8_t>(rot.yawToByte());
+    writeInteger<int8_t>(rot.pitchToByte());
   }
 };
 
@@ -96,10 +96,10 @@ class EntitySetPos: public PacketWriter {
     auto& pos = entity->getPosition();
     auto& rot = entity->getRotation();
 
-    writeInteger(entity->getEntityId());
+    writeInteger<EntityId>(entity->getEntityId());
     writeAIVector(pos);
-    writeInteger(rot.yawToByte());
-    writeInteger(rot.pitchToByte());
+    writeInteger<int8_t>(rot.yawToByte());
+    writeInteger<int8_t>(rot.pitchToByte());
   }
 };
 
@@ -118,8 +118,8 @@ class EntityStatus: public PacketWriter {
   };
 
   EntityStatus(EntityId eid, Type type): PacketWriter(Packet::IDs::EntityStatus) {
-    writeInteger(eid);
-    writeInteger(type);
+    writeInteger<EntityId>(eid);
+    writeInteger<Type>(type);
   }
 };
 
@@ -131,22 +131,22 @@ class EntityMeta: public PacketWriter {
 
   void putByte(int valueid, int8_t value) {
     putHeader(0, valueid);
-    writeInteger(value);
+    writeInteger<int8_t>(value);
   }
 
   void putShort(int valueid, int16_t value) {
     putHeader(1, valueid);
-    writeInteger(value);
+    writeInteger<int16_t>(value);
   }
 
   void putInt(int valueid, int32_t value) {
     putHeader(2, valueid);
-    writeInteger(value);
+    writeInteger<int32_t>(value);
   }
 
   void putFloat(int valueid, float_t value) {
     putHeader(3, valueid);
-    writeFloating(value);
+    writeFloating<float_t>(value);
   }
 
   void putString(int valueid, const std::wstring& str) {
@@ -154,11 +154,11 @@ class EntityMeta: public PacketWriter {
     writeString(str);
   }
 
-  void putItem(int valueid, ItemId iid, int8_t count, int16_t damage) {
+  void putItem(int valueid, const ItemStack& is) {
     putHeader(5, valueid);
-    writeInteger(iid);
-    writeInteger(count);
-    writeInteger(damage);
+    writeInteger<ItemId>(is.itemId);
+    writeInteger<int16_t>(is.stackSize);
+    writeInteger<int16_t>(is.itemDamage);
   }
 
   void putVector(int valueid, const IntVector3& vec) {
@@ -172,11 +172,11 @@ class EntityMeta: public PacketWriter {
 class SpawnThunderbolt: public PacketWriter {
   public:
   SpawnThunderbolt(EntityId eid, const IntVector3& pos): PacketWriter(Packet::IDs::Thunderbolt) {
-    writeInteger(eid);
+    writeInteger<EntityId>(eid);
     writeBoolean(true);
-    writeInteger(pos.x);
-    writeInteger(pos.y);
-    writeInteger(pos.z);
+    writeInteger<int32_t>(pos.x);
+    writeInteger<int32_t>(pos.y);
+    writeInteger<int32_t>(pos.z);
   }
 };
 } // namespace ToClient
