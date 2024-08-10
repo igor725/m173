@@ -19,7 +19,7 @@ class SoundEffect: public PacketWriter {
     BlockBreak = 2001,
   };
 
-  SoundEffect(EffectId eid, const IntVector3& pos): PacketWriter(Packet::IDs::SoundEffect) {
+  SoundEffect(EffectId eid, const IntVector3& pos): PacketWriter(Packet::IDs::SoundEffect, 17) {
     writeInteger<EntityId>(eid);
     writeBoolean(true);
     writeInteger<int32_t>(pos.x);

@@ -36,7 +36,21 @@ class IWorld {
   IWorld()          = default;
   virtual ~IWorld() = default;
 
-  static inline uint64_t packChunkPos(const IntVector2& pos) { return (int64_t)pos.x << 32 | pos.z; }
+  static inline int64_t packChunkPos(const IntVector2& pos) {
+    union {
+      int64_t offset;
+
+      struct {
+        int64_t x : 32;
+        int64_t z : 32;
+      };
+    } u;
+
+    u.x = pos.x;
+    u.z = pos.z;
+
+    return u.offset;
+  }
 
   virtual Chunk*      getChunk(const IntVector2& pos)                  = 0;
   virtual Chunk*      allocChunk(const IntVector2& pos)                = 0;

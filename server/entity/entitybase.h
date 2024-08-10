@@ -74,6 +74,8 @@ class EntityBase {
     return m_flags;
   }
 
+  virtual void tick(int64_t delta) {}
+
   private:
   void getPositionDiff(DoubleVector3& diff) const {
     diff = {

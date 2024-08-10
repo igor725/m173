@@ -25,6 +25,7 @@ class Player: public IPlayer {
     m_inventory[38] = ItemStack(268, 1);
     m_inventory[39] = ItemStack(283, 1);
     m_inventory[40] = ItemStack(25, 4);
+    m_inventory[41] = ItemStack(332, 16);
   }
 
   ~Player() {

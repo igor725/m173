@@ -100,9 +100,16 @@ private:
 
 #pragma endregion()
 
+#pragma region(Writer)
+
 class PacketWriter {
   public:
   PacketWriter(PacketId id) { writeInteger<int8_t>(id); }
+
+  PacketWriter(PacketId id, size_t psize) {
+    m_data.reserve(psize + 1);
+    writeInteger<int8_t>(id);
+  }
 
   bool sendTo(SafeSocket& sock) { return sock.write(m_data.data(), m_data.size()); }
 
@@ -142,9 +149,9 @@ class PacketWriter {
   }
 
   void writeIVector(const IntVector3& vec) {
-    writeInteger(vec.x);
-    writeInteger(vec.y);
-    writeInteger(vec.z);
+    writeInteger<int32_t>(vec.x);
+    writeInteger<int32_t>(vec.y);
+    writeInteger<int32_t>(vec.z);
   }
 
   void writeAIVector(const DoubleVector3& pos) {
@@ -167,3 +174,5 @@ class PacketWriter {
   protected:
   std::vector<char> m_data;
 };
+
+#pragma endregion()

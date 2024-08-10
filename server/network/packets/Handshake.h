@@ -44,12 +44,12 @@ class Handshake: private PacketReader {
 namespace ToClient {
 class KeepAlive: public PacketWriter {
   public:
-  KeepAlive(): PacketWriter(Packet::IDs::KeepAlive) {}
+  KeepAlive(): PacketWriter(Packet::IDs::KeepAlive, 0) {}
 };
 
 class LoginRequest: public PacketWriter {
   public:
-  LoginRequest(EntityId entId, const std::wstring& svname, int8_t dimension): PacketWriter(Packet::IDs::Login) {
+  LoginRequest(EntityId entId, const std::wstring& svname, int8_t dimension): PacketWriter(Packet::IDs::Login, 15 + svname.size()) {
     writeInteger<EntityId>(entId);
     writeString(svname);
     writeInteger<int64_t>(0ll); // todo world seed
@@ -59,7 +59,7 @@ class LoginRequest: public PacketWriter {
 
 class Handshake: public PacketWriter {
   public:
-  Handshake(const std::wstring& connhash): PacketWriter(Packet::IDs::Handshake) { writeString(connhash); }
+  Handshake(const std::wstring& connhash): PacketWriter(Packet::IDs::Handshake, 2 + connhash.size()) { writeString(connhash); }
 };
 } // namespace ToClient
 } // namespace Packet

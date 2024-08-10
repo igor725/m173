@@ -4,6 +4,7 @@
 #include "entity/manager.h"
 #include "entity/player/player.h"
 #include "ids.h"
+#include "items/items.h"
 #include "packets/ChatMessage.h"
 #include "packets/Entity.h"
 #include "packets/Handshake.h"
@@ -162,21 +163,27 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
           auto target = accessEntityManager().GetEntity(data.getTarget());
           if (target == nullptr) throw InvalidEntityIndexException(data.getTarget());
 
-          if (data.isLeftClick() && linkedEntity->canHitEntity()) {
+          if (data.isLeftClick()) {
+            if (!linkedEntity->canHitEntity()) break;
+
             switch (target->getType()) {
               case EntityBase::Player: {
                 auto ply_target = dynamic_cast<IPlayer*>(target);
-                ply_target->setHealth(ply_target->getHealth() - 2 /* todo different damage depends on held item */);
+
+                auto& his = linkedEntity->getHeldItem();
+                auto& dmg = his.getDamageVsEntity(target);
+
+                his.hitEntity(linkedEntity, target);
+
+                ply_target->setHealth(ply_target->getHealth() - dmg.damage);
 
                 auto& kicker_pos   = linkedEntity->getPosition();
                 auto& receiver_pos = ply_target->getPosition();
 
-                constexpr double_t knock_strength = 0.25; // todo different values? may be random?
-
                 const DoubleVector3 knockback = {
-                    .x = (receiver_pos.x - kicker_pos.x) * knock_strength,
-                    .y = knock_strength,
-                    .z = (receiver_pos.z - kicker_pos.z) * knock_strength,
+                    .x = (receiver_pos.x - kicker_pos.x) * dmg.kbackStrength,
+                    .y = dmg.kbackStrength,
+                    .z = (receiver_pos.z - kicker_pos.z) * dmg.kbackStrength,
                 };
 
                 ply_target->addVelocity(knockback);
@@ -220,10 +227,20 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
           Packet::FromClient::PlayerDig data(ss);
 
           if (data.isDiggingFinished()) { // todo dig server event
-            accessWorld().setBlock(data.getPosition(), 0, 0);
+            auto& blockPos  = data.getPosition();
+            auto  prevBlock = accessWorld().getBlock(blockPos);
 
-            Packet::ToClient::BlockChange wdata(data.getPosition(), 0, 0);
-            linkedEntity->sendToTrackedPlayers(wdata, true);
+            if (accessWorld().setBlock(blockPos, 0, 0)) {
+              auto& is = linkedEntity->getHeldItem();
+              is.onDestroyBlock(blockPos, prevBlock, linkedEntity);
+              Packet::ToClient::BlockChange wdata(blockPos, 0, 0);
+              linkedEntity->sendToTrackedPlayers(wdata, true);
+            } else {
+              auto bid = accessWorld().getBlock(blockPos);
+
+              Packet::ToClient::BlockChange wdata(blockPos, bid, 0);
+              wdata.sendTo(linkedEntity->getSocket());
+            }
           } else if (data.isDroppingBlock()) {
             Packet::ToClient::ChatMessage wdata(L"* Item dropping is not implemented yet :(");
             wdata.sendTo(linkedEntity->getSocket());
@@ -258,10 +275,15 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
           }
 
           if (auto id = data.getId()) {
-            if (id < 1 || id > 255) break;
+            if (id < 1) break;
 
             auto& is = linkedEntity->getHeldItem();
             if (is.itemId != id || is.stackSize == 0) throw HackedClientException(HackedClientException::WrongBlockPlace);
+
+            if (id > 255) { // Handle item click
+              Item::getById(id)->onItemRightClick(is, linkedEntity);
+              break;
+            }
 
             if (accessWorld().setBlock(data.getBlockPosition(), id, 0)) {
               Packet::ToClient::BlockChange wdata(data.getBlockPosition(), id, 0);

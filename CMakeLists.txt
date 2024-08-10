@@ -31,6 +31,7 @@ find_package(sockpp REQUIRED)
 add_subdirectory(server/config)
 add_subdirectory(server/commands)
 add_subdirectory(server/network)
+add_subdirectory(server/items)
 add_subdirectory(server/entity)
 add_subdirectory(server/world)
 add_subdirectory(server/zlibpp)
@@ -40,6 +41,7 @@ add_executable(m173_server
 	$<TARGET_OBJECTS:config>
 	$<TARGET_OBJECTS:commands>
 	$<TARGET_OBJECTS:network>
+	$<TARGET_OBJECTS:items>
 	$<TARGET_OBJECTS:entity>
 	$<TARGET_OBJECTS:world>
 	$<TARGET_OBJECTS:zlibpp>

@@ -86,7 +86,7 @@ class ItemsWindow: public PacketWriter {
 
 class UpdateWindow: public PacketWriter {
   public:
-  UpdateWindow(WinId wid, int16_t type, int16_t value): PacketWriter(Packet::IDs::UpdateWindow) {
+  UpdateWindow(WinId wid, int16_t type, int16_t value): PacketWriter(Packet::IDs::UpdateWindow, 5) {
     writeInteger<WinId>(wid);
     writeInteger<int16_t>(type);
     writeInteger<int16_t>(value);
@@ -95,7 +95,7 @@ class UpdateWindow: public PacketWriter {
 
 class TransactionWindow: public PacketWriter {
   public:
-  TransactionWindow(WinId wid, int16_t anum, bool accepted): PacketWriter(Packet::IDs::TransactWindow) {
+  TransactionWindow(WinId wid, int16_t anum, bool accepted): PacketWriter(Packet::IDs::TransactWindow, 4) {
     writeInteger<WinId>(wid);
     writeInteger<int16_t>(anum);
     writeBoolean(accepted);

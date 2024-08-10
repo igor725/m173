@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../entitybase.h"
+#include "items/itemstack.h"
 #include "network/packet.h"
 #include "network/safesock.h"
 

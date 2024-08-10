@@ -12,7 +12,7 @@ class TooMuchSignLinesException: public std::exception {
 };
 
 namespace Packet::ToClient {
-SignUpdate::SignUpdate(const IntVector3& pos, const std::wstring& data): PacketWriter(Packet::IDs::SignUpdate) {
+SignUpdate::SignUpdate(const IntVector3& pos, const std::wstring& data): PacketWriter(Packet::IDs::SignUpdate, 10 + data.size()) {
   writeInteger<int32_t>(pos.x);
   writeInteger<int16_t>(pos.y);
   writeInteger<int32_t>(pos.z);

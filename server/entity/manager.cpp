@@ -4,6 +4,22 @@
 
 class EntityManager: public IEntityManager {
   public:
+  EntityManager() {
+    std::thread em_thread([this]() {
+      auto curr = std::chrono::system_clock::now();
+      auto prev = std::chrono::system_clock::now();
+
+      while (true) {
+        prev = curr;
+        curr = std::chrono::system_clock::now();
+
+        DoEntityTicks(std::chrono::duration_cast<std::chrono::milliseconds>(curr - prev).count());
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      }
+    });
+    em_thread.detach();
+  }
+
   EntityId AddEntity(std::unique_ptr<EntityBase>&& entity) final {
     static EntityId entcounter = 0;
 
@@ -42,6 +58,12 @@ class EntityManager: public IEntityManager {
     }
 
     return true;
+  }
+
+  void DoEntityTicks(int64_t delta) {
+    for (auto it = m_loadedents.begin(); it != m_loadedents.end(); ++it) {
+      it->second.get()->tick(delta);
+    }
   }
 
   private:

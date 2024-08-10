@@ -206,48 +206,25 @@ class Disconnect: private PacketReader {
 namespace ToClient {
 class PlayerHealth: public PacketWriter {
   public:
-  PlayerHealth(int16_t health): PacketWriter(Packet::IDs::PlayerHealth) { writeInteger(health); }
+  PlayerHealth(int16_t health): PacketWriter(Packet::IDs::PlayerHealth, 2) { writeInteger(health); }
 };
 
 class PlayerRespawn: public PacketWriter {
   public:
-  PlayerRespawn(Dimension dim): PacketWriter(Packet::IDs::PlayerRespawn) { writeInteger<Dimension>(dim); }
+  PlayerRespawn(Dimension dim): PacketWriter(Packet::IDs::PlayerRespawn, 1) { writeInteger<Dimension>(dim); }
 };
 
 class PlayerAnim: public PacketWriter {
   public:
-  PlayerAnim(EntityId eid, AnimId aid): PacketWriter(Packet::IDs::PlayerAnim) {
-    writeInteger(eid);
-    writeInteger(aid);
-  }
-};
-
-class PlayerSpawn: public PacketWriter {
-  public:
-  PlayerSpawn(IPlayer* player): PacketWriter(Packet::IDs::PlayerSpawn) {
-    auto& position = player->getPosition();
-    auto& rotation = player->getRotation();
-
-    writeInteger<EntityId>(player->getEntityId());
-    writeString(player->getName());
-
-    /* Player position */
-    writeInteger<int32_t>(static_cast<int32_t>(position.x * 32.0));
-    writeInteger<int32_t>(static_cast<int32_t>(position.y * 32.0));
-    writeInteger<int32_t>(static_cast<int32_t>(position.z * 32.0));
-
-    /* Player rotation */
-    writeInteger<int8_t>(rotation.yawToByte());   // Yaw
-    writeInteger<int8_t>(rotation.pitchToByte()); // Pitch
-
-    /* Other data */
-    writeInteger<ItemId>(player->getHeldItem().itemId);
+  PlayerAnim(EntityId eid, AnimId aid): PacketWriter(Packet::IDs::PlayerAnim, 5) {
+    writeInteger<EntityId>(eid);
+    writeInteger<AnimId>(aid);
   }
 };
 
 class PlayerPosAndLook: public PacketWriter {
   public:
-  PlayerPosAndLook(IPlayer* player): PacketWriter(Packet::IDs::PlayerPnL) {
+  PlayerPosAndLook(IPlayer* player): PacketWriter(Packet::IDs::PlayerPnL, 41) {
     auto& position = player->getPosition();
     auto& rotation = player->getRotation();
 
@@ -263,6 +240,28 @@ class PlayerPosAndLook: public PacketWriter {
 
     /* Player physics values */
     writeBoolean(player->isOnGround());
+  }
+};
+
+class PlayerSpawn: public PacketWriter {
+  public:
+  PlayerSpawn(IPlayer* player): PacketWriter(Packet::IDs::PlayerSpawn, 22 + player->getName().size()) {
+    auto& position = player->getPosition();
+    auto& rotation = player->getRotation();
+
+    writeInteger<EntityId>(player->getEntityId());
+    writeString(player->getName());
+
+    /* Player position */
+    writeAIVector(position);
+
+    /* Player rotation */
+    writeInteger<int8_t>(rotation.yawToByte());   // Yaw
+    writeInteger<int8_t>(rotation.pitchToByte()); // Pitch
+
+    /* Other data */
+    auto heldItem = player->getHeldItem().itemId;
+    writeInteger<ItemId>(heldItem < 0 ? 0 : heldItem);
   }
 };
 

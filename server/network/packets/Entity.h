@@ -27,7 +27,7 @@ class EntityClick: private PacketReader {
 namespace ToClient {
 class EntityEquipment: public PacketWriter {
   public:
-  EntityEquipment(EntityId eid, SlotId sid, const ItemStack& is): PacketWriter(Packet::IDs::EntityEquip) {
+  EntityEquipment(EntityId eid, SlotId sid, const ItemStack& is): PacketWriter(Packet::IDs::EntityEquip, 10) {
     writeInteger<EntityId>(eid);
     writeInteger<SlotId>(sid);
     writeInteger<ItemId>(is.itemId);
@@ -37,7 +37,7 @@ class EntityEquipment: public PacketWriter {
 
 class EntityVelocity: public PacketWriter {
   public:
-  EntityVelocity(EntityId eid, const DoubleVector3& motion): PacketWriter(Packet::IDs::EntityVel) {
+  EntityVelocity(EntityId eid, const DoubleVector3& motion): PacketWriter(Packet::IDs::EntityVel, 10) {
     writeInteger<EntityId>(eid);
     writeInteger<int16_t>(static_cast<int16_t>(motion.x * 8000.0));
     writeInteger<int16_t>(static_cast<int16_t>(motion.y * 8000.0));
@@ -47,17 +47,17 @@ class EntityVelocity: public PacketWriter {
 
 class EntityDestroy: public PacketWriter {
   public:
-  EntityDestroy(EntityId eid): PacketWriter(Packet::IDs::EntityDestroy) { writeInteger<EntityId>(eid); }
+  EntityDestroy(EntityId eid): PacketWriter(Packet::IDs::EntityDestroy, 4) { writeInteger<EntityId>(eid); }
 };
 
 class EntityIdle: public PacketWriter {
   public:
-  EntityIdle(EntityId eid): PacketWriter(Packet::IDs::EntityIdle) { writeInteger<EntityId>(eid); }
+  EntityIdle(EntityId eid): PacketWriter(Packet::IDs::EntityIdle, 4) { writeInteger<EntityId>(eid); }
 };
 
 class EntityRelaMove: public PacketWriter {
   public:
-  EntityRelaMove(EntityBase* entity): PacketWriter(Packet::IDs::EntityRelMove) {
+  EntityRelaMove(EntityBase* entity): PacketWriter(Packet::IDs::EntityRelMove, 7) {
     DoubleVector3 diff;
     entity->popPositionDiff(diff);
 
@@ -68,7 +68,7 @@ class EntityRelaMove: public PacketWriter {
 
 class EntityLook: public PacketWriter {
   public:
-  EntityLook(EntityBase* entity): PacketWriter(Packet::IDs::EntityLook) {
+  EntityLook(EntityBase* entity): PacketWriter(Packet::IDs::EntityLook, 6) {
     auto& rot = entity->getRotation();
     writeInteger<EntityId>(entity->getEntityId());
     writeInteger<int8_t>(rot.yawToByte());
@@ -78,7 +78,7 @@ class EntityLook: public PacketWriter {
 
 class EntityLookRM: public PacketWriter {
   public:
-  EntityLookRM(EntityBase* entity): PacketWriter(Packet::IDs::EntityLookRM) {
+  EntityLookRM(EntityBase* entity): PacketWriter(Packet::IDs::EntityLookRM, 9) {
     DoubleVector3 diff;
     entity->popPositionDiff(diff);
     auto& rot = entity->getRotation();
@@ -92,7 +92,7 @@ class EntityLookRM: public PacketWriter {
 
 class EntitySetPos: public PacketWriter {
   public:
-  EntitySetPos(EntityBase* entity): PacketWriter(Packet::IDs::EntitySetPos) {
+  EntitySetPos(EntityBase* entity): PacketWriter(Packet::IDs::EntitySetPos, 18) {
     auto& pos = entity->getPosition();
     auto& rot = entity->getRotation();
 
@@ -117,7 +117,7 @@ class EntityStatus: public PacketWriter {
     WolfShaking, // ???
   };
 
-  EntityStatus(EntityId eid, Type type): PacketWriter(Packet::IDs::EntityStatus) {
+  EntityStatus(EntityId eid, Type type): PacketWriter(Packet::IDs::EntityStatus, 5) {
     writeInteger<EntityId>(eid);
     writeInteger<Type>(type);
   }
@@ -125,7 +125,7 @@ class EntityStatus: public PacketWriter {
 
 class EntityMeta: public PacketWriter {
   public:
-  EntityMeta(EntityId eid): PacketWriter(Packet::IDs::EntityMeta) { writeInteger(eid); }
+  EntityMeta(EntityId eid): PacketWriter(Packet::IDs::EntityMeta, 10 /* Not the actual packet size, just a reservation */) { writeInteger(eid); }
 
   void putHeader(int8_t type, int8_t valueid) { writeInteger<int8_t>((type << 5 | valueid & 31) & 255); }
 
@@ -171,7 +171,7 @@ class EntityMeta: public PacketWriter {
 
 class SpawnThunderbolt: public PacketWriter {
   public:
-  SpawnThunderbolt(EntityId eid, const IntVector3& pos): PacketWriter(Packet::IDs::Thunderbolt) {
+  SpawnThunderbolt(EntityId eid, const IntVector3& pos): PacketWriter(Packet::IDs::Thunderbolt, 17) {
     writeInteger<EntityId>(eid);
     writeBoolean(true);
     writeInteger<int32_t>(pos.x);
