@@ -36,6 +36,7 @@ add_subdirectory(server/network)
 add_subdirectory(server/blocks)
 add_subdirectory(server/items)
 add_subdirectory(server/entity)
+add_subdirectory(server/containers)
 add_subdirectory(server/world)
 add_subdirectory(server/zlibpp)
 
@@ -47,6 +48,7 @@ add_executable(m173_server
 	$<TARGET_OBJECTS:blocks>
 	$<TARGET_OBJECTS:items>
 	$<TARGET_OBJECTS:entity>
+	$<TARGET_OBJECTS:containers>
 	$<TARGET_OBJECTS:world>
 	$<TARGET_OBJECTS:zlibpp>
 )

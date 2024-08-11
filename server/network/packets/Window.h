@@ -2,6 +2,7 @@
 
 #include "../ids.h"
 #include "../packet.h"
+#include "containers/list/playerContainer.h"
 #include "helper.h"
 
 namespace Packet {
@@ -32,6 +33,8 @@ class ClickWindow: private PacketReader {
   }
 
   bool isInventory() const { return m_wid == 0; }
+
+  bool isRightButton() const { return m_rmb; }
 
   auto getSlot() const { return m_sid; }
 
@@ -101,9 +104,15 @@ class SetSlotWindow: public PacketWriter {
 
 class ItemsWindow: public PacketWriter {
   public:
-  ItemsWindow(WinId wid): PacketWriter(Packet::IDs::ItemsWindow) {
+  ItemsWindow(WinId wid, size_t icount = 0): PacketWriter(Packet::IDs::ItemsWindow, 6 + icount * 5) {
     writeInteger<WinId>(wid);
     writeInteger<int16_t>(m_count = 0);
+  }
+
+  ItemsWindow(PlayerContainer& cont): ItemsWindow(0, cont.getSize()) {
+    for (SlotId i = 0; i < cont.getSize(); ++i) {
+      addItem(cont.getItem(i));
+    }
   }
 
   void addItem(const ItemStack& is) {

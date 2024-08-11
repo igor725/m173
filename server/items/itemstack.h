@@ -26,9 +26,13 @@ struct ItemStack {
     return true;
   }
 
-  bool isDamageable();
+  bool isEmpty() const { return itemId == -1 || stackSize == 0; }
 
-  int16_t getMaxDamage();
+  bool isDamageable() const;
+
+  int16_t getMaxDamage() const;
+
+  const VsDamageInfo& getDamageVsEntity(EntityBase* ent) const;
 
   void onDestroyBlock(const IntVector3& pos, BlockId id, EntityBase* destroyer);
 
@@ -46,8 +50,6 @@ struct ItemStack {
       }
     }
   }
-
-  const VsDamageInfo& getDamageVsEntity(EntityBase* ent);
 
   void fullStack() { stackSize = 64; }
 };

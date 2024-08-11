@@ -1,6 +1,7 @@
 #include "player.h"
 
 #include "config/config.h"
+#include "containers/list/playerContainer.h"
 #include "entity/manager.h"
 #include "network/packets/ChatMessage.h"
 #include "network/packets/Entity.h"
@@ -16,24 +17,24 @@
 
 class Player: public IPlayer {
   public:
-  Player(SafeSocket& sock): m_selfSock(sock), m_inventory({}) {
+  Player(SafeSocket& sock): m_selfSock(sock), m_container(&m_storage) {
     auto& dist = accessConfig().getItem("chunk.load_distance");
 
     m_trackDistance = dist.getValue<uint32_t>();
 
-    m_inventory[10] = ItemStack(262, 64);
-    m_inventory[11] = ItemStack(17, 64);
-    m_inventory[12] = ItemStack(20, 64);
-    m_inventory[13] = ItemStack(5, 64);
-    m_inventory[36] = ItemStack(276, 1);
-    m_inventory[37] = ItemStack(267, 1);
-    m_inventory[38] = ItemStack(268, 1);
-    m_inventory[39] = ItemStack(283, 1);
-    m_inventory[40] = ItemStack(25, 4);
-    m_inventory[41] = ItemStack(332, 16);
-    m_inventory[42] = ItemStack(345, 1);
-    m_inventory[43] = ItemStack(261, 1);
-    m_inventory[44] = ItemStack(259, 1);
+    m_storage.push(ItemStack(262, 64));
+    m_storage.push(ItemStack(17, 64));
+    m_storage.push(ItemStack(20, 64));
+    m_storage.push(ItemStack(5, 64));
+    m_storage.push(ItemStack(276, 1));
+    m_storage.push(ItemStack(267, 1));
+    m_storage.push(ItemStack(268, 1));
+    m_storage.push(ItemStack(283, 1));
+    m_storage.push(ItemStack(25, 4));
+    m_storage.push(ItemStack(332, 16));
+    m_storage.push(ItemStack(345, 1));
+    m_storage.push(ItemStack(261, 1));
+    m_storage.push(ItemStack(259, 1));
   }
 
   ~Player() {
@@ -71,31 +72,15 @@ class Player: public IPlayer {
     return true;
   }
 
-  SlotId findItemById(ItemId iid) final {
-    for (SlotId i = 9; i < 45; ++i) {
-      if (m_inventory[i].itemId == iid) return i;
-    }
-
-    return -1;
-  }
-
-  ItemStack& getItemBySlotId(SlotId sid) final { return m_inventory[sid]; }
+  PlayerStorage& getStorage() final { return m_storage; }
 
   bool resendItem(const ItemStack& is) final {
-    auto it = std::find_if(m_inventory.begin(), m_inventory.end(), [&](const ItemStack& o) -> bool { return &o == &is; });
-    if (it == m_inventory.end()) return false;
-
-    auto sid = (SlotId)std::distance(m_inventory.begin(), it);
-
-    Packet::ToClient::SetSlotWindow wdata_ss(0, sid, is);
+    Packet::ToClient::SetSlotWindow wdata_ss(0, m_storage.getSlotId(is), is);
     return wdata_ss.sendTo(m_selfSock);
   }
 
   bool updateInventory() final {
-    Packet::ToClient::ItemsWindow wdata(0);
-    for (SlotId i = 0; i < m_inventory.size(); ++i) {
-      wdata.addItem(m_inventory[i]);
-    }
+    Packet::ToClient::ItemsWindow wdata(m_container);
     return wdata.sendTo(m_selfSock);
   }
 
@@ -103,7 +88,7 @@ class Player: public IPlayer {
     using namespace Packet::ToClient;
 
     m_health = m_maxHealth;
-    m_inventory.fill(ItemStack());
+    m_storage.clear();
     updateInventory();
 
     // Mojang... Just why...
@@ -449,7 +434,7 @@ class Player: public IPlayer {
 
   SlotId getHeldSlot() const final { return m_heldSlot; }
 
-  ItemStack& getHeldItem() final { return m_inventory[36 + m_heldSlot]; }
+  ItemStack& getHeldItem() final { return m_storage.getByOffset(m_storage.getHotbarOffset() + m_heldSlot); }
 
   bool setHeldSlot(SlotId slot) final {
     if (slot < 0 || slot > 8) return false;
@@ -480,17 +465,18 @@ class Player: public IPlayer {
 
   const int16_t m_maxHealth = 20;
 
-  bool                      m_bLoggedIn = false;
-  SlotId                    m_heldSlot  = 0;
-  SafeSocket&               m_selfSock;
-  int64_t                   m_nextHit       = 0;
-  double_t                  m_stance        = 0.0;
-  double_t                  m_trackDistance = 0.0;
-  std::wstring              m_name;
-  std::vector<IntVector2>   m_loadedChunks;
-  std::vector<EntityId>     m_trackedEntities;
-  std::recursive_mutex      m_lock;
-  std::array<ItemStack, 45> m_inventory;
+  bool                    m_bLoggedIn = false;
+  SlotId                  m_heldSlot  = 0;
+  SafeSocket&             m_selfSock;
+  int64_t                 m_nextHit       = 0;
+  double_t                m_stance        = 0.0;
+  double_t                m_trackDistance = 0.0;
+  std::wstring            m_name;
+  std::vector<IntVector2> m_loadedChunks;
+  std::vector<EntityId>   m_trackedEntities;
+  std::recursive_mutex    m_lock;
+  PlayerStorage           m_storage;
+  PlayerContainer         m_container;
 };
 
 std::unique_ptr<IPlayer> createPlayer(SafeSocket& sock) {

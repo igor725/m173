@@ -2,11 +2,11 @@
 
 #include "items.h"
 
-bool ItemStack::isDamageable() {
+bool ItemStack::isDamageable() const {
   return Item::getById(itemId)->isDamageable();
 }
 
-int16_t ItemStack::getMaxDamage() {
+int16_t ItemStack::getMaxDamage() const {
   return Item::getById(itemId)->getMaxDamage();
 }
 
@@ -22,6 +22,6 @@ bool ItemStack::useItem(EntityBase* user, const IntVector3& pos, int8_t directio
   return Item::getById(itemId)->onUseItem(*this, user, pos, direction);
 }
 
-const VsDamageInfo& ItemStack::getDamageVsEntity(EntityBase* ent) {
+const VsDamageInfo& ItemStack::getDamageVsEntity(EntityBase* ent) const {
   return Item::getById(itemId)->getDamageVsEntity(ent);
 }

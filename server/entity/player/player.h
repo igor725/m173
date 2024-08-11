@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../entitybase.h"
+#include "containers/storages/playerStorage.h"
 #include "items/itemstack.h"
 #include "network/packet.h"
 #include "network/safesock.h"
@@ -41,14 +42,13 @@ class IPlayer: public EntityBase {
 
   /* Inventory manipulations */
 
-  virtual SlotId     getHeldSlot() const             = 0;
-  virtual ItemStack& getHeldItem()                   = 0;
-  virtual bool       setHeldSlot(SlotId slot)        = 0;
-  virtual bool       updateInventory()               = 0;
-  virtual bool       resendHeldItem()                = 0;
-  virtual SlotId     findItemById(ItemId iid)        = 0;
-  virtual ItemStack& getItemBySlotId(SlotId sid)     = 0;
-  virtual bool       resendItem(const ItemStack& is) = 0;
+  virtual SlotId         getHeldSlot() const             = 0;
+  virtual ItemStack&     getHeldItem()                   = 0;
+  virtual bool           setHeldSlot(SlotId slot)        = 0;
+  virtual bool           updateInventory()               = 0;
+  virtual bool           resendHeldItem()                = 0;
+  virtual bool           resendItem(const ItemStack& is) = 0;
+  virtual PlayerStorage& getStorage()                    = 0;
 
   /* Movement control */
   virtual bool addVelocity(const DoubleVector3& motion) = 0;
