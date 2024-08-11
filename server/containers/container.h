@@ -13,7 +13,7 @@ class IContainer {
   IContainer(uint32_t slotNum);
   ~IContainer();
 
-  virtual size_t getSize() const { return m_slots.size(); }
+  virtual int16_t getSize() const { return m_slots.size(); }
 
   virtual ItemStack& getItem(SlotId sid);
 

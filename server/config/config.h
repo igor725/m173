@@ -136,7 +136,7 @@ class IConfig {
 
   virtual void loadData()                   = 0;
   virtual void saveData(bool force = false) = 0;
-  virtual bool isChanged()                  = 0;
+  virtual bool isChanged() const            = 0;
 
   virtual ConfigItem& getItem(std::string_view name) = 0;
 };

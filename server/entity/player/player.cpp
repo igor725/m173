@@ -1,7 +1,6 @@
 #include "player.h"
 
 #include "config/config.h"
-#include "containers/list/playerContainer.h"
 #include "entity/manager.h"
 #include "network/packets/ChatMessage.h"
 #include "network/packets/Entity.h"
@@ -73,6 +72,8 @@ class Player: public IPlayer {
   }
 
   PlayerStorage& getStorage() final { return m_storage; }
+
+  PlayerContainer& getContainer() final { return m_container; }
 
   bool resendItem(const ItemStack& is) final {
     Packet::ToClient::SetSlotWindow wdata_ss(0, m_container.getStorageItemSlotId(is), is);
@@ -426,13 +427,6 @@ class Player: public IPlayer {
     Packet::ToClient::EntityEquipment wdata_eq(getEntityId(), 0, getHeldItem());
     sendToTrackedPlayers(wdata_eq, false);
   }
-
-  bool resendHeldItem() final {
-    Packet::ToClient::SetSlotWindow wdata_ss(0, 36 + m_heldSlot, getHeldItem());
-    return wdata_ss.sendTo(m_selfSock);
-  }
-
-  SlotId getHeldSlot() const final { return m_heldSlot; }
 
   ItemStack& getHeldItem() final { return m_storage.getByOffset(m_storage.getHotbarOffset() + m_heldSlot); }
 

@@ -9,7 +9,7 @@
 
 class PlayerStorage: public IStorage {
   public:
-  PlayerStorage() {}
+  PlayerStorage(): IStorage() {}
 
   SlotId getArmorOffset() const { return 0; }
 
@@ -19,7 +19,7 @@ class PlayerStorage: public IStorage {
 
   ItemStack& getByOffset(SlotId slot) final { return m_items[slot]; }
 
-  size_t getSize() const final { return m_items.size(); }
+  int16_t getSize() const final { return m_items.size(); }
 
   void clear() final { m_items.fill(ItemStack()); }
 

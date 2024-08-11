@@ -90,7 +90,7 @@ class Config: public IConfig {
     }
   }
 
-  bool isChanged() final {
+  bool isChanged() const final {
     for (auto it = m_list.begin(); it != m_list.end(); ++it) {
       if (it->second.isChanged()) return true;
     }

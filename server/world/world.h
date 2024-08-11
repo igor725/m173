@@ -22,7 +22,7 @@ struct Nible {
   Nible(int8_t _a, int8_t _b): a(_a), b(_b) {}
 };
 
-template <size_t N>
+template <std::size_t N>
 class NibleArray {
   public:
   NibleArray(): m_data({0}) {}

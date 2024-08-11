@@ -106,7 +106,7 @@ class SetSlotWindow: public PacketWriter {
 
 class ItemsWindow: public PacketWriter {
   public:
-  ItemsWindow(WinId wid, size_t icount = 0): PacketWriter(Packet::IDs::ItemsWindow, 6 + icount * 5) {
+  ItemsWindow(WinId wid, int16_t icount = 0): PacketWriter(Packet::IDs::ItemsWindow, 6 + icount * 5) {
     writeInteger<WinId>(wid);
     writeInteger<int16_t>(m_count = 0);
   }

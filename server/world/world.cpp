@@ -91,7 +91,7 @@ class World: public IWorld {
 
     Packet::ToClient::BlockChange wdata(pos, bid, 0);
     wdata.sendTo(placer->getSocket());
-    placer->resendHeldItem();
+    placer->resendItem(placer->getHeldItem());
     return false;
   }
 

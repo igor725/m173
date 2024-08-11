@@ -3,6 +3,9 @@
 #include "items/itemstack.h"
 
 class IStorage {
+  CLASS_NO_COPY(IStorage);
+  CLASS_NO_MOVE(IStorage);
+
   public:
   IStorage()          = default;
   virtual ~IStorage() = default;
@@ -15,7 +18,7 @@ class IStorage {
 
   virtual SlotId findItemSlotId(ItemId iid) const { return -1; }
 
-  virtual size_t getSize() const { return 0; }
+  virtual int16_t getSize() const { return 0; }
 
   virtual bool push(const ItemStack& is, SlotId* sid = nullptr) { return false; };
 };
