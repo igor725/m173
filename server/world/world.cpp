@@ -73,6 +73,7 @@ class World: public IWorld {
   }
 
   bool setBlock(const IntVector3& pos, BlockId id, int8_t meta) final {
+    if (pos.y < 0 || pos.y > CHUNK_DIMS.y) return false;
     auto chunk = getChunk({pos.x >> 4, pos.z >> 4});
     if (chunk == nullptr) return false;
     chunk->m_blocks[chunk->getWorldIndex(pos)] = id;
@@ -95,7 +96,7 @@ class World: public IWorld {
   }
 
   BlockId getBlock(const IntVector3& pos, int8_t* meta = nullptr) final {
-    if (pos.y < 0) return 0;
+    if (pos.y < 0 || pos.y > CHUNK_DIMS.y) return false;
     auto chunk = getChunk({pos.x >> 4, pos.z >> 4});
     if (chunk == nullptr) return 0;
     if (meta != nullptr) *meta = chunk->m_meta.getNible(chunk->toLocalChunkCoords(pos));
