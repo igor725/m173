@@ -307,9 +307,8 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
               }
 
               linkedEntity->updateEquipedItem();
+              break;
             }
-
-            break;
           }
 
           throw HackedClientException(HackedClientException::WrongBlockPlace);
