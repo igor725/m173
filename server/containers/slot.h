@@ -8,17 +8,20 @@
 
 class Slot {
   public:
-  Slot(IStorage* storage, SlotId slotid): m_slotIndex(slotid), m_storage(storage) {}
+  Slot(IStorage* storage, SlotId slotid): m_storageSlotIndex(slotid), m_storage(storage) {}
 
   virtual int16_t getSlotStackLimit() { return 64; }
 
   virtual bool isItemValid(ItemStack& is) { return true; }
 
-  virtual SlotId getSlotId() const { return m_slotIndex; }
+  virtual SlotId getAbsoluteSlotId() const { return m_slotIndex; }
 
-  ItemStack& getHeldItem() { return m_storage->getByOffset(m_slotIndex); }
+  void setAbsoluteSlotId(SlotId asid) { m_slotIndex = asid; }
+
+  ItemStack& getHeldItem() { return m_storage->getByOffset(m_storageSlotIndex); }
 
   private:
   SlotId    m_slotIndex;
+  SlotId    m_storageSlotIndex;
   IStorage* m_storage;
 };

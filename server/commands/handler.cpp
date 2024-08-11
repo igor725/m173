@@ -1,5 +1,7 @@
 #include "handler.h"
 
+#include <cstddef>
+
 class CommandHandler: public ICommandHandler {
   public:
   CommandHandler() {}
@@ -38,6 +40,7 @@ class CommandHandler: public ICommandHandler {
         size_t start = 0, end = start_of_args;
         while ((start = command.find_first_not_of(L' ', end)) != std::wstring::npos) {
           end = command.find(L' ', start);
+          if (end == std::wstring::npos) end = command.length();
           args.push_back(std::wstring_view(command.c_str() + start, command.c_str() + end));
         }
 

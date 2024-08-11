@@ -4,6 +4,7 @@
 #include "helper.h"
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 
 constexpr int32_t     CHUNK_SIZE       = 16 * 128 * 16;
@@ -28,14 +29,14 @@ class NibleArray {
 
   int8_t getNible(const IntVector3& pos) const {
     uint32_t pack = (uint32_t)pos.x << 11 | (uint32_t)pos.z << 7 | (uint32_t)pos.y;
-    return pack & 1 == 0 ? m_data[pack >> 1].a : m_data[pack >> 1].b;
+    return (pack & 1) == 0 ? m_data[pack >> 1].a : m_data[pack >> 1].b;
   }
 
   void setNible(const IntVector3& pos, int8_t nible) {
     uint32_t pack = (uint32_t)pos.x << 11 | (uint32_t)pos.z << 7 | (uint32_t)pos.y;
     uint32_t idx  = pack >> 1;
 
-    m_data[idx] = pack & 1 == 0 ? (m_data[idx].b | nible & 15) : (m_data[idx].a | (nible & 15) << 4);
+    m_data[idx] = (pack & 1) == 0 ? (m_data[idx].b | (nible & 15)) : (m_data[idx].a | (nible & 15) << 4);
   }
 
   auto data() const { return m_data.data(); }

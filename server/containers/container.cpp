@@ -7,6 +7,7 @@ IContainer::IContainer(uint32_t slotsNum) {
 IContainer::~IContainer() {}
 
 void IContainer::addSlot(Slot&& slot) {
+  slot.setAbsoluteSlotId(m_slots.size());
   m_slots.emplace_back(std::move(slot));
 }
 

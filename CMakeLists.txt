@@ -63,10 +63,11 @@ target_link_libraries(m173_server PRIVATE Sockpp::sockpp-static spdlog::spdlog $
 
 set(InstallDir ${CMAKE_INSTALL_PREFIX}/${CMAKE_BUILD_TYPE})
 
-install(TARGETS m173_server
+install(
+  TARGETS m173_server
   COMPONENT m173_server
   RUNTIME_DEPENDENCIES
-  PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
+  PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-" "libc" "libm" "ld-" "gcc" "stdc"
   POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
 
   DIRECTORIES
@@ -74,4 +75,6 @@ install(TARGETS m173_server
   DESTINATION ${InstallDir}
 )
 
-install(FILES $<TARGET_PDB_FILE:m173_server> DESTINATION ${InstallDir} OPTIONAL)
+if(WIN32)
+  install(FILES $<TARGET_PDB_FILE:m173_server> DESTINATION ${InstallDir} OPTIONAL)
+endif()

@@ -14,6 +14,8 @@ class PlayerContainer: public IContainer {
 
   ItemStack& getHotbarItem(uint8_t iid) final;
 
+  SlotId getStorageItemSlotId(const ItemStack& is);
+
   private:
   CraftingStorage<2, 2> m_crafting;
   CraftingResultStorage m_craftRes;

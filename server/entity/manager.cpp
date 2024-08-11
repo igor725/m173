@@ -1,6 +1,7 @@
 #include "manager.h"
 
 #include <mutex>
+#include <thread>
 #include <unordered_map>
 
 class EntityManager: public IEntityManager {

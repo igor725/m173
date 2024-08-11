@@ -11,7 +11,7 @@ class CraftingResultStorage: public IStorage {
 
   ItemStack& getByOffset(SlotId slot) final { return m_result; }
 
-  SlotId getSlotId(const ItemStack& is) final { return &is == &m_result ? 0 : -1; }
+  SlotId getSlotId(const ItemStack& is) const final { return &is == &m_result ? 0 : -1; }
 
   void clear() final { m_result = ItemStack(); }
 

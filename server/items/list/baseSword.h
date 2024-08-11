@@ -19,7 +19,7 @@ class ItemSword: public Item {
     return true;
   }
 
-  const VsDamageInfo& getDamageVsEntity(EntityBase* ent) { return m_damage; }
+  const VsDamageInfo& getDamageVsEntity(EntityBase* ent) override { return m_damage; }
 
   bool onBlockDestroyed(ItemStack& is, const IntVector3& pos, BlockId id, EntityBase* destroyer) override {
     is.damageItem(2, destroyer);

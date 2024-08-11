@@ -75,7 +75,7 @@ class Player: public IPlayer {
   PlayerStorage& getStorage() final { return m_storage; }
 
   bool resendItem(const ItemStack& is) final {
-    Packet::ToClient::SetSlotWindow wdata_ss(0, m_storage.getSlotId(is), is);
+    Packet::ToClient::SetSlotWindow wdata_ss(0, m_container.getStorageItemSlotId(is), is);
     return wdata_ss.sendTo(m_selfSock);
   }
 
@@ -229,7 +229,7 @@ class Player: public IPlayer {
         if (chunk == nullptr) {
           chunk = world.allocChunk(chunkpos);
           chunk->m_light.fill(Nible(15, 15)); // All fullbright for now
-          chunk->m_sky.fill(Nible(15, 15));   // All fullbright for now
+          chunk->m_sky.fill(Nible(15, 15));
 
           for (int32_t x = 0; x < 16; ++x) {
             for (int32_t y = 0; y < 4; ++y) {

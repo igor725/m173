@@ -29,9 +29,17 @@ PlayerContainer::PlayerContainer(PlayerStorage* stor): IContainer(45), m_craftin
 PlayerContainer::~PlayerContainer() {}
 
 SlotId PlayerContainer::getItemSlotById(ItemId iid) {
-  return std::find_if(m_slots.begin(), m_slots.end(), [=](Slot& s) -> bool { return s.getHeldItem().itemId == iid; })->getSlotId();
+  return std::find_if(m_slots.begin(), m_slots.end(), [=](Slot& s) -> bool { return s.getHeldItem().itemId == iid; })->getAbsoluteSlotId();
 }
 
 ItemStack& PlayerContainer::getHotbarItem(uint8_t offset) {
   return m_storage->getByOffset(m_storage->getHotbarOffset() + offset);
+}
+
+SlotId PlayerContainer::getStorageItemSlotId(const ItemStack& is) {
+  for (auto it = m_slots.begin(); it != m_slots.end(); ++it) {
+    if (&it->getHeldItem() == &is) return it->getAbsoluteSlotId();
+  }
+
+  return -1;
 }
