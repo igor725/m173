@@ -244,12 +244,12 @@ class Player: public IPlayer {
         if (chunk == nullptr) {
           chunk = world.allocChunk(chunkpos);
           chunk->m_light.fill(Nible(15, 15)); // All fullbright for now
+          chunk->m_sky.fill(Nible(15, 15));   // All fullbright for now
 
           for (int32_t x = 0; x < 16; ++x) {
             for (int32_t y = 0; y < 4; ++y) {
               for (int32_t z = 0; z < 16; ++z) {
                 chunk->m_blocks[chunk->getLocalIndex({x, y, z})] = y < 1 ? 7 : y < 3 ? 3 : 2;
-                chunk->m_light.setNible({x, y, z}, 1);
               }
             }
           }
