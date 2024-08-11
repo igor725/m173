@@ -74,23 +74,15 @@ class InvalidEntityIndexException: public std::exception {
   std::string m_what;
 };
 
-bool isBlockInteractive(BlockId block) {
-  switch (block) {
-    case 23:
-    case 25:
-    case 26:
-    case 54:
-    case 58:
-    case 61:
-    case 62:
-    case 64:
-    case 71:
-    case 77:
-    case 84: return true;
+class GenericKickException: public std::exception {
+  public:
+  GenericKickException(const std::string& reason) { m_what = std::format("Kicked: {}", reason); }
 
-    default: return false;
-  }
-}
+  const char* what() const noexcept override { return m_what.c_str(); }
+
+  private:
+  std::string m_what;
+};
 
 ClientLoop::ClientLoop(sockpp::tcp_socket& sock, sockpp::inet_address& addr) {
   std::thread reader(ThreadLoop, std::move(sock), std::move(addr));
@@ -182,9 +174,9 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
                 auto& receiver_pos = ply_target->getPosition();
 
                 const DoubleVector3 knockback = {
-                    .x = (receiver_pos.x - kicker_pos.x) * dmg.kbackStrength,
-                    .y = dmg.kbackStrength,
-                    .z = (receiver_pos.z - kicker_pos.z) * dmg.kbackStrength,
+                    (receiver_pos.x - kicker_pos.x) * dmg.kbackStrength,
+                    dmg.kbackStrength,
+                    (receiver_pos.z - kicker_pos.z) * dmg.kbackStrength,
                 };
 
                 ply_target->addVelocity(knockback);
@@ -251,20 +243,38 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
         case Packet::IDs::BlockPlace: {
           Packet::FromClient::BlockPlace data(ss);
 
+          auto isInteractive = [](BlockId block) -> bool {
+            switch (block) {
+              case 23:
+              case 25:
+              case 26:
+              case 54:
+              case 58:
+              case 61:
+              case 62:
+              case 64:
+              case 71:
+              case 77:
+              case 84: return true;
+
+              default: return false;
+            }
+          };
+
           if (auto activatedBlock = accessWorld().getBlock(data.getClickPosition())) {
-            if (isBlockInteractive(activatedBlock)) {
+            if (isInteractive(activatedBlock)) {
               switch (activatedBlock) {
                 case 23: {
-                  Packet::ToClient::OpenWindow wdata(1, 3, "Dispenser", 9);
-                  wdata.sendTo(ss);
+                  // Packet::ToClient::OpenWindow wdata(1, 3, "Dispenser", 9);
+                  // wdata.sendTo(ss);
                 } break;
                 case 58: {
-                  Packet::ToClient::OpenWindow wdata(1, 1, "Crafting", 9);
-                  wdata.sendTo(ss);
+                  // Packet::ToClient::OpenWindow wdata(1, 1, "Crafting", 9);
+                  // wdata.sendTo(ss);
                 } break;
                 case 61: {
-                  Packet::ToClient::OpenWindow wdata(1, 2, "Furnace", 9);
-                  wdata.sendTo(ss);
+                  // Packet::ToClient::OpenWindow wdata(1, 2, "Furnace", 9);
+                  // wdata.sendTo(ss);
                 } break;
                 case 25: { // todo actual minecraft behavior
                   Packet::ToClient::NoteBlockPlay wdata(data.getClickPosition(), Packet::ToClient::NoteBlockPlay::Harp, std::rand() % 24);
@@ -282,20 +292,21 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
             if (is.itemId != id || is.stackSize == 0) throw HackedClientException(HackedClientException::WrongBlockPlace);
 
             if (id > 255) { // Handle item click
-              Item::getById(id)->onItemRightClick(is, linkedEntity);
+              Item::getById(id)->onItemRightClick(is, linkedEntity, data.getClickPosition(), data.getDirection());
               break;
             }
 
-            if (accessWorld().setBlock(data.getBlockPosition(), id, 0)) {
-              Packet::ToClient::BlockChange wdata(data.getBlockPosition(), id, 0);
-              linkedEntity->sendToTrackedPlayers(wdata, true);
-              if (!is.decrementBy(1)) linkedEntity->updateEquipedItem();
-            } else {
-              auto bid = accessWorld().getBlock(data.getBlockPosition());
+            if (data.isValidCoords()) {
+              if (is.decrementBy(1)) {
+                if (accessWorld().setBlockWithNotify(data.getBlockPosition(), id, 0, linkedEntity)) {
+                  break;
+                }
 
-              Packet::ToClient::BlockChange wdata(data.getBlockPosition(), bid, 0);
-              wdata.sendTo(linkedEntity->getSocket());
-              linkedEntity->resendHeldItem();
+                // Uh oh
+                is.incrementBy(1);
+              }
+
+              linkedEntity->updateEquipedItem();
             }
 
             break;
@@ -333,6 +344,16 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
         } break;
         case Packet::IDs::ClickWindow: {
           Packet::FromClient::ClickWindow data(ss);
+
+          if (data.isInventory()) {
+            throw GenericKickException("Inventory manipulations is not implemented yet");
+          } else {
+            Packet::ToClient::TransactionWindow wdata_tr(data.getWindow(), data.getTransactionId(), false);
+            wdata_tr.sendTo(ss);
+          }
+        } break;
+        case Packet::IDs::TransactWindow: {
+          Packet::FromClient::TransactionWindow data(ss);
         } break;
         case Packet::IDs::ConnectionFin: {
           Packet::FromClient::Disconnect data(ss);
@@ -397,12 +418,13 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
 
     std::wstring reason(exwhat.begin(), exwhat.end());
 
-    auto fmtreason = std::format(L"Client thread exception: {}", reason);
+    auto fmtreason = std::format(L"ClientLoop exception: {}", reason);
 
     Packet::ToClient::PlayerKick wdata(fmtreason);
     wdata.sendTo(ss);
+    ss.pushQueue();
 
-    spdlog::error("Exception thrown on {} handling: {}", addr.to_string(), ex.what());
+    spdlog::error("[{}] {} thrown on client handling: {}", addr.to_string(), typeid(ex).name(), ex.what());
   }
 
   spdlog::info("Client {} closed!", addr.to_string());

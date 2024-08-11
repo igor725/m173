@@ -5,6 +5,7 @@
 #include "network/packets/ChatMessage.h"
 #include "network/packets/Entity.h"
 #include "network/packets/Handshake.h"
+#include "network/packets/Object.h"
 #include "network/packets/Player.h"
 #include "network/packets/Window.h"
 #include "network/packets/World.h"
@@ -20,27 +21,33 @@ class Player: public IPlayer {
 
     m_trackDistance = dist.getValue<uint32_t>();
 
+    m_inventory[10] = ItemStack(262, 64);
+    m_inventory[11] = ItemStack(17, 64);
+    m_inventory[12] = ItemStack(20, 64);
+    m_inventory[13] = ItemStack(5, 64);
     m_inventory[36] = ItemStack(276, 1);
     m_inventory[37] = ItemStack(267, 1);
     m_inventory[38] = ItemStack(268, 1);
     m_inventory[39] = ItemStack(283, 1);
     m_inventory[40] = ItemStack(25, 4);
     m_inventory[41] = ItemStack(332, 16);
+    m_inventory[42] = ItemStack(345, 1);
+    m_inventory[43] = ItemStack(261, 1);
+    m_inventory[44] = ItemStack(259, 1);
   }
 
   ~Player() {
     auto& em = accessEntityManager();
 
+    std::unique_lock lock(m_lock);
     for (auto it = m_trackedEntities.begin(); it != m_trackedEntities.end(); ++it) {
       auto ent = em.GetEntity(*it);
-      if (ent->getType() == EntityBase::Player) {
+      if (ent != nullptr && ent->getType() == EntityBase::Player) {
         auto ply = dynamic_cast<IPlayer*>(ent);
         ply->removeTrackedEntity(this);
       }
     }
   }
-
-  bool sendData(const void* data, size_t dsize) final { return m_selfSock.write(data, dsize); }
 
   bool sendChat(const std::wstring& message) final {
     if (message.empty()) return true; // No need to send those
@@ -60,7 +67,28 @@ class Player: public IPlayer {
     setSpawnPos(spawn);
     teleportPlayer(spawn);
     updateInventory();
+    m_bLoggedIn = true;
     return true;
+  }
+
+  SlotId findItemById(ItemId iid) final {
+    for (SlotId i = 9; i < 45; ++i) {
+      if (m_inventory[i].itemId == iid) return i;
+    }
+
+    return -1;
+  }
+
+  ItemStack& getItemBySlotId(SlotId sid) final { return m_inventory[sid]; }
+
+  bool resendItem(const ItemStack& is) final {
+    auto it = std::find_if(m_inventory.begin(), m_inventory.end(), [&](const ItemStack& o) -> bool { return &o == &is; });
+    if (it == m_inventory.end()) return false;
+
+    auto sid = (SlotId)std::distance(m_inventory.begin(), it);
+
+    Packet::ToClient::SetSlotWindow wdata_ss(0, sid, is);
+    return wdata_ss.sendTo(m_selfSock);
   }
 
   bool updateInventory() final {
@@ -121,9 +149,9 @@ class Player: public IPlayer {
 
   bool teleportPlayer(const IntVector3& pos) final {
     setPosition(DoubleVector3 {
-        .x = static_cast<double_t>(pos.x),
-        .y = static_cast<double_t>(pos.y),
-        .z = static_cast<double_t>(pos.z),
+        static_cast<double_t>(pos.x),
+        static_cast<double_t>(pos.y),
+        static_cast<double_t>(pos.z),
     });
     return updPlayerPos();
   }
@@ -239,18 +267,25 @@ class Player: public IPlayer {
     return updateTrackedEntities();
   }
 
+  bool isTrackingEntity(EntityId eid) final {
+    std::unique_lock lock(m_lock);
+
+    for (auto it = m_trackedEntities.begin(); it != m_trackedEntities.end(); ++it) {
+      if (*it == eid) return true;
+    }
+
+    return false;
+  }
+
   bool addTrackedEntity(EntityBase* ent) final {
-    if (ent == this) return false;
+    if (!m_bLoggedIn || ent == this || !isEntityCloseEnough(ent)) return false;
 
     {
       std::unique_lock lock(m_lock);
 
       auto eid = ent->getEntityId();
 
-      for (auto it = m_trackedEntities.begin(); it != m_trackedEntities.end(); ++it) {
-        if (*it == eid) return true;
-      }
-
+      if (isTrackingEntity(eid)) return true;
       m_trackedEntities.push_back(eid);
     }
 
@@ -261,6 +296,10 @@ class Player: public IPlayer {
 
         Packet::ToClient::PlayerSpawn wdata_spawn(ply);
         wdata_spawn.sendTo(m_selfSock);
+      } break;
+      case EntityBase::Object: {
+        Packet::ToClient::ObjectSpawn wdata_osp(dynamic_cast<ObjectBase*>(ent));
+        wdata_osp.sendTo(m_selfSock);
       } break;
 
       default: {
@@ -440,7 +479,8 @@ class Player: public IPlayer {
 
   const int16_t m_maxHealth = 20;
 
-  SlotId                    m_heldSlot = 0;
+  bool                      m_bLoggedIn = false;
+  SlotId                    m_heldSlot  = 0;
   SafeSocket&               m_selfSock;
   int64_t                   m_nextHit       = 0;
   double_t                  m_stance        = 0.0;

@@ -20,7 +20,7 @@ class SafeSocket {
   bool read(void* data, size_t dszie) {
     if (m_closed) return false;
     std::unique_lock lock(m_rlock);
-    return m_sock.read(data, dszie);
+    return m_sock.read(data, dszie) == dszie;
   }
 
   void pushQueue() {

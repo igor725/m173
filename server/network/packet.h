@@ -153,6 +153,12 @@ class PacketWriter {
     }
   }
 
+  void writeMotion(const DoubleVector3& motion) {
+    writeInteger<int16_t>(static_cast<int16_t>(motion.x * 8000.0));
+    writeInteger<int16_t>(static_cast<int16_t>(motion.y * 8000.0));
+    writeInteger<int16_t>(static_cast<int16_t>(motion.z * 8000.0));
+  }
+
   void writeIVector(const IntVector3& vec) {
     writeInteger<int32_t>(vec.x);
     writeInteger<int32_t>(vec.y);

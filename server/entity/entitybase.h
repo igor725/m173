@@ -10,6 +10,7 @@ class EntityBase {
     Unspecified,
     Mob,
     Player,
+    Object,
   };
 
   enum Flags : int8_t {
@@ -22,6 +23,8 @@ class EntityBase {
 
   virtual ~EntityBase() = default;
 
+  virtual void onSpawned() {}
+
   Type getType() const { return m_type; }
 
   Dimension getDimension() const { return m_dimension; }
@@ -29,6 +32,8 @@ class EntityBase {
   int16_t getHealth() const { return m_health; }
 
   bool isOnGround() const { return m_isOnGround; }
+
+  bool isMarkedForDestruction() const { return m_shouldBeDestroyed; }
 
   const DoubleVector3& getPosition() const { return m_position; }
 
@@ -51,20 +56,18 @@ class EntityBase {
 
   void _setEntId(int32_t id) { m_id = id; }
 
+  virtual float_t getEyeHeight() const { return 1.6; }
+
+  const DoubleVector3& getForwardVector() const { return m_forward; }
+
   virtual void setPosition(const DoubleVector3& pos) {
     m_prevPosition = m_position;
     m_position     = pos;
   }
 
-  virtual void setRotation(const FloatAngle& rot) { m_rotation = rot; }
+  virtual void setRotation(const FloatAngle& rot);
 
-  virtual void setCrouching(bool value) {
-    m_prevFlags = m_flags;
-    if (value)
-      m_flags |= Flags::IsCrouching;
-    else
-      m_flags &= ~Flags::IsCrouching;
-  }
+  virtual void setCrouching(bool value);
 
   bool isFlagsChanged() const { return m_prevFlags != m_flags; }
 
@@ -74,27 +77,29 @@ class EntityBase {
     return m_flags;
   }
 
-  virtual void tick(int64_t delta) {}
+  virtual void tick(double_t delta) {}
 
   private:
   void getPositionDiff(DoubleVector3& diff) const {
     diff = {
-        .x = m_position.x - m_prevPosition.x,
-        .y = m_position.y - m_prevPosition.y,
-        .z = m_position.z - m_prevPosition.z,
+        m_position.x - m_prevPosition.x,
+        m_position.y - m_prevPosition.y,
+        m_position.z - m_prevPosition.z,
     };
   };
 
   protected:
-  EntityId  m_id         = -1;
-  Type      m_type       = Type::Unspecified;
-  Dimension m_dimension  = Dimension::Overworld;
-  int16_t   m_health     = 20;
-  bool      m_isOnGround = false;
-  int8_t    m_flags      = Flags::None;
-  int8_t    m_prevFlags  = Flags::None;
+  EntityId  m_id                = -1;
+  Type      m_type              = Type::Unspecified;
+  Dimension m_dimension         = Dimension::Overworld;
+  int16_t   m_health            = 20;
+  bool      m_isOnGround        = false;
+  bool      m_shouldBeDestroyed = false;
+  int8_t    m_flags             = Flags::None;
+  int8_t    m_prevFlags         = Flags::None;
 
-  DoubleVector3 m_prevPosition = {0.0, 0.0, 0.0};
-  DoubleVector3 m_position     = {0.0, 0.0, 0.0};
-  FloatAngle    m_rotation     = {0.0f, 0.0f};
+  DoubleVector3 m_prevPosition {0.0, 0.0, 0.0};
+  DoubleVector3 m_position {0.0, 0.0, 0.0};
+  DoubleVector3 m_forward {0.0, 0.0, 0.0};
+  FloatAngle    m_rotation {0.0f, 0.0f};
 };

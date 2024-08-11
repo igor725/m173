@@ -41,9 +41,7 @@ class EntityVelocity: public PacketWriter {
   public:
   EntityVelocity(EntityId eid, const DoubleVector3& motion): PacketWriter(Packet::IDs::EntityVel, 10) {
     writeInteger<EntityId>(eid);
-    writeInteger<int16_t>(static_cast<int16_t>(motion.x * 8000.0));
-    writeInteger<int16_t>(static_cast<int16_t>(motion.y * 8000.0));
-    writeInteger<int16_t>(static_cast<int16_t>(motion.z * 8000.0));
+    writeMotion(motion);
   }
 };
 

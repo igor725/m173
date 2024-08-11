@@ -15,14 +15,13 @@ class IPlayer: public EntityBase {
 
   virtual ~IPlayer() = default;
 
-  virtual bool sendData(const void* data, size_t dsize) = 0;
-
   virtual bool sendChat(const std::wstring& message) = 0;
 
   /* Entity tracking */
 
   virtual bool updateTrackedEntities()                                   = 0;
   virtual void sendToTrackedPlayers(PacketWriter& pw, bool self = false) = 0;
+  virtual bool isTrackingEntity(EntityId eid)                            = 0;
   virtual bool addTrackedEntity(EntityBase* ent)                         = 0;
   virtual bool removeTrackedEntity(EntityBase* ent)                      = 0;
 
@@ -42,11 +41,14 @@ class IPlayer: public EntityBase {
 
   /* Inventory manipulations */
 
-  virtual SlotId     getHeldSlot() const      = 0;
-  virtual ItemStack& getHeldItem()            = 0;
-  virtual bool       setHeldSlot(SlotId slot) = 0;
-  virtual bool       updateInventory()        = 0;
-  virtual bool       resendHeldItem()         = 0;
+  virtual SlotId     getHeldSlot() const             = 0;
+  virtual ItemStack& getHeldItem()                   = 0;
+  virtual bool       setHeldSlot(SlotId slot)        = 0;
+  virtual bool       updateInventory()               = 0;
+  virtual bool       resendHeldItem()                = 0;
+  virtual SlotId     findItemById(ItemId iid)        = 0;
+  virtual ItemStack& getItemBySlotId(SlotId sid)     = 0;
+  virtual bool       resendItem(const ItemStack& is) = 0;
 
   /* Movement control */
   virtual bool addVelocity(const DoubleVector3& motion) = 0;

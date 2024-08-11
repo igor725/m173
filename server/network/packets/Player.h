@@ -142,6 +142,11 @@ class BlockPlace: private PacketReader {
       m_damage = readInteger<int16_t>();                  // Damage
     }
 
+    if (m_pos.y < 0) {
+      m_isValidPos = false;
+      return;
+    }
+
     m_bpos = m_pos;
     switch (m_direction) {
       case 0: m_bpos.y -= 1; break;
@@ -149,7 +154,7 @@ class BlockPlace: private PacketReader {
       case 2: m_bpos.z -= 1; break;
       case 3: m_bpos.z += 1; break;
       case 4: m_bpos.x -= 1; break;
-      case 6: m_bpos.x += 1; break;
+      case 5: m_bpos.x += 1; break;
     }
   }
 
@@ -159,12 +164,17 @@ class BlockPlace: private PacketReader {
 
   int16_t getId() const { return m_item_or_block; }
 
+  int8_t getDirection() const { return m_direction; }
+
+  bool isValidCoords() const { return m_isValidPos; }
+
   private:
   IntVector3 m_pos, m_bpos;
   int8_t     m_direction;
   int8_t     m_amount;
   int16_t    m_damage;
   int16_t    m_item_or_block;
+  bool       m_isValidPos;
 };
 
 class PlayerAnim: private PacketReader {

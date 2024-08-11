@@ -15,9 +15,15 @@ struct ItemStack {
   ItemStack(ItemId iid, int16_t ss): stackSize(ss), itemId(iid), itemDamage(0) {}
 
   bool decrementBy(int16_t sz) {
-    if (sz < 1 || stackSize < sz) return false;
+    if (sz < 1 || stackSize < sz || itemId < 0) return false;
     if ((stackSize -= sz) == 0) itemId = -1;
-    return stackSize > 0;
+    return stackSize >= 0;
+  }
+
+  bool incrementBy(int16_t sz) {
+    if (sz < 1 || itemId < 0) return false;
+    stackSize += sz;
+    return true;
   }
 
   bool isDamageable();

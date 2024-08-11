@@ -1,5 +1,6 @@
 #include "world.h"
 
+#include "network/packets/World.h"
 #include "zlibpp/zlibpp.h"
 
 #include <thread>
@@ -79,9 +80,24 @@ class World: public IWorld {
     return true;
   }
 
-  BlockId getBlock(const IntVector3& pos, int8_t* meta) final {
+  bool setBlockWithNotify(const IntVector3& pos, BlockId id, int8_t meta, IPlayer* placer) final {
+    if (setBlock(pos, id, 0)) {
+      Packet::ToClient::BlockChange wdata(pos, id, 0);
+      placer->sendToTrackedPlayers(wdata, true);
+      return true;
+    }
+    auto bid = getBlock(pos);
+
+    Packet::ToClient::BlockChange wdata(pos, bid, 0);
+    wdata.sendTo(placer->getSocket());
+    placer->resendHeldItem();
+    return false;
+  }
+
+  BlockId getBlock(const IntVector3& pos, int8_t* meta = nullptr) final {
+    if (pos.y < 0) return 0;
     auto chunk = getChunk({pos.x >> 4, pos.z >> 4});
-    if (chunk == nullptr) return false;
+    if (chunk == nullptr) return 0;
     return chunk->m_blocks[chunk->getWorldIndex(pos)];
   }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "entity/player/player.h"
 #include "helper.h"
 
 #include <array>
@@ -26,7 +27,7 @@ class IWorld {
 
     static inline int32_t getLocalIndex(const IntVector3& pos) { return pos.y + (pos.z * 127) + (pos.x * 127 * 16); }
 
-    static inline int32_t getWorldIndex(const IntVector3& pos) { return (pos.y & 126) + ((pos.z & 15) * 127) + ((pos.x & 15) * 127 * 16); }
+    static inline int32_t getWorldIndex(const IntVector3& pos) { return pos.y + ((pos.z & 15) * 127) + ((pos.x & 15) * 127 * 16); }
 
     static inline IntVector3 getPos(int32_t index) { return {index >> 11, index & 0x7f, (index & 0x780) >> 7}; }
 
@@ -57,6 +58,8 @@ class IWorld {
   virtual const void* compressChunk(Chunk* chunk, unsigned long& size) = 0;
 
   virtual bool setBlock(const IntVector3& pos, BlockId id, int8_t meta) = 0;
+
+  virtual bool setBlockWithNotify(const IntVector3& pos, BlockId id, int8_t meta, IPlayer* placer) = 0;
 
   virtual BlockId getBlock(const IntVector3& pos, int8_t* meta = nullptr) = 0;
 

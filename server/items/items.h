@@ -48,9 +48,7 @@ class Item {
     return this;
   }
 
-  bool onItemUse(ItemStack& is, EntityBase* user) { return false; }
-
-  virtual ItemStack& onItemRightClick(ItemStack& is, EntityBase* clicker) { return is; }
+  virtual ItemStack& onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) { return is; }
 
   virtual bool onBlockDestroyed(ItemStack& is, const IntVector3& pos, BlockId id, EntityBase* destroyer) { return true; }
 

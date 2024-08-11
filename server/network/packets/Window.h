@@ -20,19 +20,52 @@ class CloseWindow: private PacketReader {
 class ClickWindow: private PacketReader {
   public:
   ClickWindow(SafeSocket& sock): PacketReader(sock) {
-    readInteger<WinId>();                        // Window ID
-    readInteger<SlotId>();                       // Slot number
-    readBoolean();                               // Is right click
-    readInteger<int16_t>();                      // Action number
-    readBoolean();                               // Is shift pressed
-    if ((m_iid = readInteger<ItemId>()) != -1) { // Item ID
-      readInteger<int8_t>();                     // Item count
-      readInteger<int16_t>();                    // Item uses
+    m_wid = readInteger<WinId>();                       // Window ID
+    m_sid = readInteger<SlotId>();                      // Slot number
+    m_rmb = readBoolean();                              // Is right click
+    m_trc = readInteger<int16_t>();                     // Action number
+    m_shf = readBoolean();                              // Is shift pressed
+    if ((m_iis.itemId = readInteger<ItemId>()) != -1) { // Item ID
+      m_iis.stackSize  = readInteger<int8_t>();         // Item count
+      m_iis.itemDamage = readInteger<int16_t>();        // Item uses
     }
   }
 
+  bool isInventory() const { return m_wid == 0; }
+
+  auto getSlot() const { return m_sid; }
+
+  auto getWindow() const { return m_wid; }
+
+  auto getTransactionId() const { return m_trc; }
+
   private:
-  ItemId m_iid;
+  WinId     m_wid;
+  SlotId    m_sid;
+  bool      m_rmb;
+  bool      m_shf;
+  int16_t   m_trc;
+  ItemStack m_iis;
+};
+
+class TransactionWindow: private PacketReader {
+  public:
+  TransactionWindow(SafeSocket& sock): PacketReader(sock) {
+    m_wid = readInteger<WinId>();   // Window ID
+    m_trc = readInteger<int16_t>(); // Action number
+    m_acp = readBoolean();          // Is accepted
+  }
+
+  bool isAccepted() const { return m_acp; }
+
+  auto getWindow() const { return m_wid; }
+
+  auto getTransactionId() const { return m_trc; }
+
+  private:
+  WinId   m_wid;
+  bool    m_acp;
+  int16_t m_trc;
 };
 } // namespace FromClient
 #endif
