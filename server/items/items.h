@@ -48,9 +48,13 @@ class Item {
     return this;
   }
 
+  virtual int8_t getMetadata(int16_t damage) { return 0; }
+
   virtual ItemStack& onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) { return is; }
 
   virtual bool onBlockDestroyed(ItemStack& is, const IntVector3& pos, BlockId id, EntityBase* destroyer) { return true; }
+
+  virtual bool onUseItem(ItemStack& is, EntityBase* user, const IntVector3& pos, int8_t direction) { return false; }
 
   int16_t getStackLimit() const { return maxStackSize; }
 

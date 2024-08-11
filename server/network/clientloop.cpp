@@ -1,6 +1,7 @@
 #define M173_ACTIVATE_READER_API
 #include "clientloop.h"
 
+#include "blocks/blocks.h"
 #include "commands/handler.h"
 #include "entity/manager.h"
 #include "entity/player/player.h"
@@ -243,76 +244,23 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
         case Packet::IDs::BlockPlace: {
           Packet::FromClient::BlockPlace data(ss);
 
-          auto isInteractive = [](BlockId block) -> bool {
-            switch (block) {
-              case 23:
-              case 25:
-              case 26:
-              case 54:
-              case 58:
-              case 61:
-              case 62:
-              case 64:
-              case 71:
-              case 77:
-              case 84: return true;
+          auto& is   = linkedEntity->getHeldItem();
+          auto& cpos = data.getClickPosition();
 
-              default: return false;
-            }
-          };
-
-          if (auto activatedBlock = accessWorld().getBlock(data.getClickPosition())) {
-            if (isInteractive(activatedBlock)) {
-              switch (activatedBlock) {
-                case 23: {
-                  // Packet::ToClient::OpenWindow wdata(1, 3, "Dispenser", 9);
-                  // wdata.sendTo(ss);
-                } break;
-                case 58: {
-                  // Packet::ToClient::OpenWindow wdata(1, 1, "Crafting", 9);
-                  // wdata.sendTo(ss);
-                } break;
-                case 61: {
-                  // Packet::ToClient::OpenWindow wdata(1, 2, "Furnace", 9);
-                  // wdata.sendTo(ss);
-                } break;
-                case 25: { // todo actual minecraft behavior
-                  Packet::ToClient::NoteBlockPlay wdata(data.getClickPosition(), Packet::ToClient::NoteBlockPlay::Harp, std::rand() % 24);
-                  linkedEntity->sendToTrackedPlayers(wdata, true);
-                } break;
-              }
-              break;
-            }
-          }
-
-          if (auto id = data.getId()) {
-            if (id < 1) break;
-
-            auto& is = linkedEntity->getHeldItem();
-            if (is.itemId != id || is.stackSize == 0) throw HackedClientException(HackedClientException::WrongBlockPlace);
-
-            if (id > 255) { // Handle item click
-              Item::getById(id)->onItemRightClick(is, linkedEntity, data.getClickPosition(), data.getDirection());
-              break;
-            } else if (!data.isValidCoords()) {
-              // We don't want place block on invalid coords
-              break;
-            }
-
-            if (is.decrementBy(1)) {
-              if (accessWorld().setBlockWithNotify(data.getBlockPosition(), id, 0, linkedEntity)) {
-                break;
-              }
-
-              // Uh oh
-              is.incrementBy(1);
-            }
-
-            linkedEntity->updateEquipedItem();
+          if (data.getDirection() == -1) { // Handle item click
+            if (is.itemId > 0) Item::getById(is.itemId)->onItemRightClick(is, linkedEntity, cpos, data.getDirection());
             break;
           }
 
-          throw HackedClientException(HackedClientException::WrongBlockPlace);
+          if (auto aid = accessWorld().getBlock(cpos)) {
+            if (Block::getById(aid)->blockActivated(cpos, linkedEntity)) break;
+          }
+
+          if (is.itemId > 0 && is.useItem(linkedEntity, cpos, data.getDirection())) {
+            break;
+          }
+
+          // throw HackedClientException(HackedClientException::WrongBlockPlace);
         } break;
         case Packet::IDs::HoldChange: {
           Packet::FromClient::PlayerHold data(ss);

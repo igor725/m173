@@ -20,19 +20,6 @@ class InvalidItemIdException: public std::exception {
 
 std::array<Item*, 512> g_itemsList;
 
-static class BlockRegistrator {
-  public:
-  BlockRegistrator() {
-    m_list.reserve(256);
-    for (BlockId i = 0; i <= 254; ++i) {
-      m_list.emplace_back(i);
-    }
-  }
-
-  private:
-  std::vector<ItemBlock> m_list = {};
-} blocks;
-
 Item::Item(ItemId iid): shiftedIndex(256 + iid) {
   if (g_itemsList[shiftedIndex] != nullptr) {
     spdlog::warn("Items conflict {}", iid);

@@ -18,6 +18,10 @@ void ItemStack::hitEntity(EntityBase* attacker, EntityBase* victim) {
   Item::getById(itemId)->hitEntity(*this, attacker, victim);
 }
 
+bool ItemStack::useItem(EntityBase* user, const IntVector3& pos, int8_t direction) {
+  return Item::getById(itemId)->onUseItem(*this, user, pos, direction);
+}
+
 const VsDamageInfo& ItemStack::getDamageVsEntity(EntityBase* ent) {
   return Item::getById(itemId)->getDamageVsEntity(ent);
 }

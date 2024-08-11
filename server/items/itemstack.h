@@ -34,6 +34,8 @@ struct ItemStack {
 
   void hitEntity(EntityBase* attacker, EntityBase* victim);
 
+  bool useItem(EntityBase* user, const IntVector3& pos, int8_t direction);
+
   void damageItem(int16_t damage, EntityBase* damager) {
     if (isDamageable()) {
       itemDamage += damage;
