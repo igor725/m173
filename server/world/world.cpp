@@ -76,12 +76,12 @@ class World: public IWorld {
     auto chunk = getChunk({pos.x >> 4, pos.z >> 4});
     if (chunk == nullptr) return false;
     chunk->m_blocks[chunk->getWorldIndex(pos)] = id;
-    // todo save meta too
+    chunk->m_meta.setNible(chunk->toLocalChunkCoords(pos), meta);
     return true;
   }
 
   bool setBlockWithNotify(const IntVector3& pos, BlockId id, int8_t meta, IPlayer* placer) final {
-    if (setBlock(pos, id, 0)) {
+    if (setBlock(pos, id, meta)) {
       Packet::ToClient::BlockChange wdata(pos, id, 0);
       placer->sendToTrackedPlayers(wdata, true);
       return true;
@@ -98,6 +98,7 @@ class World: public IWorld {
     if (pos.y < 0) return 0;
     auto chunk = getChunk({pos.x >> 4, pos.z >> 4});
     if (chunk == nullptr) return 0;
+    if (meta != nullptr) *meta = chunk->m_meta.getNible(chunk->toLocalChunkCoords(pos));
     return chunk->m_blocks[chunk->getWorldIndex(pos)];
   }
 

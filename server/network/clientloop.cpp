@@ -418,9 +418,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
 
     std::wstring reason(exwhat.begin(), exwhat.end());
 
-    auto fmtreason = std::format(L"ClientLoop exception: {}", reason);
-
-    Packet::ToClient::PlayerKick wdata(fmtreason);
+    Packet::ToClient::PlayerKick wdata(std::format(L"\u00a7cClientLoop exception\u00a7f: {}", reason));
     wdata.sendTo(ss);
     ss.pushQueue();
 

@@ -164,12 +164,12 @@ class Player: public IPlayer {
   bool updateWorldChunks(bool force) final {
     std::unique_lock lock(m_lock);
 
-    const auto prevchunk_pos = IWorld::Chunk::toChunkCoords({
+    const auto prevchunk_pos = IWorld::Chunk::toChunkCoords(IntVector2 {
         static_cast<int32_t>(std::round(m_prevPosition.x)),
         static_cast<int32_t>(std::round(m_prevPosition.z)),
     });
 
-    const auto currchunk_pos = IWorld::Chunk::toChunkCoords({
+    const auto currchunk_pos = IWorld::Chunk::toChunkCoords(IntVector2 {
         static_cast<int32_t>(std::round(m_position.x)),
         static_cast<int32_t>(std::round(m_position.z)),
     });
@@ -243,12 +243,13 @@ class Player: public IPlayer {
 
         if (chunk == nullptr) {
           chunk = world.allocChunk(chunkpos);
-          chunk->m_light.fill(IWorld::Chunk::BlockPack(15, 15)); // All fullbright for now
+          chunk->m_light.fill(Nible(15, 15)); // All fullbright for now
 
           for (int32_t x = 0; x < 16; ++x) {
             for (int32_t y = 0; y < 4; ++y) {
               for (int32_t z = 0; z < 16; ++z) {
                 chunk->m_blocks[chunk->getLocalIndex({x, y, z})] = y < 1 ? 7 : y < 3 ? 3 : 2;
+                chunk->m_light.setNible({x, y, z}, 1);
               }
             }
           }
@@ -257,7 +258,7 @@ class Player: public IPlayer {
         unsigned long gzsize;
         const auto    gzchunk = world.compressChunk(chunk, gzsize);
 
-        Packet::ToClient::MapChunk wdata_mc({cx * 16, 0, cz * 16}, CHUNK_DIMS, gzsize);
+        Packet::ToClient::MapChunk wdata_mc({cx << 4, 0, cz << 4}, CHUNK_DIMS, gzsize);
         if (!wdata_mc.sendTo(m_selfSock)) return false;
         if (!m_selfSock.write(gzchunk, gzsize)) return false;
       }
