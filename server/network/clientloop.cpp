@@ -294,21 +294,22 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
             if (id > 255) { // Handle item click
               Item::getById(id)->onItemRightClick(is, linkedEntity, data.getClickPosition(), data.getDirection());
               break;
-            }
-
-            if (data.isValidCoords()) {
-              if (is.decrementBy(1)) {
-                if (accessWorld().setBlockWithNotify(data.getBlockPosition(), id, 0, linkedEntity)) {
-                  break;
-                }
-
-                // Uh oh
-                is.incrementBy(1);
-              }
-
-              linkedEntity->updateEquipedItem();
+            } else if (!data.isValidCoords()) {
+              // We don't want place block on invalid coords
               break;
             }
+
+            if (is.decrementBy(1)) {
+              if (accessWorld().setBlockWithNotify(data.getBlockPosition(), id, 0, linkedEntity)) {
+                break;
+              }
+
+              // Uh oh
+              is.incrementBy(1);
+            }
+
+            linkedEntity->updateEquipedItem();
+            break;
           }
 
           throw HackedClientException(HackedClientException::WrongBlockPlace);
