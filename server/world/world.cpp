@@ -2,6 +2,7 @@
 
 #include "network/packets/World.h"
 
+#include <mutex>
 #include <thread>
 #include <unordered_map>
 #include <utility>
@@ -25,19 +26,41 @@ class World: public IWorld {
     });
     worldtick.detach();
 
-    m_spawnPoint = {5, 10, 5};
+    m_spawnPoint = {5, 16, 5};
   }
 
   virtual ~World() = default;
 
   Chunk* allocChunk(const IntVector2& pos) {
+    std::unique_lock lock(m_accChunks);
+
     auto&& chunk = m_ldChunks.emplace(std::make_pair(packChunkPos(pos), Chunk()));
     return &chunk.first->second;
   }
 
+  Chunk* genChunk(const IntVector2& pos) {
+    std::unique_lock lock(m_accChunks);
+
+    auto chunk = allocChunk(pos);
+    chunk->m_light.fill(Nible(15, 15)); // All fullbright for now
+    chunk->m_sky.fill(Nible(15, 15));
+
+    for (int32_t x = 0; x < 16; ++x) {
+      for (int32_t y = 0; y < (m_spawnPoint.y - 2); ++y) {
+        for (int32_t z = 0; z < 16; ++z) {
+          chunk->m_blocks[chunk->getLocalIndex({x, y, z})] = y < 1 ? 7 : y < (m_spawnPoint.y - 3) ? 3 : 2;
+        }
+      }
+    }
+
+    return chunk;
+  }
+
   Chunk* getChunk(const IntVector2& pos) final {
+    std::unique_lock lock(m_accChunks);
+
     auto it = m_ldChunks.find(packChunkPos(pos));
-    if (it == m_ldChunks.end()) return nullptr;
+    if (it == m_ldChunks.end()) return genChunk(pos);
     return &it->second;
   }
 
@@ -85,11 +108,13 @@ class World: public IWorld {
   const IntVector3& getSpawnPoint() const final { return m_spawnPoint; }
 
   private:
-  IntVector3                         m_spawnPoint;
   std::unordered_map<int64_t, Chunk> m_ldChunks;
-  int64_t                            m_seed   = 0;
-  int64_t                            m_wtime  = 0;
-  int64_t                            m_witime = 0;
+  std::recursive_mutex               m_accChunks;
+
+  IntVector3 m_spawnPoint;
+  int64_t    m_seed   = 0;
+  int64_t    m_wtime  = 0;
+  int64_t    m_witime = 0;
 };
 
 IWorld& accessWorld() {

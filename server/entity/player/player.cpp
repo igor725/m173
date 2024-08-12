@@ -150,12 +150,12 @@ class Player: public IPlayer {
   bool updateWorldChunks(bool force) final {
     std::unique_lock lock(m_lock);
 
-    const auto prevchunk_pos = IWorld::Chunk::toChunkCoords(IntVector2 {
+    const auto prevchunk_pos = Chunk::toChunkCoords(IntVector2 {
         static_cast<int32_t>(std::round(m_prevPosition.x)),
         static_cast<int32_t>(std::round(m_prevPosition.z)),
     });
 
-    const auto currchunk_pos = IWorld::Chunk::toChunkCoords(IntVector2 {
+    const auto currchunk_pos = Chunk::toChunkCoords(IntVector2 {
         static_cast<int32_t>(std::round(m_position.x)),
         static_cast<int32_t>(std::round(m_position.z)),
     });
@@ -226,20 +226,6 @@ class Player: public IPlayer {
 
         Packet::ToClient::PreChunk wdata_pc(chunkpos, true);
         if (!wdata_pc.sendTo(m_selfSock)) return false;
-
-        if (chunk == nullptr) {
-          chunk = world.allocChunk(chunkpos);
-          chunk->m_light.fill(Nible(15, 15)); // All fullbright for now
-          chunk->m_sky.fill(Nible(15, 15));
-
-          for (int32_t x = 0; x < 16; ++x) {
-            for (int32_t y = 0; y < 4; ++y) {
-              for (int32_t z = 0; z < 16; ++z) {
-                chunk->m_blocks[chunk->getLocalIndex({x, y, z})] = y < 1 ? 7 : y < 3 ? 3 : 2;
-              }
-            }
-          }
-        }
 
         Packet::ToClient::MapChunk wdata_mc({cx << 4, 0, cz << 4}, CHUNK_DIMS, chunk);
         if (!wdata_mc.sendTo(m_selfSock)) return false;

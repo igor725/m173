@@ -63,7 +63,7 @@ class PreChunk: public PacketWriter {
 
 class MapChunk: public PacketWriter {
   public:
-  MapChunk(const IntVector3& pos, const ByteVector3& size, IWorld::Chunk* chunk);
+  MapChunk(const IntVector3& pos, const ByteVector3& size, Chunk* chunk);
 };
 
 class NoteBlockPlay: public PacketWriter {
