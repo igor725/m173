@@ -241,12 +241,8 @@ class Player: public IPlayer {
           }
         }
 
-        unsigned long gzsize;
-        const auto    gzchunk = world.compressChunk(chunk, gzsize);
-
-        Packet::ToClient::MapChunk wdata_mc({cx << 4, 0, cz << 4}, CHUNK_DIMS, gzsize);
+        Packet::ToClient::MapChunk wdata_mc({cx << 4, 0, cz << 4}, CHUNK_DIMS, chunk);
         if (!wdata_mc.sendTo(m_selfSock)) return false;
-        if (!m_selfSock.write(gzchunk, gzsize)) return false;
       }
     }
 

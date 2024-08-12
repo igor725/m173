@@ -1,11 +1,14 @@
 #define M173_ACTIVATE_READER_API
 #include "Handshake.h"
 #include "World.h"
+#include "zlibpp/zlibpp_unique.h"
 
 #include <exception>
 #include <sstream>
 
 #pragma region("World.h")
+
+static UniqueZlibPP cmp(createCompressor());
 
 class TooMuchSignLinesException: public std::exception {
   public:
@@ -26,6 +29,59 @@ SignUpdate::SignUpdate(const IntVector3& pos, const std::wstring& data): PacketW
   }
 
   if (m_lineCount > 4) throw TooMuchSignLinesException();
+}
+
+MapChunk::MapChunk(const IntVector3& pos, const ByteVector3& size, IWorld::Chunk* chunk): PacketWriter(Packet::IDs::MapChunk, 512) {
+  writeInteger<int32_t>(pos.x);
+  writeInteger<int16_t>(pos.y);
+  writeInteger<int32_t>(pos.z);
+  writeInteger<int8_t>(size.x);
+  writeInteger<int8_t>(size.y);
+  writeInteger<int8_t>(size.z);
+  auto csize_pos = m_data.size();
+  writeInteger<int32_t>(0);
+
+  int32_t cstate = 0;
+
+  std::array<char, 256> buffer;
+
+  bool compr_done = false;
+
+  auto acq   = cmp.acquire();
+  auto compr = acq.get();
+
+  do {
+    if (compr->getAvailableInput() == 0) {
+      switch (cstate++) {
+        case 0: { // First things first, send the blocks array
+          compr->setInput(chunk->m_blocks.data(), sizeof(chunk->m_blocks));
+        } break;
+        case 1: { // Now the meta for blocks
+          compr->setInput(chunk->m_meta.data(), sizeof(chunk->m_meta));
+        } break;
+        case 2: { // Aaand block light array, whatever it means
+          compr->setInput(chunk->m_light.data(), sizeof(chunk->m_light));
+        } break;
+        case 3: { // This one I don't even know
+          compr->setInput(chunk->m_sky.data(), sizeof(chunk->m_sky));
+        } break;
+      }
+    }
+
+    switch (compr->tick()) {
+      case IZLibPP::MoreOut: {
+        compr->setOutput(buffer.data(), buffer.size());
+      } break;
+      case IZLibPP::Done: {
+        compr_done = true;
+      } break;
+    }
+
+    m_data.insert(m_data.end(), buffer.begin(), buffer.begin() + compr->getFrameSize());
+    compr->setOutput(buffer.data(), buffer.size());
+  } while (!compr_done);
+
+  *reinterpret_cast<uint32_t*>(m_data.data() + csize_pos) = bswap(compr->getTotalOutput());
 }
 } // namespace Packet::ToClient
 

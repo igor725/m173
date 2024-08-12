@@ -3,6 +3,7 @@
 #include "../ids.h"
 #include "../packet.h"
 #include "helper.h"
+#include "world/world.h"
 
 namespace Packet {
 #ifdef M173_ACTIVATE_READER_API
@@ -62,15 +63,7 @@ class PreChunk: public PacketWriter {
 
 class MapChunk: public PacketWriter {
   public:
-  MapChunk(const IntVector3& pos, const ByteVector3& size, int32_t datasize): PacketWriter(Packet::IDs::MapChunk, 17) {
-    writeInteger<int32_t>(pos.x);
-    writeInteger<int16_t>(pos.y);
-    writeInteger<int32_t>(pos.z);
-    writeInteger<int8_t>(size.x);
-    writeInteger<int8_t>(size.y);
-    writeInteger<int8_t>(size.z);
-    writeInteger<int32_t>(datasize);
-  }
+  MapChunk(const IntVector3& pos, const ByteVector3& size, IWorld::Chunk* chunk);
 };
 
 class NoteBlockPlay: public PacketWriter {

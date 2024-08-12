@@ -7,8 +7,8 @@
 #include <cstddef>
 #include <cstdint>
 
-constexpr int32_t     CHUNK_SIZE       = 16 * 128 * 16;
-constexpr ByteVector3 CHUNK_DIMS       = {15, 127, 15};
+constexpr ByteVector3 CHUNK_DIMS       = {15, 126, 15};
+constexpr int32_t     CHUNK_SIZE       = (CHUNK_DIMS.x + 1) * (CHUNK_DIMS.y + 1) * (CHUNK_DIMS.x + 1);
 constexpr int32_t     CHUNK_COMPR_SIZE = CHUNK_SIZE * 2.5;
 
 struct Nible {
@@ -57,9 +57,11 @@ class IWorld {
     NibleArray<CHUNK_SIZE>          m_light  = {};
     NibleArray<CHUNK_SIZE>          m_sky    = {};
 
-    static inline int32_t getLocalIndex(const IntVector3& pos) { return pos.y + (pos.z * 128) + (pos.x * 128 * 16); }
+    static inline int32_t getLocalIndex(const IntVector3& pos) { return pos.y + (pos.z * (CHUNK_DIMS.y + 1)) + (pos.x * (CHUNK_DIMS.y + 1) * 16); }
 
-    static inline int32_t getWorldIndex(const IntVector3& pos) { return pos.y + ((pos.z & 15) * 128) + ((pos.x & 15) * 128 * 16); }
+    static inline int32_t getWorldIndex(const IntVector3& pos) {
+      return pos.y + ((pos.z & 15) * (CHUNK_DIMS.y + 1)) + ((pos.x & 15) * (CHUNK_DIMS.y + 1) * 16);
+    }
 
     static inline IntVector3 getPos(int32_t index) { return {index >> 11, index & 0x7f, (index & 0x780) >> 7}; }
 
@@ -87,9 +89,8 @@ class IWorld {
     return u.offset;
   }
 
-  virtual Chunk*      getChunk(const IntVector2& pos)                  = 0;
-  virtual Chunk*      allocChunk(const IntVector2& pos)                = 0;
-  virtual const void* compressChunk(Chunk* chunk, unsigned long& size) = 0;
+  virtual Chunk* getChunk(const IntVector2& pos)   = 0;
+  virtual Chunk* allocChunk(const IntVector2& pos) = 0;
 
   virtual bool setBlock(const IntVector3& pos, BlockId id, int8_t meta) = 0;
 
