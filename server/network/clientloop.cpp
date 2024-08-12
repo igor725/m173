@@ -248,8 +248,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
           auto& cpos = data.getClickPosition();
 
           if (data.getDirection() == -1) { // Handle item click
-            if (is.itemId > 0) Item::getById(is.itemId)->onItemRightClick(is, linkedEntity, cpos, data.getDirection());
-            break;
+            if (is.itemId > 0 && Item::getById(is.itemId)->onItemRightClick(is, linkedEntity, cpos, data.getDirection())) break;
           }
 
           if (auto aid = accessWorld().getBlock(cpos)) {
@@ -293,12 +292,19 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
         case Packet::IDs::ClickWindow: {
           Packet::FromClient::ClickWindow data(ss);
 
-          if (data.isInventory()) {
-            throw GenericKickException("Inventory manipulations is not implemented yet");
+          if (data.getWindow() == 0) {
+            if (linkedEntity->getContainer().onSlotClicked(data.getSlot(), data.isRightButton(), data.isShift())) {
+              Packet::ToClient::TransactionWindow wdata_tr(data.getWindow(), data.getTransactionId(), true);
+              wdata_tr.sendTo(linkedEntity->getSocket());
+            } else {
+              Packet::ToClient::TransactionWindow wdata_tr(data.getWindow(), data.getTransactionId(), false);
+              wdata_tr.sendTo(linkedEntity->getSocket());
+              linkedEntity->updateInventory();
+            }
           } else {
-            Packet::ToClient::TransactionWindow wdata_tr(data.getWindow(), data.getTransactionId(), false);
-            wdata_tr.sendTo(ss);
+            throw GenericKickException("Unsupported operation");
           }
+
         } break;
         case Packet::IDs::TransactWindow: {
           Packet::FromClient::TransactionWindow data(ss);

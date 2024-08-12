@@ -38,9 +38,13 @@ class ClickWindow: private PacketReader {
 
   bool isRightButton() const { return m_rmb; }
 
+  bool isShift() const { return m_shf; }
+
   auto getSlot() const { return m_sid; }
 
   auto getWindow() const { return m_wid; }
+
+  auto getItem() const { return m_iis; }
 
   auto getTransactionId() const { return m_trc; }
 

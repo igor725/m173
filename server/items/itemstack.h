@@ -14,19 +14,19 @@ struct ItemStack {
 
   ItemStack(ItemId iid, int16_t ss): stackSize(ss), itemId(iid), itemDamage(0) {}
 
-  bool decrementBy(int16_t sz) {
-    if (sz < 1 || stackSize < sz || itemId < 0) return false;
-    if ((stackSize -= sz) == 0) itemId = -1;
-    return stackSize >= 0;
-  }
+  ItemStack(ItemId iid, int16_t ss, int16_t dmg): stackSize(ss), itemId(iid), itemDamage(dmg) {}
 
-  bool incrementBy(int16_t sz) {
-    if (sz < 1 || itemId < 0) return false;
-    stackSize += sz;
-    return true;
-  }
+  ItemStack(const ItemStack& is, int16_t ss): itemId(is.itemId), itemDamage(is.itemDamage), stackSize(ss) {}
+
+  bool decrementBy(int16_t sz);
+
+  bool incrementBy(int16_t sz);
 
   bool isEmpty() const { return itemId == -1 || stackSize == 0; }
+
+  bool isSimilarTo(const ItemStack& is) const { return itemId == is.itemId && itemDamage == is.itemDamage; }
+
+  void moveTo(ItemStack& is, int16_t count);
 
   bool isDamageable() const;
 
@@ -40,16 +40,9 @@ struct ItemStack {
 
   bool useItem(EntityBase* user, const IntVector3& pos, int8_t direction);
 
-  void damageItem(int16_t damage, EntityBase* damager) {
-    if (isDamageable()) {
-      itemDamage += damage;
-      if (itemDamage > getMaxDamage()) {
-        --stackSize;
-        if (stackSize < 0) stackSize = 0;
-        itemDamage = 0;
-      }
-    }
-  }
+  void damageItem(int16_t damage, EntityBase* damager);
+
+  ItemStack splitStack(int16_t count);
 
   void fullStack() { stackSize = 64; }
 };

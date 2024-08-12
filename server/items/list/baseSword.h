@@ -10,8 +10,9 @@ class ItemSword: public Item {
 
   public:
   ItemSword(ItemId iid, ToolMaterial::Index m): Item(iid), m_tm(ToolMaterial::select(m)) {
-    m_damage = VsDamageInfo(4 + m_tm.getDamageVsEntity() * 2, 0.08 + (m_tm.getDamageVsEntity() / 15.0));
-    setMaxDamage(m_tm.getMaxUses());
+    m_damage     = VsDamageInfo(4 + m_tm.getDamageVsEntity() * 2, 0.08 + (m_tm.getDamageVsEntity() / 15.0));
+    maxDamage    = m_tm.getMaxUses();
+    maxStackSize = 1;
   }
 
   bool hitEntity(ItemStack& is, EntityBase* atacker, EntityBase* victim) override {

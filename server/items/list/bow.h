@@ -9,7 +9,7 @@ class ItemBow: public Item {
   public:
   ItemBow(ItemId iid): Item(iid) { maxStackSize = 1; }
 
-  ItemStack& onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) {
+  bool onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) {
     auto  ply  = dynamic_cast<IPlayer*>(clicker);
     auto& stor = ply->getStorage();
 
@@ -25,6 +25,6 @@ class ItemBow: public Item {
       }
     }
 
-    return is;
+    return true;
   }
 };

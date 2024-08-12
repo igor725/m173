@@ -9,13 +9,17 @@ class IContainer {
   CLASS_NO_COPY(IContainer);
   CLASS_NO_MOVE(IContainer);
 
+  static const SlotId SLOT_OFFSCREEN_CLICK = -999;
+
   public:
   IContainer(uint32_t slotNum);
   ~IContainer();
 
-  virtual int16_t getSize() const { return m_slots.size(); }
+  int16_t getSize() const { return m_slots.size(); }
 
-  virtual ItemStack& getItem(SlotId sid);
+  ItemStack& getItem(SlotId sid);
+
+  virtual bool onSlotClicked(SlotId sid, bool isRmb, bool shift);
 
   protected:
   void addSlot(Slot&& slot);

@@ -3,11 +3,11 @@
 #include "../slots/armorSlot.h"
 
 PlayerContainer::PlayerContainer(PlayerStorage* stor): IContainer(45), m_crafting(this), m_craftRes(), m_storage(stor) {
-  addSlot(Slot(&m_craftRes, 0));
+  addSlot(Slot(&m_craftRes, 0, Slot::Result));
 
   for (int32_t y = 0; y < 2; ++y) {
     for (int32_t x = 0; x < 2; ++x) {
-      addSlot(Slot(&m_crafting, x + y * 2));
+      addSlot(Slot(&m_crafting, x + y * 2, Slot::CraftRecipe));
     }
   }
 
@@ -17,12 +17,12 @@ PlayerContainer::PlayerContainer(PlayerStorage* stor): IContainer(45), m_craftin
 
   for (int32_t y = 0; y < 3; ++y) {
     for (int32_t x = 0; x < 9; ++x) {
-      addSlot(Slot(stor, stor->getInventoryOffset() + x + y * 9));
+      addSlot(Slot(stor, stor->getInventoryOffset() + x + y * 9, Slot::Inventory));
     }
   }
 
   for (int32_t i = 0; i < 9; ++i) {
-    addSlot(Slot(stor, stor->getHotbarOffset() + i));
+    addSlot(Slot(stor, stor->getHotbarOffset() + i, Slot::Hotbar));
   }
 }
 

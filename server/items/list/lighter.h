@@ -8,10 +8,10 @@ class ItemLighter: public Item {
   public:
   ItemLighter(ItemId iid): Item(iid) {
     maxStackSize = 1;
-    setMaxDamage(64);
+    maxDamage    = 64;
   }
 
-  ItemStack& onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) {
+  bool onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) {
     auto firepos = pos;
 
     switch (dir) {
@@ -26,6 +26,7 @@ class ItemLighter: public Item {
     if (accessWorld().setBlockWithNotify(firepos, 51, 0, dynamic_cast<IPlayer*>(clicker))) {
       is.damageItem(1, clicker);
     }
-    return is;
+
+    return true;
   }
 };

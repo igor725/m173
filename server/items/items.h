@@ -13,12 +13,11 @@ class Item {
   ItemId shiftedIndex;
 
   private:
-  int16_t maxDamage     = 0;
-  Item*   containerItem = nullptr;
+  Item* containerItem = nullptr;
 
   protected:
-  int16_t maxStackSize;
-  int32_t iconIndex;
+  int16_t maxDamage    = 0;
+  int16_t maxStackSize = 64;
   bool    bFull3D      = false;
   bool    bHasSubTypes = false;
 
@@ -29,39 +28,15 @@ class Item {
 
   ~Item();
 
-  Item* setIconIndex(int32_t ii) {
-    iconIndex = ii;
-    return this;
-  }
-
-  Item* setIconIndexCoord(int32_t x, int32_t y) {
-    iconIndex = y + x * 16;
-    return this;
-  }
-
-  int32_t getIconFromDamage(int dmg) { return iconIndex; }
-
-  int32_t getIconIndex(const ItemStack& is) { return getIconFromDamage(is.itemDamage); }
-
-  Item* setMaxStackSize(int16_t size) {
-    maxStackSize = size;
-    return this;
-  }
-
   virtual int8_t getMetadata(int16_t damage) { return 0; }
 
-  virtual ItemStack& onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) { return is; }
+  virtual bool onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) { return false; }
 
   virtual bool onBlockDestroyed(ItemStack& is, const IntVector3& pos, BlockId id, EntityBase* destroyer) { return true; }
 
   virtual bool onUseItem(ItemStack& is, EntityBase* user, const IntVector3& pos, int8_t direction) { return false; }
 
   int16_t getStackLimit() const { return maxStackSize; }
-
-  Item* setMaxDamage(int16_t md) {
-    maxDamage = md;
-    return this;
-  }
 
   int16_t getMaxDamage() const { return maxDamage; }
 
