@@ -30,8 +30,10 @@ bool ItemBlock::onUseItemOnBlock(ItemStack& is, EntityBase* user, const IntVecto
     }
   }
 
+  // Should be retrieved before being eaten by ItemStack::decrementBy()
+  auto dmg = is.itemDamage;
   if (is.decrementBy(1)) {
-    if (world.setBlockWithNotify(npos, m_blockId, getMetadata(is.itemDamage), ply)) {
+    if (world.setBlockWithNotify(npos, m_blockId, getMetadata(dmg), ply)) {
       return true;
     } else { // Uh oh
       is.incrementBy(1);

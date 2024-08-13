@@ -36,7 +36,7 @@ BasicBlock   bush(31);
 BasicBlock   anotherBush(32);
 BasicBlock   piston(33);
 BasicBlock   pistonMover(34);
-BasicBlock   wool(35);
+WoolBlock    wool(35);
 BasicBlock   yellowFlower(37);
 BasicBlock   redFlower(38);
 BasicBlock   mushroom(39);

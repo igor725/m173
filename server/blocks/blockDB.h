@@ -3,6 +3,7 @@
 #include "basicBlock.h"
 #include "list/noteBlock.h"
 #include "list/saplingBlock.h"
+#include "list/woolBlock.h"
 
 namespace BlockDB {
 extern BasicBlock   air;
@@ -40,7 +41,7 @@ extern BasicBlock   bush;
 extern BasicBlock   anotherBush;
 extern BasicBlock   piston;
 extern BasicBlock   pistonMover;
-extern BasicBlock   wool;
+extern WoolBlock    wool;
 extern BasicBlock   yellowFlower;
 extern BasicBlock   redFlower;
 extern BasicBlock   mushroom;
