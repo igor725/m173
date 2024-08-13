@@ -5,7 +5,24 @@
 
 #include <exception>
 #include <format>
+#include <spdlog/spdlog.h>
 #include <sstream>
+
+#pragma region("packet.h/PacketWriter")
+
+PacketWriter::PacketWriter(PacketId id, int32_t psize) {
+  spdlog::trace("Writing packet {:02x} with known size {}", id, psize);
+  m_data.reserve(psize + 1);
+  writeInteger<int8_t>(id);
+}
+
+PacketWriter::PacketWriter(PacketId id) {
+  m_data.reserve(1);
+  spdlog::trace("Writing packet {:02x} with unknown size!", id);
+  writeInteger<int8_t>(id);
+}
+
+#pragma endregion
 
 #pragma region("World.h")
 

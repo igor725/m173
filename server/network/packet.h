@@ -106,12 +106,9 @@ private:
 
 class PacketWriter {
   public:
-  PacketWriter(PacketId id) { writeInteger<int8_t>(id); }
+  PacketWriter(PacketId id);
 
-  PacketWriter(PacketId id, size_t psize) {
-    m_data.reserve(psize + 1);
-    writeInteger<int8_t>(id);
-  }
+  PacketWriter(PacketId id, int32_t psize);
 
   template <typename T>
   bool sendTo(T& sock) {
