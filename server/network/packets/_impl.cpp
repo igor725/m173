@@ -101,7 +101,7 @@ MapChunk::MapChunk(const IntVector3& pos, const ByteVector3& size, Chunk* chunk)
     compr->setOutput(buffer.data(), buffer.size());
   } while (!compr_done);
 
-  *reinterpret_cast<uint32_t*>(m_data.data() + csize_pos) = bswap(compr->getTotalOutput());
+  *reinterpret_cast<uint32_t*>(m_data.data() + csize_pos) = bswap(static_cast<uint32_t>(compr->getTotalOutput()));
 }
 } // namespace Packet::ToClient
 
