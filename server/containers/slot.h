@@ -22,6 +22,8 @@ class Slot {
 
   virtual int16_t getSlotStackLimit() { return 64; }
 
+  virtual int16_t getAvailableRoom() { return getSlotStackLimit() - getHeldItem().stackSize; }
+
   virtual bool isItemValid(const ItemStack& is) const { return true; }
 
   virtual SlotId getAbsoluteSlotId() const { return m_slotIndex; }

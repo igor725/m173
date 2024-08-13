@@ -26,7 +26,9 @@ struct ItemStack {
 
   bool isSimilarTo(const ItemStack& is) const { return itemId == is.itemId && itemDamage == is.itemDamage; }
 
-  void moveTo(ItemStack& is, int16_t count);
+  bool moveTo(ItemStack& is, int16_t count);
+
+  void swapWith(ItemStack& is);
 
   bool isDamageable() const;
 

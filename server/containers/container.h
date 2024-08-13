@@ -21,13 +21,15 @@ class IContainer {
 
   virtual bool onSlotClicked(SlotId sid, bool isRmb, bool shift);
 
-  protected:
+  protected: // Protected functions
   void addSlot(Slot&& slot);
 
   virtual SlotId getItemSlotById(ItemId iid) = 0;
 
   virtual ItemStack& getHotbarItem(uint8_t iid) = 0;
 
-  protected:
+  protected: // Protected variables
   std::vector<Slot> m_slots;
+  ItemStack         m_carriedItem;
+  SlotId            m_carriedItemFrom;
 };

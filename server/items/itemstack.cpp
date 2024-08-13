@@ -4,12 +4,12 @@
 
 bool ItemStack::decrementBy(int16_t sz) {
   if (sz < 1 || stackSize < sz || itemId < 0) return false;
-  if ((stackSize -= sz) == 0) itemId = -1;
+  if ((stackSize -= sz) == 0) *this = ItemStack();
   return stackSize >= 0;
 }
 
 bool ItemStack::incrementBy(int16_t sz) {
-  if (sz < 1 || itemId < 0) return false;
+  if (sz < 1 || itemId < 0 || (Item::getById(itemId)->getStackLimit() < (stackSize + sz))) return false;
   stackSize += sz;
   return true;
 }
@@ -43,18 +43,30 @@ void ItemStack::damageItem(int16_t damage, EntityBase* damager) {
     itemDamage += damage;
     if (itemDamage > getMaxDamage()) {
       --stackSize;
-      if (stackSize < 0) stackSize = 0;
-      itemDamage = 0;
+      if (stackSize < 0) *this = ItemStack();
     }
   }
 }
 
 ItemStack ItemStack::splitStack(int16_t count) {
-  stackSize -= count;
-  return ItemStack(itemId, count, itemDamage);
+  auto _ns = ItemStack(itemId, count, itemDamage);
+  if ((stackSize -= count) == 0) *this = ItemStack();
+  return _ns;
 }
 
-void ItemStack::moveTo(ItemStack& is, int16_t count) {
-  if (is.isEmpty()) is = ItemStack(itemId, count, itemDamage);
-  if ((stackSize -= count) == 0) *this = ItemStack(); // Clear the ItemStack if it's 0
+bool ItemStack::moveTo(ItemStack& is, int16_t count) {
+  if (is.isEmpty()) {
+    is = ItemStack(itemId, count, itemDamage);
+  } else if (!isSimilarTo(is) || !is.incrementBy(count)) {
+    return false;
+  }
+  if ((stackSize -= count) == 0) *this = ItemStack();
+  return true;
+}
+
+void ItemStack::swapWith(ItemStack& is) {
+  auto _copy = *this;
+
+  *this = is;
+  is    = _copy;
 }
