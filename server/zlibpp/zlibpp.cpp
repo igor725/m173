@@ -94,13 +94,17 @@ class Compressor: public IZLibPP {
   }
 
   State tick() final {
-    if (m_state == Done) return m_state;
-
     switch (m_state) {
       case Idle:
       case MoreOut: {
         m_state = InProcess;
       } break;
+      case Fatal:
+      case Done: {
+        return m_state;
+      } break;
+
+      default: break;
     }
 
     if (m_stream.avail_in == 0 && m_state == InProcess) m_state = Finishing;

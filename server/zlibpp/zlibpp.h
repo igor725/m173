@@ -15,6 +15,7 @@ class IZLibPP {
     InProcess,
     MoreOut,
     Finishing,
+    Fatal,
     Done,
   };
 

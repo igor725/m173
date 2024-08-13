@@ -4,6 +4,7 @@
 #include "zlibpp/zlibpp_unique.h"
 
 #include <exception>
+#include <format>
 #include <sstream>
 
 #pragma region("World.h")
@@ -75,6 +76,8 @@ MapChunk::MapChunk(const IntVector3& pos, const ByteVector3& size, Chunk* chunk)
       case IZLibPP::Done: {
         compr_done = true;
       } break;
+
+      default: break;
     }
 
     m_data.insert(m_data.end(), buffer.begin(), buffer.begin() + compr->getFrameSize());

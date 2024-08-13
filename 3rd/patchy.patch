@@ -1,0 +1,39 @@
+diff --git a/src/exception.cpp b/src/exception.cpp
+index 72aae7e..06fbef1 100644
+--- a/src/exception.cpp
++++ b/src/exception.cpp
+@@ -64,22 +64,20 @@ string sys_error::error_str(int err)
+ 		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+ 			NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+ 			buf, sizeof(buf), NULL);
+-    #else
+-    	#ifdef _GNU_SOURCE
+-			#if !defined(__GLIBC__)
++	#else
++		#if !defined(_GNU_SOURCE) && (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600)
+ 			// use the XSI standard behavior.
+-				int e = strerror_r(err, buf, sizeof(buf));
+-				auto s = strerror(e);
+-				return s ? std::string(s) : std::string();
+-			#else
++			int e = strerror_r(err, buf, sizeof(buf));
++			auto s = strerror(e);
++			return s ? std::string(s) : std::string();
++		#elif defined(_GNU_SOURCE)
+ 			// assume GNU exception
+-				auto s = strerror_r(err, buf, sizeof(buf));
+-				return s ? std::string(s) : std::string();
+-			#endif
+-        #else
+-            ignore_result(strerror_r(err, buf, sizeof(buf)));
+-        #endif
+-    #endif
++			auto s = strerror_r(err, buf, sizeof(buf));
++			return s ? std::string(s) : std::string();
++		#else
++			ignore_result(strerror_r(err, buf, sizeof(buf)));
++		#endif
++    	#endif
+ 	return std::string(buf);
+ }
+ 

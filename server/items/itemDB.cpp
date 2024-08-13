@@ -1,5 +1,3 @@
-#pragma once
-
 #include "itemDB.h"
 
 namespace ItemDB {

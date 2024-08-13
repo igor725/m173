@@ -20,6 +20,8 @@ class ISlot {
 
   ISlot(IStorage* storage, SlotId slotid, Type type): m_storageSlotIndex(slotid), m_storage(storage), m_slotType(type) {}
 
+  virtual ~ISlot() = default;
+
   virtual int16_t getSlotStackLimit() const = 0;
 
   virtual bool isItemValid(const ItemStack& is) const = 0;
