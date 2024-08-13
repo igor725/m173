@@ -16,7 +16,7 @@ struct ItemStack {
 
   ItemStack(ItemId iid, int16_t ss, int16_t dmg): stackSize(ss), itemId(iid), itemDamage(dmg) {}
 
-  ItemStack(const ItemStack& is, int16_t ss): itemId(is.itemId), itemDamage(is.itemDamage), stackSize(ss) {}
+  ItemStack(const ItemStack& is, int16_t ss): stackSize(ss), itemId(is.itemId), itemDamage(is.itemDamage) {}
 
   bool decrementBy(int16_t sz);
 

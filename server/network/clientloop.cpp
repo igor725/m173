@@ -98,8 +98,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
   const auto joinTime = std::chrono::system_clock::now();
   const auto pingFreq = std::chrono::seconds(1);
 
-  auto lastInPing = joinTime;
-  auto nextPing   = joinTime;
+  auto nextPing = joinTime;
 
   bool posUpdated = false, lookUpdated = false;
 
@@ -382,10 +381,10 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
     wdata.sendTo(ss);
     ss.pushQueue();
 
-    spdlog::error("[{}] {} thrown on client handling: {}", addr.to_string(), typeid(ex).name(), ex.what());
+    spdlog::error("[{}] {} thrown on client handling: {}", ss.addr(), typeid(ex).name(), ex.what());
   }
 
-  spdlog::info("Client {} closed!", addr.to_string());
+  spdlog::info("Client {} closed!", ss.addr());
   if (linkedEntity) {
     accessEntityManager().RemoveEntity(linkedEntity->getEntityId());
   }

@@ -127,7 +127,7 @@ class EntityMeta: public PacketWriter {
   public:
   EntityMeta(EntityId eid): PacketWriter(Packet::IDs::EntityMeta, 10 /* Not the actual packet size, just a reservation */) { writeInteger(eid); }
 
-  void putHeader(int8_t type, int8_t valueid) { writeInteger<int8_t>((type << 5 | valueid & 31) & 255); }
+  void putHeader(int8_t type, int8_t valueid) { writeInteger<int8_t>((type << 5 | (valueid & 31)) & 255); }
 
   void putByte(int valueid, int8_t value) {
     putHeader(0, valueid);

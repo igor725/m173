@@ -2,6 +2,7 @@
 
 #include <mutex>
 #include <sockpp/tcp_socket.h>
+#include <string>
 #include <vector>
 
 class SafeSocket {
@@ -43,6 +44,8 @@ class SafeSocket {
       }
     }
   }
+
+  std::string addr() { return m_addr.to_string(); }
 
   void close() {
     m_sock.close();
