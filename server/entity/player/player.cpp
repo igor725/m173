@@ -20,20 +20,6 @@ class Player: public IPlayer {
     auto& dist = accessConfig().getItem("chunk.load_distance");
 
     m_trackDistance = dist.getValue<uint32_t>();
-
-    m_storage.push(ItemStack(262, 64));
-    m_storage.push(ItemStack(17, 64));
-    m_storage.push(ItemStack(20, 64));
-    m_storage.push(ItemStack(5, 64));
-    m_storage.push(ItemStack(276, 1));
-    m_storage.push(ItemStack(267, 1));
-    m_storage.push(ItemStack(268, 1));
-    m_storage.push(ItemStack(283, 1));
-    m_storage.push(ItemStack(25, 4));
-    m_storage.push(ItemStack(332, 16));
-    m_storage.push(ItemStack(345, 1));
-    m_storage.push(ItemStack(261, 1));
-    m_storage.push(ItemStack(259, 1));
   }
 
   ~Player() {

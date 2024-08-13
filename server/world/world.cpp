@@ -43,8 +43,8 @@ class World: public IWorld {
     std::unique_lock lock(m_accChunks);
 
     auto chunk = allocChunk(pos);
-    chunk->m_light.fill(Nible(15, 15)); // All fullbright for now
-    chunk->m_sky.fill(Nible(15, 15));
+    chunk->m_light.fill(Nibble(15, 15)); // All fullbright for now
+    chunk->m_sky.fill(Nibble(15, 15));
 
     for (int32_t x = 0; x < 16; ++x) {
       for (int32_t y = 0; y < (m_spawnPoint.y - 2); ++y) {
@@ -70,7 +70,7 @@ class World: public IWorld {
     auto chunk = getChunk({pos.x >> 4, pos.z >> 4});
     if (chunk == nullptr) return false;
     chunk->m_blocks[chunk->getWorldIndex(pos)] = id;
-    chunk->m_meta.setNible(chunk->toLocalChunkCoords(pos), meta);
+    chunk->m_meta.setNibble(chunk->getLocalIndex(chunk->toLocalChunkCoords(pos)), meta);
     return true;
   }
 
@@ -93,7 +93,7 @@ class World: public IWorld {
     if (pos.y < 0 || pos.y > CHUNK_DIMS.y) return false;
     auto chunk = getChunk({pos.x >> 4, pos.z >> 4});
     if (chunk == nullptr) return 0;
-    if (meta != nullptr) *meta = chunk->m_meta.getNible(chunk->toLocalChunkCoords(pos));
+    if (meta != nullptr) *meta = chunk->m_meta.getNibble(chunk->getLocalIndex(chunk->toLocalChunkCoords(pos)));
     return chunk->m_blocks[chunk->getWorldIndex(pos)];
   }
 
