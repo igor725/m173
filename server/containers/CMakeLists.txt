@@ -1,5 +1,6 @@
 add_library(containers OBJECT
   container.cpp
+  slots/_impl.cpp
   list/playerContainer.cpp
   storages/playerStorage.cpp
 )

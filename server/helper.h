@@ -70,11 +70,6 @@ struct FloatVector3 {
   float_t x, y, z;
 };
 
-enum Dimension : int8_t {
-  Overworld = 0,
-  Nether    = -1,
-};
-
 struct VsDamageInfo {
   int16_t  damage;
   double_t kbackStrength;
@@ -82,4 +77,16 @@ struct VsDamageInfo {
   VsDamageInfo(): damage(1), kbackStrength(0.1) {}
 
   VsDamageInfo(int16_t dmg, double_t kb): damage(dmg), kbackStrength(kb) {}
+};
+
+enum Dimension : int8_t {
+  Overworld = 0,
+  Nether    = -1,
+};
+
+enum ArmorType : int8_t {
+  Head,
+  Chest,
+  Pants,
+  Boots,
 };

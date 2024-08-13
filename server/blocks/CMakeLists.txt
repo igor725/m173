@@ -1,5 +1,6 @@
 add_library(blocks OBJECT
-  blocks.cpp
+  block.cpp
+  blockDB.cpp
 )
 
 target_link_libraries(blocks PRIVATE spdlog::spdlog)

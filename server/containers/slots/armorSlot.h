@@ -1,11 +1,21 @@
+#pragma once
+
 #include "../slot.h"
+#include "blocks/blockDB.h"
+#include "items/item.h"
+#include "items/list/armor.h"
 
-class ArmorSlot: public Slot {
+class ArmorSlot: public ISlot {
   public:
-  ArmorSlot(IStorage* stor, SlotId sid, int8_t armorType): Slot(stor, sid, Slot::Armor), m_armorType(armorType) {}
+  ArmorSlot(IStorage* stor, SlotId sid, ArmorType armorType): ISlot(stor, sid, ISlot::Armor), m_armorType(armorType) {}
 
-  bool isItemValid(const ItemStack& is) const final { return false; /* todo actual implementation */ }
+  bool isItemValid(const ItemStack& is) const final;
+
+  int16_t getSlotStackLimit() const final { return 64; }
 
   private:
-  int8_t m_armorType;
+  bool armorTest(ItemId iid) const;
+
+  private:
+  ArmorType m_armorType;
 };

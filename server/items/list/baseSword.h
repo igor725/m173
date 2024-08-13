@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../items.h"
+#include "../item.h"
 #include "../toolmaterial.h"
 
 class ItemSword: public Item {

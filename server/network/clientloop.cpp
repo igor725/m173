@@ -1,12 +1,12 @@
 #define M173_ACTIVATE_READER_API
 #include "clientloop.h"
 
-#include "blocks/blocks.h"
+#include "blocks/block.h"
 #include "commands/handler.h"
 #include "entity/manager.h"
 #include "entity/player/player.h"
 #include "ids.h"
-#include "items/items.h"
+#include "items/item.h"
 #include "packets/ChatMessage.h"
 #include "packets/Entity.h"
 #include "packets/Handshake.h"
@@ -249,14 +249,14 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
 
           if (data.getDirection() == -1) { // Handle item click
             if (is.itemId > 0 && Item::getById(is.itemId)->onItemRightClick(is, linkedEntity, cpos, data.getDirection())) break;
-          }
+          } else {
+            if (auto aid = accessWorld().getBlock(cpos)) {
+              if (Block::getById(aid)->blockActivated(cpos, linkedEntity)) break;
+            }
 
-          if (auto aid = accessWorld().getBlock(cpos)) {
-            if (Block::getById(aid)->blockActivated(cpos, linkedEntity)) break;
-          }
-
-          if (is.itemId > 0 && is.useItem(linkedEntity, cpos, data.getDirection())) {
-            break;
+            if (is.itemId > 0 && is.useItemOnBlock(linkedEntity, cpos, data.getDirection())) {
+              break;
+            }
           }
 
           // throw HackedClientException(HackedClientException::WrongBlockPlace);
@@ -288,6 +288,12 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
         } break;
         case Packet::IDs::CloseWindow: {
           Packet::FromClient::CloseWindow data(ss);
+
+          if (data.getWindow() == 0) {
+            if (linkedEntity->getContainer().onWindowClosed()) linkedEntity->updateInventory();
+          } else {
+            throw GenericKickException("Unsupported operation");
+          }
         } break;
         case Packet::IDs::ClickWindow: {
           Packet::FromClient::ClickWindow data(ss);

@@ -6,7 +6,7 @@
 
 #include <cstdint>
 
-class Slot {
+class ISlot {
   public:
   enum Type {
     Result,
@@ -18,15 +18,15 @@ class Slot {
     FurnaceCook,
   };
 
-  Slot(IStorage* storage, SlotId slotid, Type type): m_storageSlotIndex(slotid), m_storage(storage), m_slotType(type) {}
+  ISlot(IStorage* storage, SlotId slotid, Type type): m_storageSlotIndex(slotid), m_storage(storage), m_slotType(type) {}
 
-  virtual int16_t getSlotStackLimit() { return 64; }
+  virtual int16_t getSlotStackLimit() const = 0;
 
-  virtual int16_t getAvailableRoom() { return getSlotStackLimit() - getHeldItem().stackSize; }
+  virtual bool isItemValid(const ItemStack& is) const = 0;
 
-  virtual bool isItemValid(const ItemStack& is) const { return true; }
+  int16_t getAvailableRoom() { return getSlotStackLimit() - getHeldItem().stackSize; }
 
-  virtual SlotId getAbsoluteSlotId() const { return m_slotIndex; }
+  SlotId getAbsoluteSlotId() const { return m_slotIndex; }
 
   Type getSlotType() const { return m_slotType; }
 

@@ -9,11 +9,9 @@
 #include <spdlog/spdlog.h>
 
 class Item {
-  public:
-  ItemId shiftedIndex;
-
   private:
-  Item* containerItem = nullptr;
+  ItemId shiftedIndex;
+  Item*  containerItem = nullptr;
 
   protected:
   int16_t maxDamage    = 0;
@@ -34,7 +32,9 @@ class Item {
 
   virtual bool onBlockDestroyed(ItemStack& is, const IntVector3& pos, BlockId id, EntityBase* destroyer) { return true; }
 
-  virtual bool onUseItem(ItemStack& is, EntityBase* user, const IntVector3& pos, int8_t direction) { return false; }
+  virtual bool onUseItemOnBlock(ItemStack& is, EntityBase* user, const IntVector3& pos, int8_t direction) { return false; }
+
+  virtual bool hitEntity(ItemStack& is, EntityBase* attacker, EntityBase* victim) { return false; }
 
   int16_t getStackLimit() const { return maxStackSize; }
 
@@ -42,7 +42,7 @@ class Item {
 
   bool isDamageable() { return maxDamage > 0 && !bHasSubTypes; }
 
-  virtual bool hitEntity(ItemStack& is, EntityBase* attacker, EntityBase* victim) { return false; }
+  ItemId getId() const { return shiftedIndex; }
 
   virtual const VsDamageInfo& getDamageVsEntity(EntityBase* ent) {
     static const VsDamageInfo baseDamage(1, 0.1);

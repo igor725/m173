@@ -14,7 +14,7 @@ class CloseWindow: private PacketReader {
   public:
   CloseWindow(SafeSocket& sock): PacketReader(sock) { m_win = readInteger<WinId>(); }
 
-  const auto& getWindowId() const { return m_win; }
+  const auto& getWindow() const { return m_win; }
 
   private:
   WinId m_win;

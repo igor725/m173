@@ -3,6 +3,7 @@
 #include "slot.h"
 
 #include <cstdint>
+#include <memory>
 #include <vector>
 
 class IContainer {
@@ -21,15 +22,17 @@ class IContainer {
 
   virtual bool onSlotClicked(SlotId sid, bool isRmb, bool shift);
 
+  virtual bool onWindowClosed();
+
   protected: // Protected functions
-  void addSlot(Slot&& slot);
+  void addSlot(std::unique_ptr<ISlot>&& slot);
 
   virtual SlotId getItemSlotById(ItemId iid) = 0;
 
   virtual ItemStack& getHotbarItem(uint8_t iid) = 0;
 
   protected: // Protected variables
-  std::vector<Slot> m_slots;
-  ItemStack         m_carriedItem;
-  SlotId            m_carriedItemFrom;
+  std::vector<std::unique_ptr<ISlot>> m_slots;
+  ItemStack                           m_carriedItem;
+  SlotId                              m_carriedItemFrom;
 };

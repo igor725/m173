@@ -1,5 +1,6 @@
 #include "world.h"
 
+#include "items/item.h"
 #include "network/packets/World.h"
 
 #include <mutex>

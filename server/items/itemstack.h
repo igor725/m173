@@ -27,6 +27,7 @@ struct ItemStack {
   bool isSimilarTo(const ItemStack& is) const { return itemId == is.itemId && itemDamage == is.itemDamage; }
 
   bool moveTo(ItemStack& is, int16_t count);
+  bool moveTo(ItemStack& is);
 
   void swapWith(ItemStack& is);
 
@@ -40,7 +41,7 @@ struct ItemStack {
 
   void hitEntity(EntityBase* attacker, EntityBase* victim);
 
-  bool useItem(EntityBase* user, const IntVector3& pos, int8_t direction);
+  bool useItemOnBlock(EntityBase* user, const IntVector3& pos, int8_t direction);
 
   void damageItem(int16_t damage, EntityBase* damager);
 

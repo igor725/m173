@@ -11,6 +11,8 @@ class Block {
 
   virtual bool blockActivated(const IntVector3& pos, EntityBase* activator) { return false; }
 
+  BlockId getId() const { return m_index; }
+
   static Block* getById(BlockId bid);
 
   private:
