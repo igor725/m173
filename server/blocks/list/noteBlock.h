@@ -1,12 +1,12 @@
 #pragma once
 
-#include "../block.h"
+#include "../basicBlock.h"
 #include "entity/player/player.h"
 #include "network/packets/World.h"
 
-class NoteBlock: public Block {
+class NoteBlock: public BasicBlock {
   public:
-  NoteBlock(BlockId bid): Block(bid) {}
+  NoteBlock(BlockId bid): BasicBlock(bid) {}
 
   bool blockActivated(const IntVector3& pos, EntityBase* activator) override {
     Packet::ToClient::NoteBlockPlay wdata(pos, Packet::ToClient::NoteBlockPlay::Harp, std::rand() % 24);

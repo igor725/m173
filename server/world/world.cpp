@@ -76,13 +76,14 @@ class World: public IWorld {
 
   bool setBlockWithNotify(const IntVector3& pos, BlockId id, int8_t meta, IPlayer* placer) final {
     if (setBlock(pos, id, meta)) {
-      Packet::ToClient::BlockChange wdata(pos, id, 0);
+      Packet::ToClient::BlockChange wdata(pos, id, meta);
       placer->sendToTrackedPlayers(wdata, true);
       return true;
     }
-    auto bid = getBlock(pos);
 
-    Packet::ToClient::BlockChange wdata(pos, bid, 0);
+    auto bid = getBlock(pos, &meta);
+
+    Packet::ToClient::BlockChange wdata(pos, bid, meta);
     wdata.sendTo(placer->getSocket());
     placer->resendItem(placer->getHeldItem());
     return false;

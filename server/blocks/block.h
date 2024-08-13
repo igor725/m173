@@ -16,6 +16,5 @@ class Block {
   static Block* getById(BlockId bid);
 
   private:
-  BlockId   m_index;
-  ItemBlock m_item;
+  BlockId m_index;
 };

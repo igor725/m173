@@ -26,7 +26,7 @@ class Item {
 
   ~Item();
 
-  virtual int8_t getMetadata(int16_t damage) { return 0; }
+  virtual int8_t getMetadata(int16_t damage) const { return 0; }
 
   virtual bool onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) { return false; }
 

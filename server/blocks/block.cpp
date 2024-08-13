@@ -18,7 +18,7 @@ class InvalidBlockIdException: public std::exception {
 
 std::array<Block*, 256> g_blocks = {};
 
-Block::Block(BlockId bid): m_index(bid), m_item(bid) {
+Block::Block(BlockId bid): m_index(bid) {
   if (g_blocks[bid] != nullptr) {
     spdlog::warn("Block id conflict {}!", bid);
   }

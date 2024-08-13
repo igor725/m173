@@ -52,7 +52,8 @@ class Give: public Command {
     std::wstringstream ss;
     ss << args[0];
     ItemId  iid;
-    int16_t count = 64;
+    int16_t count  = 64;
+    int16_t damage = 0;
     ss >> iid;
 
     if (args.size() > 1) {
@@ -61,10 +62,16 @@ class Give: public Command {
       ss >> count;
     }
 
+    if (args.size() > 2) {
+      ss.clear();
+      ss << args[2];
+      ss >> damage;
+    }
+
     SlotId slot;
-    if (caller->getStorage().push(ItemStack(iid, count), &slot)) {
+    if (caller->getStorage().push(ItemStack(iid, count, damage), &slot)) {
       caller->resendItem(caller->getStorage().getByOffset(slot));
-      out = std::format(L"Given {} of {}", count, iid);
+      out = std::format(L"Given {} of {}:{}", count, iid, damage);
     } else {
       out = std::format(L"\u00a7cFailed, no free space");
     }
