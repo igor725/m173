@@ -107,6 +107,8 @@ class World: public IWorld {
 
   int64_t getTime() const final { return m_wtime; }
 
+  int64_t getSeed() const final { return m_seed; }
+
   const IntVector3& getSpawnPoint() const final { return m_spawnPoint; }
 
   private:

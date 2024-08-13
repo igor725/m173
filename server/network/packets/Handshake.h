@@ -51,10 +51,10 @@ class KeepAlive: public PacketWriter {
 
 class LoginRequest: public PacketWriter {
   public:
-  LoginRequest(EntityId entId, const std::wstring& svname, int8_t dimension): PacketWriter(Packet::IDs::Login, 15 + svname.size()) {
+  LoginRequest(EntityId entId, const std::wstring& svname, int16_t seed, int8_t dimension): PacketWriter(Packet::IDs::Login, 15 + svname.size()) {
     writeInteger<EntityId>(entId);
     writeString(svname);
-    writeInteger<int64_t>(0ll); // todo world seed
+    writeInteger<int64_t>(seed);
     writeInteger<int8_t>(dimension);
   }
 };

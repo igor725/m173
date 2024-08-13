@@ -18,7 +18,7 @@ class ISlot {
     FurnaceCook,
   };
 
-  ISlot(IStorage* storage, SlotId slotid, Type type): m_storageSlotIndex(slotid), m_storage(storage), m_slotType(type) {}
+  ISlot(IStorage* storage, SlotId slotid, Type type): m_slotType(type), m_storageSlotIndex(slotid), m_storage(storage) {}
 
   virtual ~ISlot() = default;
 

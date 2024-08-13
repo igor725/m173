@@ -56,14 +56,16 @@ class Player: public IPlayer {
   }
 
   bool doLoginProcess(const std::wstring& name) final {
+    auto& world = accessWorld();
+
     m_name = name;
 
     {
-      Packet::ToClient::LoginRequest wdata_lr(this->getEntityId(), L"Yuck fou", this->getDimension());
+      Packet::ToClient::LoginRequest wdata_lr(this->getEntityId(), L"Yuck fou", world.getSeed(), this->getDimension());
       wdata_lr.sendTo(m_selfSock);
     }
 
-    auto& spawn = accessWorld().getSpawnPoint();
+    auto& spawn = world.getSpawnPoint();
     setSpawnPos(spawn);
     teleportPlayer(spawn);
     updateInventory();
