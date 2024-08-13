@@ -65,13 +65,6 @@ set(InstallDir ${CMAKE_INSTALL_PREFIX}/${CMAKE_BUILD_TYPE})
 
 install(
   TARGETS m173_server
-  COMPONENT m173_server
-  RUNTIME_DEPENDENCIES
-  PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-" "libc" "libm" "ld-" "gcc" "stdc"
-  POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
-
-  DIRECTORIES
-  $<TARGET_FILE_NAME:m173_server>
   DESTINATION ${InstallDir}
 )
 
