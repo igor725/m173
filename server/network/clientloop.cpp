@@ -219,20 +219,21 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
         case Packet::IDs::PlayerDig: {
           Packet::FromClient::PlayerDig data(ss);
 
-          if (data.isDiggingFinished()) { // todo dig server event
-            auto& blockPos  = data.getPosition();
-            auto  prevBlock = accessWorld().getBlock(blockPos);
+          auto& blockPos = data.getPosition();
 
-            if (accessWorld().setBlock(blockPos, 0, 0)) {
-              auto& is = linkedEntity->getHeldItem();
-              is.onDestroyBlock(blockPos, prevBlock, linkedEntity);
-              Packet::ToClient::BlockChange wdata(blockPos, 0, 0);
-              linkedEntity->sendToTrackedPlayers(wdata, true);
-            } else {
-              auto bid = accessWorld().getBlock(blockPos);
+          if (auto prevBlock = accessWorld().getBlock(blockPos)) {
+            if (data.isDiggingFinished() || Block::getById(prevBlock)->getHardness() == 0.0f) { // todo dig server event
+              if (accessWorld().setBlock(blockPos, 0, 0)) {
+                auto& is = linkedEntity->getHeldItem();
+                is.onDestroyBlock(blockPos, prevBlock, linkedEntity);
+                Packet::ToClient::BlockChange wdata(blockPos, 0, 0);
+                linkedEntity->sendToTrackedPlayers(wdata, true);
+              } else {
+                auto bid = accessWorld().getBlock(blockPos);
 
-              Packet::ToClient::BlockChange wdata(blockPos, bid, 0);
-              wdata.sendTo(linkedEntity->getSocket());
+                Packet::ToClient::BlockChange wdata(blockPos, bid, 0);
+                wdata.sendTo(linkedEntity->getSocket());
+              }
             }
           } else if (data.isDroppingBlock()) {
             Packet::ToClient::ChatMessage wdata(L"* Item dropping is not implemented yet :(");

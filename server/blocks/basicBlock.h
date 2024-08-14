@@ -5,7 +5,7 @@
 
 class BasicBlock: public Block {
   public:
-  BasicBlock(BlockId bid): Block(bid), m_item(bid) {}
+  BasicBlock(BlockId bid, float_t hardness = 1.0f): Block(bid), m_item(bid) { m_hardness = hardness; }
 
   private:
   ItemBlock m_item;
