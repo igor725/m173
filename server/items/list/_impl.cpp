@@ -9,6 +9,7 @@
 #include "fishingRod.h"
 #include "items/itemDB.h"
 #include "lighter.h"
+#include "sign.h"
 #include "snowBall.h"
 #include "world/world.h"
 
@@ -113,6 +114,37 @@ bool ItemLighter::onUseItemOnBlock(ItemStack& is, EntityBase* clicker, const Int
   }
 
   return true;
+}
+
+#pragma endregion()
+
+#pragma region("sign.h")
+
+bool ItemSign::onUseItemOnBlock(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) {
+  if (dir == 0) return false;
+  // todo check if block is solid
+
+  auto placepos = pos;
+
+  switch (dir) {
+    case 1: placepos.y += 1; break;
+    case 2: placepos.z -= 1; break;
+    case 3: placepos.z += 1; break;
+    case 4: placepos.x -= 1; break;
+    case 5: placepos.x += 1; break;
+  }
+
+  if (is.decrementBy(1)) {
+    int8_t signMeta = dir;
+    if (dir == 1) {
+      auto& prot = clicker->getRotation();
+      signMeta   = static_cast<int8_t>(std::roundf(((prot.yaw + 180.0f) * 16.0f / 360.0f) + 0.5f));
+    }
+
+    return accessWorld().setBlockWithNotify(placepos, BlockDB::sign.getId(), signMeta, dynamic_cast<IPlayer*>(clicker));
+  }
+
+  return false;
 }
 
 #pragma endregion()

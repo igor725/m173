@@ -67,6 +67,7 @@ extern BasicBlock   workbench;
 extern BasicBlock   spring;
 extern BasicBlock   shovDirt;
 extern BasicBlock   furnace;
+extern BasicBlock   sign;
 extern BasicBlock   woodDoorFrame;
 extern BasicBlock   ladder;
 extern BasicBlock   rail;

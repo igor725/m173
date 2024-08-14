@@ -6,6 +6,7 @@
 #include "list/bow.h"
 #include "list/fishingRod.h"
 #include "list/lighter.h"
+#include "list/sign.h"
 #include "list/snowBall.h"
 
 namespace ItemDB {
@@ -76,7 +77,7 @@ extern Item           rawPork;
 extern Item           cookedPork;
 extern Item           painting;
 extern Item           goldenApple;
-extern Item           sign;
+extern ItemSign       sign;
 extern Item           door;
 extern Item           bucket;
 extern Item           waterBucket;

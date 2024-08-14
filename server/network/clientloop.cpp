@@ -13,6 +13,7 @@
 #include "packets/Player.h"
 #include "packets/Window.h"
 #include "packets/World.h"
+#include "platform/platform.h"
 #include "runmanager/runmanager.h"
 #include "safesock.h"
 #include "world/world.h"
@@ -25,7 +26,7 @@
 
 class UnknownPacketException: public std::exception {
   public:
-  UnknownPacketException(int8_t id) { m_what = std::format("Unknown packet id {:02x}", id); }
+  UnknownPacketException(PacketId id) { m_what = std::format("Unknown packet id {:02x}", id); }
 
   const char* what() const noexcept override { return m_what.c_str(); }
 
@@ -92,6 +93,8 @@ ClientLoop::ClientLoop(sockpp::tcp_socket& sock, sockpp::inet_address& addr) {
 }
 
 void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, uint64_t ref) {
+  Platform::SetCurrentThreadName(std::format("Client {} reader", addr.to_string()));
+
   SafeSocket ss(std::move(sock), std::move(addr));
 
   IPlayer* linkedEntity = nullptr;
@@ -307,6 +310,12 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
         } break;
         case Packet::IDs::TransactWindow: {
           Packet::FromClient::TransactionWindow data(ss);
+        } break;
+        case Packet::IDs::SignUpdate: {
+          Packet::FromClient::SignCreate data(ss);
+
+          Packet::ToClient::SignUpdate wdata_su(data.getPosition(), L"Signs are not\nReady to use\nJust yet,\nBe patient");
+          wdata_su.sendTo(linkedEntity->getSocket());
         } break;
         case Packet::IDs::ConnectionFin: {
           Packet::FromClient::Disconnect data(ss);

@@ -68,7 +68,7 @@ Item           rawPork(63);
 Item           cookedPork(64);
 Item           painting(65);
 Item           goldenApple(66);
-Item           sign(67);
+ItemSign       sign(67);
 Item           door(68);
 Item           bucket(69);
 Item           waterBucket(70);

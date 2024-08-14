@@ -10,18 +10,9 @@ namespace Packet {
 namespace FromClient {
 class SignCreate: private PacketReader {
   public:
-  SignCreate(SafeSocket& sock): PacketReader(sock) {
-    m_pos.x = readInteger<int32_t>();
-    m_pos.y = readInteger<int16_t>();
-    m_pos.z = readInteger<int32_t>();
+  SignCreate(SafeSocket& sock);
 
-    for (int32_t i = 0; i < 4; ++i) {
-      std::wstring temp;
-      readString(temp);
-      m_lines += temp;
-      if (i != 3) m_lines.push_back(L'\n');
-    }
-  }
+  auto& getPosition() const { return m_pos; }
 
   private:
   IntVector3   m_pos;

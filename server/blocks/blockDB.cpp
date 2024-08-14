@@ -62,6 +62,7 @@ BasicBlock   workbench(58);
 BasicBlock   crops(59, 0.0f);
 BasicBlock   shovDirt(60);
 BasicBlock   furnace(61);
+BasicBlock   sign(63);
 BasicBlock   woodDoorFrame(64);
 BasicBlock   ladder(65);
 BasicBlock   rail(66);

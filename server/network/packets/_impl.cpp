@@ -144,6 +144,23 @@ class InvalidNameException: public std::exception {
 };
 
 namespace Packet::FromClient {
+SignCreate::SignCreate(SafeSocket& sock): PacketReader(sock) {
+  m_lines.reserve(64);
+
+  m_pos.x = readInteger<int32_t>();
+  m_pos.y = readInteger<int16_t>();
+  m_pos.z = readInteger<int32_t>();
+
+  for (int32_t i = 0; i < 4; ++i) {
+    std::wstring temp;
+    temp.reserve(15);
+
+    readString(temp);
+    m_lines += temp;
+    if (i != 3) m_lines.push_back(L'\n');
+  }
+}
+
 void LoginRequest::testProtoVer(int32_t proto) {
   constexpr int32_t SV_PROTO_VER = 14;
   if (proto != SV_PROTO_VER) throw InvalidProtoException(proto, SV_PROTO_VER);
