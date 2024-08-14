@@ -26,7 +26,7 @@ class IContainer {
 
   virtual bool push(const ItemStack& is, SlotId* sid, SlotId prioritySlot) = 0;
 
-  virtual bool onSlotClicked(SlotId sid, bool isRmb, bool shift);
+  virtual bool onSlotClicked(SlotId sid, bool isRmb, bool isShift);
 
   virtual bool onWindowClosed();
 

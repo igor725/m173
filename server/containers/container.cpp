@@ -51,7 +51,7 @@ bool IContainer::onWindowClosed() {
   return shouldUpdateInv;
 }
 
-bool IContainer::onSlotClicked(SlotId sid, bool isRmb, bool shift) {
+bool IContainer::onSlotClicked(SlotId sid, bool isRmb, bool isShift) {
   bool putCarriedItemBack = true;
 
   if (sid == SLOT_OFFSCREEN_CLICK) {
@@ -60,7 +60,7 @@ bool IContainer::onSlotClicked(SlotId sid, bool isRmb, bool shift) {
     auto  clickedSlot     = m_slots.at(sid).get(); // User will be kicked immediately if this slot does not exists
     auto& clickedSlotItem = clickedSlot->getHeldItem();
 
-    if (shift) {
+    if (isShift) {
       auto oppositeType = clickedSlot->getSlotType() == ISlot::Hotbar ? ISlot::Inventory : ISlot::Hotbar;
       for (auto it = m_slots.begin(); it != m_slots.end(); ++it) {
         if (it->get()->getSlotType() == oppositeType) {
@@ -68,8 +68,11 @@ bool IContainer::onSlotClicked(SlotId sid, bool isRmb, bool shift) {
           if (itSlotItem.isEmpty() || itSlotItem.isSimilarTo(clickedSlotItem)) {
             auto maxPossibleTransfer = Item::getById(clickedSlotItem.itemId)->getStackLimit();
             if (itSlotItem.stackSize > 0) maxPossibleTransfer -= itSlotItem.stackSize;
-            if (maxPossibleTransfer == 0) continue;
-            return clickedSlotItem.moveTo(itSlotItem, std::min(maxPossibleTransfer, clickedSlotItem.stackSize));
+            if (maxPossibleTransfer <= 0) continue;
+            if (clickedSlotItem.moveTo(itSlotItem, std::min(maxPossibleTransfer, clickedSlotItem.stackSize)) && clickedSlotItem.stackSize > 0) {
+              return onSlotClicked(sid, isRmb, isShift);
+            }
+            return clickedSlotItem.stackSize == 0;
           }
         }
       }

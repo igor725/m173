@@ -68,9 +68,12 @@ class Give: public Command {
       ss >> damage;
     }
 
+    // Container should be used there, since we operate with absolute SlotIDs (current selected hotbar item)
+    auto& cont = caller->getContainer();
+
     SlotId slot;
-    if (caller->getContainer().push(ItemStack(iid, count, damage), &slot, caller->getHeldItemSlotId())) {
-      caller->resendItem(caller->getContainer().getItem(slot));
+    if (cont.push(ItemStack(iid, count, damage), &slot, caller->getHeldItemSlotId())) {
+      caller->resendItem(cont.getItem(slot));
       out = std::format(L"Given {} of {}:{}", count, iid, damage);
     } else {
       out = L"\u00a7cFailed, invalid item id or no free space in your inventory";
