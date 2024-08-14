@@ -30,7 +30,15 @@ PlayerContainer::PlayerContainer(PlayerStorage* stor): IContainer(45), m_craftin
 PlayerContainer::~PlayerContainer() {}
 
 SlotId PlayerContainer::getItemSlotById(ItemId iid) {
-  return std::find_if(m_slots.begin(), m_slots.end(), [=](auto& s) -> bool { return s->getHeldItem().itemId == iid; })->get()->getAbsoluteSlotId();
+  auto it = std::find_if(m_slots.begin(), m_slots.end(), [=](auto& s) -> bool { return s->getHeldItem().itemId == iid; });
+  if (it == m_slots.end()) return -1;
+  return it->get()->getAbsoluteSlotId();
+}
+
+SlotId PlayerContainer::getItemSlotByItemStack(const ItemStack& is) {
+  auto it = std::find_if(m_slots.begin(), m_slots.end(), [&](auto& s) -> bool { return &s->getHeldItem() == &is; });
+  if (it == m_slots.end()) return -1;
+  return it->get()->getAbsoluteSlotId();
 }
 
 ItemStack& PlayerContainer::getHotbarItem(uint8_t offset) {
@@ -43,4 +51,13 @@ SlotId PlayerContainer::getStorageItemSlotId(const ItemStack& is) {
   }
 
   return -1;
+}
+
+bool PlayerContainer::push(const ItemStack& is, SlotId* sid, SlotId prioritySlot) {
+  if (m_storage->push(is, sid, prioritySlot < 0 ? -1 : getSlot(prioritySlot)->getRelativeSlotId())) {
+    *sid = getSlot(getItemSlotByItemStack(m_storage->getByOffset(*sid)))->getAbsoluteSlotId();
+    return true;
+  }
+
+  return false;
 }

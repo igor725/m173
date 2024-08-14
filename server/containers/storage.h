@@ -20,5 +20,5 @@ class IStorage {
 
   virtual int16_t getSize() const { return 0; }
 
-  virtual bool push(const ItemStack& is, SlotId* sid = nullptr) { return false; };
+  virtual bool push(const ItemStack& is, SlotId* sid = nullptr, SlotId prioritySlot = -1) { return false; };
 };

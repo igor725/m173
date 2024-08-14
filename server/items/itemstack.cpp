@@ -2,6 +2,10 @@
 
 #include "item.h"
 
+bool ItemStack::validate() const {
+  return Item::exists(itemId);
+}
+
 bool ItemStack::decrementBy(int16_t sz) {
   if (sz < 1 || stackSize < sz || itemId < 0) return false;
   if ((stackSize -= sz) == 0) *this = ItemStack();

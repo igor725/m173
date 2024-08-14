@@ -69,12 +69,13 @@ class Give: public Command {
     }
 
     SlotId slot;
-    if (caller->getStorage().push(ItemStack(iid, count, damage), &slot)) {
-      caller->resendItem(caller->getStorage().getByOffset(slot));
+    if (caller->getContainer().push(ItemStack(iid, count, damage), &slot, caller->getHeldItemSlotId())) {
+      caller->resendItem(caller->getContainer().getItem(slot));
       out = std::format(L"Given {} of {}:{}", count, iid, damage);
     } else {
-      out = std::format(L"\u00a7cFailed, no free space");
+      out = L"\u00a7cFailed, invalid item id or no free space in your inventory";
     }
+
     return true;
   }
 };

@@ -30,6 +30,8 @@ class ISlot {
 
   SlotId getAbsoluteSlotId() const { return m_slotIndex; }
 
+  SlotId getRelativeSlotId() const { return m_storageSlotIndex; }
+
   Type getSlotType() const { return m_slotType; }
 
   void setAbsoluteSlotId(SlotId asid) { m_slotIndex = asid; }

@@ -34,7 +34,7 @@ class PlayerStorage: public IStorage {
 
   SlotId findItemSlotId(ItemId iid) const final;
 
-  bool push(const ItemStack& is, SlotId* sid = nullptr) final;
+  bool push(const ItemStack& is, SlotId* sid = nullptr, SlotId prioritySlot = -1) final;
 
   private:
   std::array<ItemStack, 40> m_items;

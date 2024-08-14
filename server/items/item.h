@@ -21,6 +21,7 @@ class Item {
 
   public:
   static Item* getById(ItemId id);
+  static bool  exists(ItemId iid);
 
   Item(ItemId iid);
 

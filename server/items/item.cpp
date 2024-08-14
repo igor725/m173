@@ -22,9 +22,13 @@ Item::Item(ItemId iid): shiftedIndex(256 + iid) {
   g_itemsList[shiftedIndex] = this;
 }
 
+bool Item::exists(ItemId iid) {
+  return iid > 0 && iid < g_itemsList.size() && g_itemsList[iid] != nullptr;
+}
+
 Item* Item::getById(ItemId iid) {
   if (iid == -1) return g_itemsList[0];
-  if (iid < 0 || iid > 512 || g_itemsList[iid] == nullptr) throw InvalidItemIdException(iid);
+  if (iid < 0 || iid > g_itemsList.size() || g_itemsList[iid] == nullptr) throw InvalidItemIdException(iid);
   return g_itemsList[iid];
 }
 

@@ -398,7 +398,9 @@ class Player: public IPlayer {
     sendToTrackedPlayers(wdata_eq, false);
   }
 
-  ItemStack& getHeldItem() final { return m_storage.getByOffset(m_storage.getHotbarOffset() + m_heldSlot); }
+  ItemStack& getHeldItem() final { return m_container.getHotbarItem(m_heldSlot); }
+
+  SlotId getHeldItemSlotId() final { return m_container.getItemSlotByItemStack(getHeldItem()); }
 
   bool setHeldSlot(SlotId slot) final {
     if (slot < 0 || slot > 8) return false;
@@ -407,6 +409,8 @@ class Player: public IPlayer {
     updateEquipedItem();
     return true;
   }
+
+  bool isLocal() const final { return m_selfSock.isLocal(); }
 
   void setStance(double_t stance) final { m_stance = stance; }
 

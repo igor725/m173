@@ -10,6 +10,10 @@ IContainer::IContainer(uint32_t slotsNum) {
 
 IContainer::~IContainer() {}
 
+ISlot* IContainer::getSlot(SlotId sid) const {
+  return m_slots.at(sid).get();
+}
+
 void IContainer::addSlot(std::unique_ptr<ISlot>&& slot) {
   slot->setAbsoluteSlotId(m_slots.size());
   m_slots.emplace_back(std::move(slot));

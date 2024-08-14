@@ -12,7 +12,11 @@ class PlayerContainer: public IContainer {
 
   SlotId getItemSlotById(ItemId iid) final;
 
+  SlotId getItemSlotByItemStack(const ItemStack& is) final;
+
   ItemStack& getHotbarItem(uint8_t iid) final;
+
+  bool push(const ItemStack& is, SlotId* sid, SlotId prioritySlot = -1) final;
 
   SlotId getStorageItemSlotId(const ItemStack& is);
 

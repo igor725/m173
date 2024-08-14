@@ -18,7 +18,13 @@ class IContainer {
 
   int16_t getSize() const { return m_slots.size(); }
 
+  ISlot* getSlot(SlotId sid) const;
+
   ItemStack& getItem(SlotId sid);
+
+  virtual SlotId getItemSlotByItemStack(const ItemStack& is) = 0;
+
+  virtual bool push(const ItemStack& is, SlotId* sid, SlotId prioritySlot) = 0;
 
   virtual bool onSlotClicked(SlotId sid, bool isRmb, bool shift);
 

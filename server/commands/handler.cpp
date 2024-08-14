@@ -27,6 +27,11 @@ class CommandHandler: public ICommandHandler {
   }
 
   bool execute(IPlayer* caller, std::wstring command, std::wstring& out) final {
+    if (!caller->isLocal()) {
+      out = L"Only local players can call commands at the moment!";
+      return true;
+    }
+
     if (command.at(0) == L'/') command.erase(0, 1);
     auto start_of_args = command.find_first_of(L' ');
     if (start_of_args == std::wstring::npos) start_of_args = command.size();

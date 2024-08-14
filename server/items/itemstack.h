@@ -18,6 +18,8 @@ struct ItemStack {
 
   ItemStack(const ItemStack& is, int16_t ss): stackSize(ss), itemId(is.itemId), itemDamage(is.itemDamage) {}
 
+  bool validate() const;
+
   bool decrementBy(int16_t sz);
 
   bool incrementBy(int16_t sz);

@@ -44,6 +44,7 @@ class IPlayer: public EntityBase {
   /* Inventory manipulations */
 
   virtual ItemStack&       getHeldItem()                                          = 0;
+  virtual SlotId           getHeldItemSlotId()                                    = 0;
   virtual bool             setHeldSlot(SlotId slot)                               = 0;
   virtual bool             updateInventory()                                      = 0;
   virtual bool             resendItem(const ItemStack& is)                        = 0;
@@ -65,15 +66,15 @@ class IPlayer: public EntityBase {
 
   virtual bool updPlayerPos() = 0;
 
-  virtual SafeSocket& getSocket() const = 0;
-
   virtual bool teleportPlayer(const DoubleVector3& pos) = 0;
 
   virtual bool teleportPlayer(const IntVector3& pos) = 0;
 
-  /* Authentication */
+  /* Network things / Authentication */
   virtual const std::wstring& getName() const                          = 0;
   virtual bool                doLoginProcess(const std::wstring& name) = 0;
+  virtual SafeSocket&         getSocket() const                        = 0;
+  virtual bool                isLocal() const                          = 0;
 };
 
 std::unique_ptr<IPlayer> createPlayer(SafeSocket& sock);
