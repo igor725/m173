@@ -13,7 +13,7 @@
 #include "packets/Player.h"
 #include "packets/Window.h"
 #include "packets/World.h"
-#include "runmanager.h"
+#include "runmanager/runmanager.h"
 #include "safesock.h"
 #include "world/world.h"
 #include "zlibpp/zlibpp.h"
@@ -363,7 +363,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
     if (ss.isClosed()) {
       ss.pushQueue();
     } else {
-      if (g_isServerRunning) {
+      if (RunManager::isRunning()) {
         ss.close();
         throw UngracefulClosingException();
       }

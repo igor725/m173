@@ -3,7 +3,7 @@
 #include "items/item.h"
 #include "network/packets/World.h"
 #include "platform/platform.h"
-#include "runmanager.h"
+#include "runmanager/runmanager.h"
 
 #include <mutex>
 #include <thread>
@@ -21,7 +21,7 @@ class World: public IWorld {
       auto curr = std::chrono::system_clock::now();
       auto prev = std::chrono::system_clock::now();
 
-      while (g_isServerRunning) {
+      while (RunManager::isRunning()) {
         prev = curr;
         curr = std::chrono::system_clock::now();
 

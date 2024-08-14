@@ -40,6 +40,7 @@ add_subdirectory(server/containers)
 add_subdirectory(server/world)
 add_subdirectory(server/zlibpp)
 add_subdirectory(server/platform)
+add_subdirectory(server/runmanager)
 
 add_executable(m173_server
 	server/entry.cpp
@@ -53,6 +54,7 @@ add_executable(m173_server
 	$<TARGET_OBJECTS:world>
 	$<TARGET_OBJECTS:zlibpp>
 	$<TARGET_OBJECTS:platform>
+	$<TARGET_OBJECTS:runmanager>
 )
 
 if(WIN32)

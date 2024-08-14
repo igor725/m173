@@ -3,20 +3,14 @@
 #include "entity/manager.h"
 #include "network/clientloop.h"
 #include "platform/platform.h"
-#include "runmanager.h"
+#include "runmanager/runmanager.h"
 #include "world/world.h"
 
 #include <sockpp/tcp_acceptor.h>
 #include <spdlog/spdlog.h>
 
-std::atomic<bool> g_isServerRunning = true;
-
 int main(int argc, char* argv[]) {
-  Platform::RegisterCtrlCHandler([]() {
-    // todo move kicking to another function to avoid this fuckery
-    std::wstring out;
-    accessCommandHandler().execute(nullptr, L"/stop", out);
-  });
+  Platform::RegisterCtrlCHandler([]() { RunManager::stop(); });
 
   // spdlog::set_level(spdlog::level::trace);
   spdlog::info("Initializing libraries...");
@@ -49,14 +43,14 @@ int main(int argc, char* argv[]) {
 
     if (!server) {
       spdlog::error("Failed to spawn server instance: {}", server.last_error_str());
-      g_isServerRunning = false;
+      RunManager::stop();
       return;
     } else {
       server.set_non_blocking(true);
       spdlog::info("Server now listening connections on *:{}", nport);
     }
 
-    while (g_isServerRunning) {
+    while (RunManager::isRunning()) {
       sockpp::inet_address addr;
 
       if (auto sock = server.accept(&addr)) {
@@ -76,7 +70,7 @@ int main(int argc, char* argv[]) {
   });
 
   spdlog::info("Starting the main program loop...");
-  while (g_isServerRunning) {
+  while (RunManager::isRunning()) {
     // todo handle server commands
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }

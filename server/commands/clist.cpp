@@ -1,7 +1,5 @@
-#include "entity/manager.h"
 #include "handler.h"
-#include "network/packets/Player.h"
-#include "runmanager.h"
+#include "runmanager/runmanager.h"
 
 #include <spdlog/spdlog.h>
 #include <sstream>
@@ -12,16 +10,7 @@ class Stop: public Command {
 
   bool execute(IPlayer*, std::vector<std::wstring_view>&, std::wstring& out) final {
     out = L"Stopping the server...";
-
-    Packet::ToClient::PlayerKick wdata_kick(L"Server stopped");
-    accessEntityManager().IterPlayers([&wdata_kick](IPlayer* ply) -> bool {
-      // It's better to send one time generated packet to every player
-      // than generate it for each player separately
-      wdata_kick.sendTo(ply->getSocket());
-      return true;
-    });
-
-    g_isServerRunning = false;
+    RunManager::stop();
     return true;
   }
 };

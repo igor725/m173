@@ -1,7 +1,7 @@
 #include "manager.h"
 
 #include "platform/platform.h"
-#include "runmanager.h"
+#include "runmanager/runmanager.h"
 
 #include <mutex>
 #include <thread>
@@ -16,7 +16,7 @@ class EntityManager: public IEntityManager {
       auto curr = std::chrono::system_clock::now();
       auto prev = std::chrono::system_clock::now();
 
-      while (g_isServerRunning) {
+      while (RunManager::isRunning()) {
         prev = curr;
         curr = std::chrono::system_clock::now();
 
@@ -126,7 +126,7 @@ class EntityManager: public IEntityManager {
   }
 
   void RemovePlayerThread(uint64_t ref) final {
-    if (!g_isServerRunning) return;
+    if (!RunManager::isRunning()) return;
     std::unique_lock lock(m_ptLock);
 
     for (auto it = m_playerThreads.begin(); it != m_playerThreads.end(); ++it) {
