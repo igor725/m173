@@ -43,12 +43,14 @@ class IPlayer: public EntityBase {
 
   /* Inventory manipulations */
 
-  virtual ItemStack&       getHeldItem()                   = 0;
-  virtual bool             setHeldSlot(SlotId slot)        = 0;
-  virtual bool             updateInventory()               = 0;
-  virtual bool             resendItem(const ItemStack& is) = 0;
-  virtual PlayerStorage&   getStorage()                    = 0;
-  virtual PlayerContainer& getContainer()                  = 0;
+  virtual ItemStack&       getHeldItem()                                          = 0;
+  virtual bool             setHeldSlot(SlotId slot)                               = 0;
+  virtual bool             updateInventory()                                      = 0;
+  virtual bool             resendItem(const ItemStack& is)                        = 0;
+  virtual PlayerStorage&   getStorage()                                           = 0;
+  virtual PlayerContainer& getContainer()                                         = 0;
+  virtual bool             setAttachedEntity(EntityBase* ent, bool reset = false) = 0;
+  virtual EntityBase*      getAttachedEntity() const                              = 0;
 
   /* Movement control */
   virtual bool addVelocity(const DoubleVector3& motion) = 0;

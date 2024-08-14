@@ -38,14 +38,19 @@ const VsDamageInfo& ItemStack::getDamageVsEntity(EntityBase* ent) const {
   return Item::getById(itemId)->getDamageVsEntity(ent);
 }
 
-void ItemStack::damageItem(int16_t damage, EntityBase* damager) {
+bool ItemStack::damageItem(int16_t damage, EntityBase* damager) {
   if (isDamageable()) {
     itemDamage += damage;
     if (itemDamage > getMaxDamage()) {
       --stackSize;
       if (stackSize < 0) *this = ItemStack();
+      return false;
     }
+
+    return true;
   }
+
+  return false;
 }
 
 ItemStack ItemStack::splitStack(int16_t count) {

@@ -3,8 +3,10 @@
 #include "bow.h"
 #include "entity/manager.h"
 #include "entity/objects/arrow.h"
+#include "entity/objects/fishfloat.h"
 #include "entity/objects/snowball.h"
 #include "entity/player/player.h"
+#include "fishingRod.h"
 #include "items/itemDB.h"
 #include "lighter.h"
 #include "snowBall.h"
@@ -62,6 +64,28 @@ bool ItemBow::onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVect
       auto apos = ply->getPosition();
       apos.y += ply->getEyeHeight();
       accessEntityManager().AddEntity(createArrow(apos, ply->getEntityId(), ply->getForwardVector()));
+    }
+  }
+
+  return true;
+}
+
+#pragma endregion()
+
+#pragma region("fishingRod.h")
+
+bool ItemFishingRod::onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) {
+  auto ply = dynamic_cast<IPlayer*>(clicker);
+
+  if (auto attEnt = ply->getAttachedEntity()) {
+    if (auto fishfloat = dynamic_cast<IFishFloat*>(attEnt)) {
+      fishfloat->lure();
+    }
+  } else {
+    if (is.damageItem(1, clicker)) {
+      auto apos = ply->getPosition();
+      apos.y += ply->getEyeHeight();
+      accessEntityManager().AddEntity(createFishFloat(apos, ply->getEntityId(), ply->getForwardVector()));
     }
   }
 

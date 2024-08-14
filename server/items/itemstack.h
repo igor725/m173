@@ -43,7 +43,7 @@ struct ItemStack {
 
   bool useItemOnBlock(EntityBase* user, const IntVector3& pos, int8_t direction);
 
-  void damageItem(int16_t damage, EntityBase* damager);
+  bool damageItem(int16_t damage, EntityBase* damager);
 
   ItemStack splitStack(int16_t count);
 

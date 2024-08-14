@@ -416,6 +416,21 @@ class Player: public IPlayer {
 
   const std::wstring& getName() const final { return m_name; }
 
+  EntityBase* getAttachedEntity() const final { return m_attachedEntity; }
+
+  bool setAttachedEntity(EntityBase* ent, bool reset) final {
+    if (!reset && m_attachedEntity == nullptr) {
+      // todo some callback for attached entity?
+      m_attachedEntity = ent;
+      return true;
+    } else if (reset && m_attachedEntity == ent) {
+      m_attachedEntity = nullptr;
+      return true;
+    }
+
+    return m_attachedEntity == ent;
+  }
+
   private:
   bool isChunkAlreadyLoaded(const IntVector2& pos) {
     std::unique_lock lock(m_lock);
@@ -432,9 +447,10 @@ class Player: public IPlayer {
   bool                    m_bLoggedIn = false;
   SlotId                  m_heldSlot  = 0;
   SafeSocket&             m_selfSock;
-  int64_t                 m_nextHit       = 0;
-  double_t                m_stance        = 0.0;
-  double_t                m_trackDistance = 0.0;
+  int64_t                 m_nextHit        = 0;
+  double_t                m_stance         = 0.0;
+  double_t                m_trackDistance  = 0.0;
+  EntityBase*             m_attachedEntity = nullptr;
   std::wstring            m_name;
   std::vector<IntVector2> m_loadedChunks;
   std::vector<EntityId>   m_trackedEntities;
