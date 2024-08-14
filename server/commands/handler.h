@@ -21,7 +21,9 @@ ICommandHandler& accessCommandHandler();
 
 class Command {
   public:
-  Command(const wchar_t* name, const wchar_t* help): m_commandName(name), m_helpMessage(help) { accessCommandHandler().registerCommand(this); }
+  Command(const wchar_t* name, const wchar_t* help, bool playerOnly = false): m_commandName(name), m_helpMessage(help), m_playerOnly(playerOnly) {
+    accessCommandHandler().registerCommand(this);
+  }
 
   ~Command() { accessCommandHandler().unregisterCommand(this); }
 
@@ -31,9 +33,12 @@ class Command {
 
   const std::wstring& getHelp() const { return m_helpMessage; }
 
+  bool isPlayerOnly() const { return m_playerOnly; }
+
   inline bool isNamesEqual(Command* cmd) const { return cmd == this || cmd->getName() == getName(); }
 
   private:
   const std::wstring m_commandName;
   const std::wstring m_helpMessage;
+  const bool         m_playerOnly;
 };

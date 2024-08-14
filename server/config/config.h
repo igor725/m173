@@ -1,12 +1,9 @@
 #pragma once
 
 #include <cstdint>
-#include <exception>
-#include <format>
 #include <map>
 #include <memory>
 #include <string>
-#include <vector>
 
 enum class ConfigType : uint32_t { BOOL, STRING, INT, UINT };
 
@@ -18,29 +15,6 @@ typedef uint8_t ConfigFlags; // This type should be increased if flags count > 8
 
 constexpr ConfigFlags CONFIG_ITEM_FLAG_CHANGED = 1 << 0;
 constexpr ConfigFlags CONFIG_ITEM_FLAG_LOADED  = 1 << 1;
-
-// Config exceptions
-class ConfigUnknownEntryException: public std::exception {
-  public:
-  ConfigUnknownEntryException(std::string_view name) { m_what = std::format("Unknown config key: {}", name); }
-
-  const char* what() const noexcept override { return m_what.c_str(); }
-
-  private:
-  std::string m_what;
-};
-
-class ConfigInvalidTypeException: public std::exception {
-  public:
-  ConfigInvalidTypeException(ConfigType ex, ConfigType rc) {
-    m_what = std::format("Invalid config entry type (ex: {}, rc: {})", static_cast<uint32_t>(ex), static_cast<uint32_t>(rc));
-  }
-
-  const char* what() const noexcept override { return m_what.c_str(); }
-
-  private:
-  std::string m_what;
-};
 
 class ConfigItem {
   private:
@@ -84,39 +58,15 @@ class ConfigItem {
     return (T)m_value;
   }
 
-  void typeAssert(ConfigType type) {
-    if (m_type != type) throw ConfigInvalidTypeException(m_type, type);
-  }
+  void typeAssert(ConfigType type);
 
-  void setValue(bool value) {
-    typeAssert(ConfigType::BOOL);
-    if (m_value.bvalue == value) return;
-    m_value.bvalue = value;
-    m_flags |= CONFIG_ITEM_FLAG_CHANGED;
-  }
+  void setValue(bool value);
 
-  void setValue(const char* value) {
-    typeAssert(ConfigType::STRING);
-    auto src = std::string_view(value);
-    if (std::string_view(m_value.str).compare(src) == 0) return;
-    auto end         = std::string_view(value).copy(m_value.str, sizeof(m_value.str));
-    m_value.str[end] = '\0';
-    m_flags |= CONFIG_ITEM_FLAG_CHANGED;
-  }
+  void setValue(const char* value);
 
-  void setValue(uint32_t value) {
-    typeAssert(ConfigType::UINT);
-    if (m_value.u32 == value) return;
-    m_value.u32 = value;
-    m_flags |= CONFIG_ITEM_FLAG_CHANGED;
-  }
+  void setValue(uint32_t value);
 
-  void setValue(int32_t value) {
-    typeAssert(ConfigType::INT);
-    if (m_value.i32 == value) return;
-    m_value.i32 = value;
-    m_flags |= CONFIG_ITEM_FLAG_CHANGED;
-  }
+  void setValue(int32_t value);
 
   void markAsLoaded() { m_flags |= CONFIG_ITEM_FLAG_LOADED; }
 

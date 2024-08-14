@@ -2,6 +2,8 @@
 
 #include "items/item.h"
 #include "network/packets/World.h"
+#include "platform/platform.h"
+#include "runmanager.h"
 
 #include <mutex>
 #include <thread>
@@ -11,13 +13,15 @@
 class World: public IWorld {
   public:
   World() {
-    std::thread worldtick([]() {
+    m_tickThread = std::thread([]() {
+      Platform::SetCurrentThreadName("World ticker");
+
       auto& world = accessWorld();
 
       auto curr = std::chrono::system_clock::now();
       auto prev = std::chrono::system_clock::now();
 
-      while (true) {
+      while (g_isServerRunning) {
         prev = curr;
         curr = std::chrono::system_clock::now();
 
@@ -25,7 +29,6 @@ class World: public IWorld {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
       }
     });
-    worldtick.detach();
 
     m_spawnPoint = {5, 16, 5};
   }
@@ -81,9 +84,7 @@ class World: public IWorld {
       return true;
     }
 
-    auto bid = getBlock(pos, &meta);
-
-    Packet::ToClient::BlockChange wdata(pos, bid, meta);
+    Packet::ToClient::BlockChange wdata(pos, getBlock(pos, &meta), meta);
     wdata.sendTo(placer->getSocket());
     placer->resendItem(placer->getHeldItem());
     return false;
@@ -111,9 +112,12 @@ class World: public IWorld {
 
   const IntVector3& getSpawnPoint() const final { return m_spawnPoint; }
 
+  void finish() final { m_tickThread.join(); }
+
   private:
   std::unordered_map<int64_t, Chunk> m_ldChunks;
   std::recursive_mutex               m_accChunks;
+  std::thread                        m_tickThread;
 
   IntVector3 m_spawnPoint;
   int64_t    m_seed   = 0;

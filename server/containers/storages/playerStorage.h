@@ -5,7 +5,7 @@
 
 #include <algorithm>
 #include <array>
-#include <cstddef>
+#include <cstdint>
 
 class PlayerStorage: public IStorage {
   public:

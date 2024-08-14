@@ -109,9 +109,6 @@ MapChunk::MapChunk(const IntVector3& pos, const ByteVector3& size, Chunk* chunk)
 
 #pragma region("Handshake.h")
 
-#include <exception>
-#include <format>
-
 class InvalidProtoException: public std::exception {
   public:
   InvalidProtoException(int32_t cver, int32_t ever) { m_what = std::format("Got unsupported protocol version (ex: {}, got: {})", ever, cver); }

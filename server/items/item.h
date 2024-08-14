@@ -6,7 +6,6 @@
 
 #include <array>
 #include <cstdint>
-#include <spdlog/spdlog.h>
 
 class Item {
   private:

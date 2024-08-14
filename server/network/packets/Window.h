@@ -5,8 +5,6 @@
 #include "containers/list/playerContainer.h"
 #include "helper.h"
 
-#include <cstddef>
-
 namespace Packet {
 #ifdef M173_ACTIVATE_READER_API
 namespace FromClient {

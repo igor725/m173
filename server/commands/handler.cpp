@@ -27,7 +27,7 @@ class CommandHandler: public ICommandHandler {
   }
 
   bool execute(IPlayer* caller, std::wstring command, std::wstring& out) final {
-    if (!caller->isLocal()) {
+    if (caller != nullptr && !caller->isLocal()) {
       out = L"Only local players can call commands at the moment!";
       return true;
     }
@@ -40,6 +40,10 @@ class CommandHandler: public ICommandHandler {
 
     for (auto it = m_commands.begin(); it != m_commands.end(); ++it) {
       if ((*it)->getName() == cmdname) {
+        if ((*it)->isPlayerOnly() && caller == nullptr) {
+          out = L"\u00a7cThis command cannot be executed by the console!";
+          return false;
+        }
         std::vector<std::wstring_view> args;
 
         size_t start = 0, end = start_of_args;
@@ -53,7 +57,7 @@ class CommandHandler: public ICommandHandler {
       }
     }
 
-    out = std::format(L"Unknown command: \"{}\"!", cmdname);
+    out = std::format(L"\u00a7cUnknown command\u00a7f: \"{}\"!", cmdname);
     return true;
   }
 

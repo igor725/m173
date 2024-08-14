@@ -83,7 +83,7 @@ bool IContainer::onSlotClicked(SlotId sid, bool isRmb, bool isShift) {
           if (maxPossibleTransfer == 0) return false;
           clickedSlotItem = m_carriedItem.splitStack(maxPossibleTransfer);
         }
-        // Special case, we should not to do anything resetting if non-applicable item passed to special slot
+        // Special case, we should not to do any resetting if non-applicable item passed to special slot
         return true;
       } else if (m_carriedItem.isEmpty()) {
         auto maxPossibleTransfer = isRmb ? (clickedSlotItem.stackSize + 1) / 2 : clickedSlotItem.stackSize;
@@ -104,7 +104,7 @@ bool IContainer::onSlotClicked(SlotId sid, bool isRmb, bool isShift) {
           }
         }
       } else {
-        // Another special case, no resetting needed there
+        // Another special case, no resetting needed there too
         return true;
       }
     }

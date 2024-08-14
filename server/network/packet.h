@@ -1,12 +1,14 @@
 #pragma once
 
 #include "helper.h"
+#include "items/itemstack.h"
 
 #include <cstdint>
 #include <exception>
 #include <string>
 #include <vector>
 
+namespace {
 template <typename T>
 T bswap(T val) {
   T     retVal;
@@ -19,6 +21,7 @@ T bswap(T val) {
 
   return retVal;
 }
+} // namespace
 
 #ifdef M173_ACTIVATE_READER_API
 #pragma region(Reader)
@@ -104,8 +107,12 @@ private:
 
 #pragma region(Writer)
 
+class MetaDataStream;
+
 class PacketWriter {
   public:
+  friend class MetaDataStream;
+
   PacketWriter(PacketId id);
 
   PacketWriter(PacketId id, int32_t psize);
@@ -181,6 +188,59 @@ class PacketWriter {
 
   protected:
   std::vector<char> m_data;
+};
+
+class MetaDataStream {
+  public:
+  MetaDataStream(PacketWriter& pw): m_writer(pw) {}
+
+  ~MetaDataStream() {
+    // Finishing the stream with the terminator byte
+    m_writer.writeInteger<int8_t>(0x7f);
+  }
+
+  void putByte(int valueid, int8_t value) {
+
+    putHeader(0, valueid);
+    m_writer.writeInteger<int8_t>(value);
+  }
+
+  void putShort(int valueid, int16_t value) {
+    putHeader(1, valueid);
+    m_writer.writeInteger<int16_t>(value);
+  }
+
+  void putInt(int valueid, int32_t value) {
+    putHeader(2, valueid);
+    m_writer.writeInteger<int32_t>(value);
+  }
+
+  void putFloat(int valueid, float_t value) {
+    putHeader(3, valueid);
+    m_writer.writeFloating<float_t>(value);
+  }
+
+  void putString(int valueid, const std::wstring& str) {
+    putHeader(4, valueid);
+    m_writer.writeString(str);
+  }
+
+  void putItem(int valueid, const ItemStack& is) {
+    putHeader(5, valueid);
+    m_writer.writeInteger<ItemId>(is.itemId);
+    m_writer.writeInteger<int16_t>(is.stackSize);
+    m_writer.writeInteger<int16_t>(is.itemDamage);
+  }
+
+  void putVector(int valueid, const IntVector3& vec) {
+    putHeader(5, valueid);
+    m_writer.writeIVector(vec);
+  }
+
+  private:
+  void putHeader(int8_t type, int8_t valueid) { m_writer.writeInteger<int8_t>((type << 5 | (valueid & 31)) & 255); }
+
+  PacketWriter& m_writer;
 };
 
 #pragma endregion()

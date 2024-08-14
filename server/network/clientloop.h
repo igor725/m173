@@ -1,7 +1,5 @@
 #pragma once
 
-#include <exception>
-#include <format>
 #include <sockpp/tcp_socket.h>
 
 class ClientLoop {
@@ -9,5 +7,5 @@ class ClientLoop {
   ClientLoop(sockpp::tcp_socket& sock, sockpp::inet_address& addr);
 
   private:
-  static void ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr);
+  static void ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, uint64_t ref);
 };

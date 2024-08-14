@@ -8,7 +8,7 @@
 
 class InvalidBlockIdException: public std::exception {
   public:
-  InvalidBlockIdException(BlockId bid) { m_what = std::format("Unknown item id {}", bid); }
+  InvalidBlockIdException(BlockId bid) { m_what = std::format("Unknown block id {}", bid); }
 
   const char* what() const noexcept override { return m_what.c_str(); }
 

@@ -1,23 +1,34 @@
+#include "entity/manager.h"
 #include "handler.h"
+#include "network/packets/Player.h"
+#include "runmanager.h"
 
 #include <spdlog/spdlog.h>
 #include <sstream>
 
-class Test: public Command {
+class Stop: public Command {
   public:
-  Test(): Command(L"test", L"Test message") {}
+  Stop(): Command(L"stop", L"Stops the server") {}
 
-  bool execute(IPlayer* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
-    (void)caller;
-    (void)args;
-    out = L"Yay! Test command!!!";
+  bool execute(IPlayer*, std::vector<std::wstring_view>&, std::wstring& out) final {
+    out = L"Stopping the server...";
+
+    Packet::ToClient::PlayerKick wdata_kick(L"Server stopped");
+    accessEntityManager().IterPlayers([&wdata_kick](IPlayer* ply) -> bool {
+      // It's better to send one time generated packet to every player
+      // than generate it for each player separately
+      wdata_kick.sendTo(ply->getSocket());
+      return true;
+    });
+
+    g_isServerRunning = false;
     return true;
   }
 };
 
 class Killme: public Command {
   public:
-  Killme(): Command(L"killme", L"Kills you") {}
+  Killme(): Command(L"killme", L"Kills you", true) {}
 
   bool execute(IPlayer* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
     caller->setHealth(0);
@@ -27,7 +38,7 @@ class Killme: public Command {
 
 class Hurtme: public Command {
   public:
-  Hurtme(): Command(L"hurtme", L"Hurts you") {}
+  Hurtme(): Command(L"hurtme", L"Hurts you", true) {}
 
   bool execute(IPlayer* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
     std::wstringstream ss;
@@ -42,7 +53,7 @@ class Hurtme: public Command {
 
 class Give: public Command {
   public:
-  Give(): Command(L"give", L"Give some item") {}
+  Give(): Command(L"give", L"Give some item", true) {}
 
   bool execute(IPlayer* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
     if (args.size() == 0) {
@@ -83,7 +94,7 @@ class Give: public Command {
   }
 };
 
+static Stop   stop_reg;
 static Killme killme_reg;
 static Hurtme hurtme_reg;
-static Test   test_reg;
 static Give   give_reg;

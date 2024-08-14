@@ -13,16 +13,15 @@
 #include "packets/Player.h"
 #include "packets/Window.h"
 #include "packets/World.h"
+#include "runmanager.h"
 #include "safesock.h"
 #include "world/world.h"
 #include "zlibpp/zlibpp.h"
 
 #include <chrono>
 #include <format>
-#include <fstream>
 #include <spdlog/spdlog.h>
 #include <thread>
-#include <zlib.h>
 
 class UnknownPacketException: public std::exception {
   public:
@@ -86,11 +85,13 @@ class GenericKickException: public std::exception {
 };
 
 ClientLoop::ClientLoop(sockpp::tcp_socket& sock, sockpp::inet_address& addr) {
-  std::thread reader(ThreadLoop, std::move(sock), std::move(addr));
-  reader.detach();
+  static uint64_t playerRef = 0;
+
+  std::thread reader(ThreadLoop, std::move(sock), std::move(addr), ++playerRef);
+  accessEntityManager().AddPlayerThread(std::move(reader), playerRef);
 }
 
-void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) {
+void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, uint64_t ref) {
   SafeSocket ss(std::move(sock), std::move(addr));
 
   IPlayer* linkedEntity = nullptr;
@@ -223,16 +224,8 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
 
           if (auto prevBlock = accessWorld().getBlock(blockPos)) {
             if (data.isDiggingFinished() || Block::getById(prevBlock)->getHardness() == 0.0f) { // todo dig server event
-              if (accessWorld().setBlock(blockPos, 0, 0)) {
-                auto& is = linkedEntity->getHeldItem();
-                is.onDestroyBlock(blockPos, prevBlock, linkedEntity);
-                Packet::ToClient::BlockChange wdata(blockPos, 0, 0);
-                linkedEntity->sendToTrackedPlayers(wdata, true);
-              } else {
-                auto bid = accessWorld().getBlock(blockPos);
-
-                Packet::ToClient::BlockChange wdata(blockPos, bid, 0);
-                wdata.sendTo(linkedEntity->getSocket());
+              if (accessWorld().setBlockWithNotify(blockPos, 0, 0, linkedEntity)) {
+                linkedEntity->getHeldItem().onDestroyBlock(blockPos, prevBlock, linkedEntity);
               }
             }
           } else if (data.isDroppingBlock()) {
@@ -359,9 +352,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
         }
 
         if (linkedEntity->isFlagsChanged()) {
-          Packet::ToClient::EntityMeta wdata_em(linkedEntity->getEntityId());
-          wdata_em.putByte(0, linkedEntity->popFlags());
-          wdata_em.finish();
+          Packet::ToClient::EntityMeta wdata_em(linkedEntity);
           linkedEntity->sendToTrackedPlayers(wdata_em);
         }
       }
@@ -369,9 +360,13 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
       ss.pushQueue();
     }
 
-    if (!ss.isClosed()) {
-      ss.close();
-      throw UngracefulClosingException();
+    if (ss.isClosed()) {
+      ss.pushQueue();
+    } else {
+      if (g_isServerRunning) {
+        ss.close();
+        throw UngracefulClosingException();
+      }
     }
   } catch (std::exception& ex) {
     std::string_view exwhat(ex.what());
@@ -389,4 +384,6 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr) 
   if (linkedEntity) {
     accessEntityManager().RemoveEntity(linkedEntity->getEntityId());
   }
+
+  accessEntityManager().RemovePlayerThread(ref);
 }

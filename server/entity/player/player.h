@@ -8,7 +8,6 @@
 #include "network/safesock.h"
 
 #include <memory>
-#include <sockpp/tcp_socket.h>
 #include <string>
 
 class IPlayer: public EntityBase {

@@ -1,10 +1,46 @@
 #include "config.h"
 
+#include "cfgexcept.h"
+
 #include <fstream>
 #include <sstream>
 
 namespace {
 constexpr std::string_view CONFIG_NAME = "system.cfg";
+}
+
+void ConfigItem::setValue(bool value) {
+  typeAssert(ConfigType::BOOL);
+  if (m_value.bvalue == value) return;
+  m_value.bvalue = value;
+  m_flags |= CONFIG_ITEM_FLAG_CHANGED;
+}
+
+void ConfigItem::setValue(const char* value) {
+  typeAssert(ConfigType::STRING);
+  auto src = std::string_view(value);
+  if (std::string_view(m_value.str).compare(src) == 0) return;
+  auto end         = std::string_view(value).copy(m_value.str, sizeof(m_value.str));
+  m_value.str[end] = '\0';
+  m_flags |= CONFIG_ITEM_FLAG_CHANGED;
+}
+
+void ConfigItem::setValue(uint32_t value) {
+  typeAssert(ConfigType::UINT);
+  if (m_value.u32 == value) return;
+  m_value.u32 = value;
+  m_flags |= CONFIG_ITEM_FLAG_CHANGED;
+}
+
+void ConfigItem::setValue(int32_t value) {
+  typeAssert(ConfigType::INT);
+  if (m_value.i32 == value) return;
+  m_value.i32 = value;
+  m_flags |= CONFIG_ITEM_FLAG_CHANGED;
+}
+
+void ConfigItem::typeAssert(ConfigType type) {
+  if (m_type != type) throw ConfigInvalidTypeException(m_type, type);
 }
 
 class Config: public IConfig {

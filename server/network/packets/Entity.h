@@ -125,48 +125,14 @@ class EntityStatus: public PacketWriter {
 
 class EntityMeta: public PacketWriter {
   public:
-  EntityMeta(EntityId eid): PacketWriter(Packet::IDs::EntityMeta, 10 /* Not the actual packet size, just a reservation */) { writeInteger(eid); }
+  EntityMeta(EntityId eid): PacketWriter(Packet::IDs::EntityMeta, 10 /* Not the actual packet size, just a reservation */) { writeInteger<EntityId>(eid); }
 
-  void putHeader(int8_t type, int8_t valueid) { writeInteger<int8_t>((type << 5 | (valueid & 31)) & 255); }
+  EntityMeta(EntityBase* ent): PacketWriter(Packet::IDs::EntityMeta, 7) {
+    writeInteger<EntityId>(ent->getEntityId());
 
-  void putByte(int valueid, int8_t value) {
-    putHeader(0, valueid);
-    writeInteger<int8_t>(value);
+    MetaDataStream mds(*this);
+    mds.putByte(0, ent->popFlags());
   }
-
-  void putShort(int valueid, int16_t value) {
-    putHeader(1, valueid);
-    writeInteger<int16_t>(value);
-  }
-
-  void putInt(int valueid, int32_t value) {
-    putHeader(2, valueid);
-    writeInteger<int32_t>(value);
-  }
-
-  void putFloat(int valueid, float_t value) {
-    putHeader(3, valueid);
-    writeFloating<float_t>(value);
-  }
-
-  void putString(int valueid, const std::wstring& str) {
-    putHeader(4, valueid);
-    writeString(str);
-  }
-
-  void putItem(int valueid, const ItemStack& is) {
-    putHeader(5, valueid);
-    writeInteger<ItemId>(is.itemId);
-    writeInteger<int16_t>(is.stackSize);
-    writeInteger<int16_t>(is.itemDamage);
-  }
-
-  void putVector(int valueid, const IntVector3& vec) {
-    putHeader(5, valueid);
-    writeIVector(vec);
-  }
-
-  void finish() { writeInteger<int8_t>(0x7f); }
 };
 
 class SpawnThunderbolt: public PacketWriter {

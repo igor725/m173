@@ -1,6 +1,9 @@
 #include "item.h"
 
 #include <exception>
+#include <format>
+#include <spdlog/spdlog.h>
+#include <string>
 
 class InvalidItemIdException: public std::exception {
   public:

@@ -28,7 +28,7 @@ link_directories(BEFORE
 find_package(spdlog "1.14.1" REQUIRED)
 find_package(sockpp "1.0.0" REQUIRED)
 
-add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN)
+add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN -DSPDLOG_USE_STD_FORMAT)
 
 add_subdirectory(server/config)
 add_subdirectory(server/commands)
@@ -39,6 +39,7 @@ add_subdirectory(server/entity)
 add_subdirectory(server/containers)
 add_subdirectory(server/world)
 add_subdirectory(server/zlibpp)
+add_subdirectory(server/platform)
 
 add_executable(m173_server
 	server/entry.cpp
@@ -51,6 +52,7 @@ add_executable(m173_server
 	$<TARGET_OBJECTS:containers>
 	$<TARGET_OBJECTS:world>
 	$<TARGET_OBJECTS:zlibpp>
+	$<TARGET_OBJECTS:platform>
 )
 
 if(WIN32)
