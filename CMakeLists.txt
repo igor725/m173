@@ -60,7 +60,7 @@ add_executable(m173_server
 if(WIN32)
   set(platform_libs ws2_32.lib $<$<CONFIG:Debug>:zlibstaticd>$<$<CONFIG:Release>:zlibstatic>.lib)
 else()
-  set(platform_libs z)
+  set(platform_libs z.a)
 endif()
 
 target_link_libraries(m173_server PRIVATE Sockpp::sockpp-static spdlog::spdlog ${platform_libs})
