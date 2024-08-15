@@ -16,7 +16,7 @@ class IPlayer: public EntityBase {
 
   virtual ~IPlayer() = default;
 
-  virtual bool sendChat(const std::wstring& message) = 0;
+  virtual bool sendChat(const std::wstring_view message) = 0;
 
   /* Entity tracking */
 
@@ -68,6 +68,8 @@ class IPlayer: public EntityBase {
   virtual bool teleportPlayer(const DoubleVector3& pos) = 0;
 
   virtual bool teleportPlayer(const IntVector3& pos) = 0;
+
+  virtual void updateGroundState(bool ground) = 0;
 
   /* Network things / Authentication */
   virtual const std::wstring& getName() const                          = 0;

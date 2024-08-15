@@ -58,6 +58,8 @@ class EntityBase {
 
   virtual float_t getEyeHeight() const { return 1.6; }
 
+  virtual void updateGroundState(bool state) {}
+
   const DoubleVector3& getForwardVector() const { return m_forward; }
 
   virtual void setPosition(const DoubleVector3& pos) {

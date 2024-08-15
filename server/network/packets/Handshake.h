@@ -22,7 +22,7 @@ class LoginRequest: private PacketReader {
 
   private:
   void testProtoVer(int32_t proto);
-  void testUserName(const std::wstring& name);
+  void testUserName(const std::wstring_view name);
 
   int32_t      m_protover;
   std::wstring m_name;
@@ -51,7 +51,7 @@ class KeepAlive: public PacketWriter {
 
 class LoginRequest: public PacketWriter {
   public:
-  LoginRequest(EntityId entId, const std::wstring& svname, int16_t seed, int8_t dimension): PacketWriter(Packet::IDs::Login, 15 + svname.size()) {
+  LoginRequest(EntityId entId, const std::wstring_view svname, int16_t seed, int8_t dimension): PacketWriter(Packet::IDs::Login, 15 + svname.size()) {
     writeInteger<EntityId>(entId);
     writeString(svname);
     writeInteger<int64_t>(seed);
@@ -61,7 +61,7 @@ class LoginRequest: public PacketWriter {
 
 class Handshake: public PacketWriter {
   public:
-  Handshake(const std::wstring& connhash): PacketWriter(Packet::IDs::Handshake, 2 + connhash.size()) { writeString(connhash); }
+  Handshake(const std::wstring_view connhash): PacketWriter(Packet::IDs::Handshake, 2 + connhash.size()) { writeString(connhash); }
 };
 } // namespace ToClient
 } // namespace Packet

@@ -6,6 +6,7 @@
 #include "runmanager/runmanager.h"
 #include "world/world.h"
 
+#include <iostream>
 #include <sockpp/tcp_acceptor.h>
 #include <spdlog/spdlog.h>
 
@@ -69,9 +70,37 @@ int main(int argc, char* argv[]) {
     }
   });
 
+  std::thread console([]() {
+    while (RunManager::isRunning()) {
+      if (!std::cin) break;
+
+      std::wstring command, out;
+      std::getline(std::wcin, command);
+      if (command.empty()) continue;
+
+      if (!accessCommandHandler().execute(nullptr, command, out)) {
+        out = std::format(L"Command execution failed: {}", out);
+      }
+
+      for (auto it = out.begin(); it != out.end();) {
+        if (*it == L'\u00a7') {
+          it = out.erase(it, it + 2);
+          continue;
+        }
+
+        ++it;
+      }
+
+      // Sadly, there's no multiplatform way to print wide chars with spdlog
+      if (!out.empty()) std::wcout << out << std::endl;
+    }
+  });
+  console.detach();
+
   spdlog::info("Starting the main program loop...");
   while (RunManager::isRunning()) {
-    // todo handle server commands
+    // Does this loop even needed for something?
+    // Probably we can just join to acceptThread...
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 

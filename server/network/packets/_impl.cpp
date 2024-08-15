@@ -166,7 +166,7 @@ void LoginRequest::testProtoVer(int32_t proto) {
   if (proto != SV_PROTO_VER) throw InvalidProtoException(proto, SV_PROTO_VER);
 }
 
-void LoginRequest::testUserName(const std::wstring& name) {
+void LoginRequest::testUserName(const std::wstring_view name) {
   const auto nameLen = name.size();
   if (nameLen > 16) throw InvalidNameException(InvalidNameException::NameTooLong, nameLen);
   // todo prohibited symbols test

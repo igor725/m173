@@ -35,8 +35,33 @@ class Player: public IPlayer {
     }
   }
 
-  bool sendChat(const std::wstring& message) final {
+  bool sendChat(const std::wstring_view message) final {
     if (message.empty()) return true; // No need to send those
+
+    if (message.find(L'\n') != std::wstring_view::npos) {
+      size_t start = 0, end = 0;
+
+      while ((start = message.find_first_not_of(L'\n', end)) != std::wstring::npos) {
+        end = message.find(L'\n', start);
+        if (end == std::wstring::npos) end = message.length();
+        if (!sendChat(std::wstring_view(message.begin() + start, message.begin() + end))) return false;
+      }
+
+      return true;
+    }
+
+    static const size_t MAX_MESSAGE_LENGTH = 119;
+    if (message.length() > MAX_MESSAGE_LENGTH) {
+      for (int32_t i = 0; i <= message.length() / MAX_MESSAGE_LENGTH; ++i) {
+        auto startpos = i * MAX_MESSAGE_LENGTH;
+        if (startpos >= message.length()) return true;
+        auto str = std::wstring_view(message.begin() + startpos, message.begin() + std::min(startpos + MAX_MESSAGE_LENGTH, message.length()));
+        if (!sendChat(str)) return false;
+      }
+
+      return true;
+    }
+
     Packet::ToClient::ChatMessage wdata_cm(message);
     return wdata_cm.sendTo(getSocket());
   }
@@ -54,6 +79,7 @@ class Player: public IPlayer {
     auto& spawn = world.getSpawnPoint();
     setSpawnPos(spawn);
     teleportPlayer(spawn);
+    m_lastGround = m_position.y;
     updateInventory();
     m_bLoggedIn = true;
     return true;
@@ -76,7 +102,7 @@ class Player: public IPlayer {
   bool respawn() final {
     using namespace Packet::ToClient;
 
-    m_health = m_maxHealth;
+    setHealth(m_maxHealth);
     m_storage.clear();
     updateInventory();
 
@@ -96,14 +122,16 @@ class Player: public IPlayer {
     using namespace Packet::ToClient;
     auto prevHealth = m_health;
 
-    PlayerHealth wdata_ph(m_health = std::min(health, m_maxHealth));
+    PlayerHealth wdata_ph(m_health = std::max(int16_t(0), std::min(health, m_maxHealth)));
     if (m_health >= prevHealth) {
       return wdata_ph.sendTo(m_selfSock);
+    } else if (prevHealth == m_health) {
+      return true;
     }
 
     EntityStatus wdata_es(getEntityId(), m_health > 0 ? EntityStatus::Hurted : EntityStatus::Dead);
 
-    if (m_health <= 0) { // Prevent client-side loot dropping from players
+    if (m_health == 0) { // Prevent client-side loot dropping from players
       EntityEquipment wdata_eq(getEntityId(), 0, {-1});
       sendToTrackedPlayers(wdata_eq, false);
     }
@@ -128,6 +156,19 @@ class Player: public IPlayer {
         static_cast<double_t>(pos.z),
     });
     return updPlayerPos();
+  }
+
+  void updateGroundState(bool ground) final {
+    if (m_isOnGround != ground) {
+      if (m_isOnGround = ground) {
+        auto fallDist = m_lastGround - m_position.y;
+        if (fallDist > 2.0) {
+          setHealth(m_health - std::max(0.0, std::ceil(fallDist - 3.0)));
+        }
+      } else {
+        m_lastGround = m_position.y;
+      }
+    }
   }
 
   void setPosition(const DoubleVector3& pos) override final {
@@ -451,9 +492,10 @@ class Player: public IPlayer {
   bool                    m_bLoggedIn = false;
   SlotId                  m_heldSlot  = 0;
   SafeSocket&             m_selfSock;
-  int64_t                 m_nextHit        = 0;
-  double_t                m_stance         = 0.0;
-  double_t                m_trackDistance  = 0.0;
+  int64_t                 m_nextHit       = 0;
+  double_t                m_stance        = 0.0;
+  double_t                m_trackDistance = 0.0;
+  double_t                m_lastGround;
   EntityBase*             m_attachedEntity = nullptr;
   std::wstring            m_name;
   std::vector<IntVector2> m_loadedChunks;

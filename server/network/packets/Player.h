@@ -56,6 +56,8 @@ class PlayerPos: private PacketReader {
     m_isOnGround = readBoolean();            // On ground
   }
 
+  bool isOnGround() const { return m_isOnGround; }
+
   const DoubleVector3& getPosition() const { return m_pos; }
 
   double_t getStance() const { return m_stance; }
@@ -86,6 +88,8 @@ class PlayerFall: private PacketReader {
   PlayerFall(SafeSocket& sock): PacketReader(sock) {
     m_isOnGround = readBoolean(); // On ground
   }
+
+  bool isOnGround() const { return m_isOnGround; }
 
   private:
   bool m_isOnGround;
@@ -259,7 +263,7 @@ class PlayerSpawn: public PacketWriter {
 
 class PlayerKick: public PacketWriter {
   public:
-  PlayerKick(const std::wstring& reason): PacketWriter(Packet::IDs::ConnectionFin) { writeString(reason); }
+  PlayerKick(const std::wstring_view reason): PacketWriter(Packet::IDs::ConnectionFin) { writeString(reason); }
 };
 } // namespace ToClient
 } // namespace Packet

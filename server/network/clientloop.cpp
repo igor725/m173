@@ -104,14 +104,14 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
 
   auto nextPing = joinTime;
 
-  bool posUpdated = false, lookUpdated = false;
-
   int32_t posUpdateNum = 0;
 
   try {
     PacketId id;
     while (ss.read(&id, sizeof(PacketId))) {
       const auto currTime = std::chrono::system_clock::now();
+
+      bool posUpdated = false, lookUpdated = false;
 
       spdlog::trace("Received packet {:02x} from {}", id, addr.to_string());
 
@@ -141,7 +141,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
           if (message.starts_with(L'/')) {
             std::wstring out;
             if (!accessCommandHandler().execute(linkedEntity, message, out)) {
-              out = L"Command execution failed!";
+              out = std::format(L"\u00a7cCommand execution failed\u00a7f: {}", out);
             }
 
             linkedEntity->sendChat(out);
@@ -198,14 +198,18 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
           Packet::FromClient::Respawn data(ss);
           linkedEntity->respawn();
           linkedEntity->teleportPlayer(accessWorld().getSpawnPoint());
+          posUpdated = lookUpdated = true;
+          posUpdateNum             = 399;
         } break;
         case Packet::IDs::PlayerFall: {
           Packet::FromClient::PlayerFall data(ss);
+          linkedEntity->updateGroundState(data.isOnGround());
         } break;
         case Packet::IDs::PlayerPos: {
           Packet::FromClient::PlayerPos data(ss);
           linkedEntity->setPosition(data.getPosition());
           linkedEntity->setStance(data.getStance());
+          linkedEntity->updateGroundState(data.isOnGround());
           posUpdated = true;
         } break;
         case Packet::IDs::PlayerLook: {
@@ -348,6 +352,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
           if (++posUpdateNum >= 400 || linkedEntity->getMoveDistance() > 4) {
             Packet::ToClient::EntitySetPos wdata_es(linkedEntity);
             linkedEntity->sendToTrackedPlayers(wdata_es);
+            posUpdateNum = 0;
           } else if (lookUpdated) {
             Packet::ToClient::EntityLookRM wdata_er(linkedEntity);
             linkedEntity->sendToTrackedPlayers(wdata_er);
