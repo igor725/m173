@@ -75,13 +75,13 @@ int main(int argc, char* argv[]) {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 
-  spdlog::info("Finishing TCP acceptations...");
+  spdlog::info("Finishing the TCP client acceptation loop...");
   acceptThread.join();
-  spdlog::info("Finishing World routines...");
+  spdlog::info("Finishing the World routines...");
   accessWorld().finish();
-  spdlog::info("Finishing EntityManager routines...");
+  spdlog::info("Finishing the EntityManager routines...");
   accessEntityManager().finish();
-  spdlog::info("No issues found, closing process now...");
+  spdlog::info("No issues found, closing the process now...");
 
   return 0;
 }

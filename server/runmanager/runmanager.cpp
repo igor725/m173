@@ -14,7 +14,7 @@ bool isRunning() {
 
 void stop() {
   if (isServerRunning) {
-    Packet::ToClient::PlayerKick wdata_kick(L"Server stopped");
+    Packet::ToClient::PlayerKick wdata_kick(L"Server stopped"); // todo move it somewhere else?
     accessEntityManager().IterPlayers([&wdata_kick](IPlayer* ply) -> bool {
       // It's better to send one time generated packet to every player
       // than generate it for each player separately
