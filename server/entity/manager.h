@@ -6,6 +6,7 @@
 
 #include <functional>
 #include <memory>
+#include <thread>
 
 class IEntityManager {
   public:
