@@ -108,7 +108,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
 
   try {
     PacketId id;
-    while (ss.read(&id, sizeof(PacketId))) {
+    while (ss.pushQueue() && ss.read(&id, sizeof(PacketId))) {
       const auto currTime = std::chrono::system_clock::now();
 
       bool posUpdated = false, lookUpdated = false;
@@ -370,8 +370,6 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
           linkedEntity->sendToTrackedPlayers(wdata_em);
         }
       }
-
-      ss.pushQueue();
     }
 
     if (ss.isClosed()) {

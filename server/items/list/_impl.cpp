@@ -16,7 +16,9 @@
 #pragma region("block.h")
 
 bool ItemBlock::onUseItemOnBlock(ItemStack& is, EntityBase* user, const IntVector3& pos, int8_t direction) {
-  auto  ply   = dynamic_cast<IPlayer*>(user);
+  auto  ply  = dynamic_cast<IPlayer*>(user);
+  auto& ppos = ply->getPosition();
+
   auto& world = accessWorld();
   auto  npos  = pos;
 
@@ -35,14 +37,16 @@ bool ItemBlock::onUseItemOnBlock(ItemStack& is, EntityBase* user, const IntVecto
 
   // Should be retrieved before being eaten by ItemStack::decrementBy()
   auto dmg = is.itemDamage;
-  if (is.decrementBy(1)) {
-    if (world.setBlockWithNotify(npos, m_blockId, getMetadata(dmg), ply)) {
-      return true;
-    } else { // Uh oh
-      is.incrementBy(1);
-    }
+  if (DoubleVector3(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5).distanceTo(ppos) < 8.0) {
+    if (is.decrementBy(1)) {
+      if (world.setBlockWithNotify(npos, m_blockId, getMetadata(dmg), ply)) {
+        return true;
+      } else { // Uh oh
+        is.incrementBy(1);
+      }
 
-    ply->updateEquipedItem();
+      ply->resendItem(ply->getHeldItem());
+    }
   }
 
   return false;

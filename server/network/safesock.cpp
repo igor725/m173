@@ -13,12 +13,12 @@ bool SafeSocket::read(void* data, size_t dsize) {
   return m_sock.read(data, dsize) == dsize;
 }
 
-void SafeSocket::pushQueue() {
+bool SafeSocket::pushQueue() {
   std::unique_lock lock(m_wlock);
 
   if (m_closed) {
     m_queue.clear();
-    return;
+    return false;
   }
 
   while (!m_closed && m_queue.size() > 0) {
@@ -28,10 +28,14 @@ void SafeSocket::pushQueue() {
     else {
       if (++m_fails < 10)
         break;
-      else
+      else {
         close();
+        return false;
+      }
     }
   }
+
+  return true;
 }
 
 bool SafeSocket::isLocal() const {

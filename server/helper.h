@@ -53,9 +53,16 @@ struct DoubleVector3 {
     return std::sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
   }
 
-  DoubleVector3 operator*(const DoubleVector3& b) const { return DoubleVector3(b.x * x, b.y * y, b.z * z); }
+  DoubleVector3 operator+(const DoubleVector3& b) const { return DoubleVector3(x + b.x, y + b.y, z + b.z); }
 
-  DoubleVector3 operator*(double_t b) const { return DoubleVector3(b * x, b * y, b * z); }
+  DoubleVector3 operator*(const DoubleVector3& b) const { return DoubleVector3(x * b.x, y * b.y, z * b.z); }
+
+  DoubleVector3 operator*(double_t b) const { return DoubleVector3(x * b, y * b, z * b); }
+
+  DoubleVector3& operator+=(const DoubleVector3& b) {
+    x += b.x, y += b.y, z += b.z;
+    return *this;
+  }
 };
 
 struct FloatAngle {

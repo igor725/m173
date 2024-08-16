@@ -17,7 +17,7 @@ class SafeSocket {
 
   bool read(void* data, size_t dszie);
 
-  void pushQueue();
+  bool pushQueue();
 
   bool isLocal() const;
 

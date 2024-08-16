@@ -35,6 +35,7 @@ add_subdirectory(server/commands)
 add_subdirectory(server/network)
 add_subdirectory(server/blocks)
 add_subdirectory(server/items)
+add_subdirectory(server/recipes)
 add_subdirectory(server/entity)
 add_subdirectory(server/containers)
 add_subdirectory(server/world)
@@ -49,6 +50,7 @@ add_executable(m173_server
 	$<TARGET_OBJECTS:network>
 	$<TARGET_OBJECTS:blocks>
 	$<TARGET_OBJECTS:items>
+	$<TARGET_OBJECTS:recipes>
 	$<TARGET_OBJECTS:entity>
 	$<TARGET_OBJECTS:containers>
 	$<TARGET_OBJECTS:world>
@@ -73,5 +75,8 @@ install(
 )
 
 if(WIN32)
-  install(FILES $<TARGET_PDB_FILE:m173_server> DESTINATION ${InstallDir} OPTIONAL)
+  install(
+    FILES $<TARGET_PDB_FILE:m173_server>
+    DESTINATION ${InstallDir} OPTIONAL
+  )
 endif()

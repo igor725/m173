@@ -68,10 +68,16 @@ class World: public IWorld {
     return &it->second;
   }
 
+  bool canBlockBePlacedHere(const IntVector3& pos, BlockId id) {
+    // todo AABB collision
+    return true;
+  }
+
   bool setBlock(const IntVector3& pos, BlockId id, int8_t meta) final {
     if (pos.y < 0 || pos.y > CHUNK_DIMS.y) return false;
     auto chunk = getChunk({pos.x >> 4, pos.z >> 4});
     if (chunk == nullptr) return false;
+    if (!canBlockBePlacedHere(pos, id)) return false;
     chunk->m_blocks[chunk->getWorldIndex(pos)] = id;
     chunk->m_meta.setNibble(chunk->getLocalIndex(chunk->toLocalChunkCoords(pos)), meta);
     return true;
@@ -84,9 +90,10 @@ class World: public IWorld {
       return true;
     }
 
-    Packet::ToClient::BlockChange wdata(pos, getBlock(pos, &meta), meta);
+    BlockId block = getBlock(pos, &meta);
+
+    Packet::ToClient::BlockChange wdata(pos, block, meta);
     wdata.sendTo(placer->getSocket());
-    placer->resendItem(placer->getHeldItem());
     return false;
   }
 
