@@ -28,35 +28,28 @@ link_directories(BEFORE
 find_package(spdlog "1.14.1" REQUIRED)
 find_package(sockpp "1.0.0" REQUIRED)
 
-add_definitions(-DNOMINMAX -DWIN32_LEAN_AND_MEAN -DSPDLOG_USE_STD_FORMAT)
+if(WIN32)
+  set(platform_defines "-DNOMINMAX -DWIN32_LEAN_AND_MEAN")
+endif()
 
-add_subdirectory(server/config)
-add_subdirectory(server/commands)
-add_subdirectory(server/network)
-add_subdirectory(server/blocks)
-add_subdirectory(server/items)
-add_subdirectory(server/recipes)
-add_subdirectory(server/entity)
-add_subdirectory(server/containers)
-add_subdirectory(server/world)
-add_subdirectory(server/zlibpp)
-add_subdirectory(server/platform)
-add_subdirectory(server/runmanager)
+add_definitions(${platform_defines} -DSPDLOG_USE_STD_FORMAT)
+
+add_subdirectory(server)
 
 add_executable(m173_server
-	server/entry.cpp
-	$<TARGET_OBJECTS:config>
-	$<TARGET_OBJECTS:commands>
-	$<TARGET_OBJECTS:network>
-	$<TARGET_OBJECTS:blocks>
-	$<TARGET_OBJECTS:items>
-	$<TARGET_OBJECTS:recipes>
-	$<TARGET_OBJECTS:entity>
-	$<TARGET_OBJECTS:containers>
-	$<TARGET_OBJECTS:world>
-	$<TARGET_OBJECTS:zlibpp>
-	$<TARGET_OBJECTS:platform>
-	$<TARGET_OBJECTS:runmanager>
+  $<TARGET_OBJECTS:entry>
+  $<TARGET_OBJECTS:config>
+  $<TARGET_OBJECTS:commands>
+  $<TARGET_OBJECTS:network>
+  $<TARGET_OBJECTS:blocks>
+  $<TARGET_OBJECTS:items>
+  $<TARGET_OBJECTS:recipes>
+  $<TARGET_OBJECTS:entity>
+  $<TARGET_OBJECTS:containers>
+  $<TARGET_OBJECTS:world>
+  $<TARGET_OBJECTS:zlibpp>
+  $<TARGET_OBJECTS:platform>
+  $<TARGET_OBJECTS:runmanager>
 )
 
 if(WIN32)

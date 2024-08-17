@@ -11,7 +11,7 @@ extern BasicBlock   stone;
 extern BasicBlock   grassBlock;
 extern BasicBlock   dirt;
 extern BasicBlock   cobblestone;
-extern BasicBlock   wood;
+extern BasicBlock   planks;
 extern SaplingBlock sapling;
 extern BasicBlock   bedrock;
 extern BasicBlock   water;

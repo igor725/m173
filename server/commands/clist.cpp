@@ -40,6 +40,24 @@ class Hurtme: public Command {
   }
 };
 
+class Hat: public Command {
+  public:
+  Hat(): Command(L"hat", L"Set held item as hat", true) {}
+
+  bool execute(IPlayer* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
+    auto& heldItem = caller->getHeldItem();
+    auto& storage  = caller->getStorage();
+    if (heldItem.validate()) {
+      auto& headSlot = storage.getByOffset(storage.getArmorOffset());
+
+      headSlot = heldItem.splitStack(1);
+      caller->resendItem(heldItem);
+      caller->resendItem(headSlot);
+    }
+    return true;
+  }
+};
+
 class Give: public Command {
   public:
   Give(): Command(L"give", L"Give some item", true) {}
@@ -69,7 +87,7 @@ class Give: public Command {
     }
 
     // Container should be used there, since we operate with absolute SlotIDs (current selected hotbar item)
-    auto& cont = caller->getContainer();
+    auto& cont = caller->getInventoryContainer();
 
     SlotId slot;
     if (cont.push(ItemStack(iid, count, damage), &slot, caller->getHeldItemSlotId())) {
@@ -86,4 +104,5 @@ class Give: public Command {
 static Stop   stop_reg;
 static Killme killme_reg;
 static Hurtme hurtme_reg;
+static Hat    hat_reg;
 static Give   give_reg;

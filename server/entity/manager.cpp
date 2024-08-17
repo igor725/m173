@@ -28,7 +28,7 @@ class EntityManager: public IEntityManager {
     });
   }
 
-  EntityId AddEntity(std::unique_ptr<EntityBase>&& entity) final {
+  EntityBase* AddEntity(std::unique_ptr<EntityBase>&& entity) final {
     std::unique_lock lock(m_lock);
 
     static EntityId entcounter = 0;
@@ -46,7 +46,7 @@ class EntityManager: public IEntityManager {
 
     eptr->onSpawned();
 
-    return entcounter;
+    return eptr;
   }
 
   EntityBase* GetEntity(EntityId id) final {

@@ -3,6 +3,7 @@
 #include "entity/manager.h"
 #include "network/clientloop.h"
 #include "platform/platform.h"
+#include "recipes/crafting/recipe.h"
 #include "runmanager/runmanager.h"
 #include "world/world.h"
 
@@ -18,6 +19,7 @@ int main(int argc, char* argv[]) {
   sockpp::initialize();
   (void)accessConfig();
   (void)accessWorld();
+  spdlog::info("Loaded {} crafting recipes", CraftingRecipe::getCount());
   spdlog::info("Loading config...");
   {
     auto& lvl    = accessConfig().getItem("logging.level");

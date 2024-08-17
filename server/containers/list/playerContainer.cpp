@@ -6,9 +6,9 @@
 PlayerContainer::PlayerContainer(PlayerStorage* stor): IContainer(45), m_crafting(this), m_craftRes(), m_storage(stor) {
   addSlot(std::make_unique<BasicSlot>(&m_craftRes, 0, ISlot::Result));
 
-  for (int32_t y = 0; y < 2; ++y) {
-    for (int32_t x = 0; x < 2; ++x) {
-      addSlot(std::make_unique<BasicSlot>(&m_crafting, x + y * 2, ISlot::CraftRecipe));
+  for (int32_t y = 0; y < getRecipeHeight(); ++y) {
+    for (int32_t x = 0; x < getRecipeWidth(); ++x) {
+      addSlot(std::make_unique<BasicSlot>(&m_crafting, x + y * getRecipeWidth(), ISlot::CraftRecipe));
     }
   }
 

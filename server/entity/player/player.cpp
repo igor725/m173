@@ -87,7 +87,15 @@ class Player: public IPlayer {
 
   PlayerStorage& getStorage() final { return m_storage; }
 
-  PlayerContainer& getContainer() final { return m_container; }
+  PlayerContainer& getInventoryContainer() final { return m_container; }
+
+  IContainer* getContainerByWindowId(WinId id) {
+    switch (id) {
+      case 0: return &getInventoryContainer();
+
+      default: return nullptr;
+    }
+  }
 
   bool resendItem(const ItemStack& is) final {
     Packet::ToClient::SetSlotWindow wdata_ss(0, m_container.getStorageItemSlotId(is), is);

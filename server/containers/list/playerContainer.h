@@ -10,6 +10,10 @@ class PlayerContainer: public IContainer {
   PlayerContainer(PlayerStorage* inv);
   ~PlayerContainer();
 
+  uint8_t getRecipeWidth() final { return 2; }
+
+  uint8_t getRecipeHeight() final { return 2; }
+
   SlotId getItemSlotById(ItemId iid) final;
 
   SlotId getItemSlotByItemStack(const ItemStack& is) final;

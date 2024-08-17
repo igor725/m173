@@ -1,8 +1,17 @@
 #include "container.h"
 
 #include "items/item.h"
+#include "recipes/crafting/recipe.h"
 
+#include <exception>
 #include <spdlog/spdlog.h>
+
+class CraftingException: public std::exception {
+  public:
+  CraftingException() {}
+
+  const char* what() const noexcept override { return "This thing should never be thrown"; }
+};
 
 IContainer::IContainer(uint32_t slotsNum) {
   m_slots.reserve(slotsNum);
@@ -51,8 +60,9 @@ bool IContainer::onWindowClosed() {
   return shouldUpdateInv;
 }
 
-bool IContainer::onSlotClicked(SlotId sid, bool isRmb, bool isShift) {
-  bool putCarriedItemBack = true;
+bool IContainer::onSlotClicked(SlotId sid, bool isRmb, bool isShift, ItemStack** updatedItem) {
+  bool transactFail = true;
+  *updatedItem      = nullptr;
 
   if (sid == SLOT_OFFSCREEN_CLICK) {
     // todo handle item dropping
@@ -61,6 +71,7 @@ bool IContainer::onSlotClicked(SlotId sid, bool isRmb, bool isShift) {
     auto& clickedSlotItem = clickedSlot->getHeldItem();
 
     if (isShift) {
+      // todo actual implementation of searching free slot
       auto oppositeType = clickedSlot->getSlotType() == ISlot::Hotbar ? ISlot::Inventory : ISlot::Hotbar;
       for (auto it = m_slots.begin(); it != m_slots.end(); ++it) {
         if (it->get()->getSlotType() == oppositeType) {
@@ -70,9 +81,11 @@ bool IContainer::onSlotClicked(SlotId sid, bool isRmb, bool isShift) {
             if (itSlotItem.stackSize > 0) maxPossibleTransfer -= itSlotItem.stackSize;
             if (maxPossibleTransfer <= 0) continue;
             if (clickedSlotItem.moveTo(itSlotItem, std::min(maxPossibleTransfer, clickedSlotItem.stackSize)) && clickedSlotItem.stackSize > 0) {
-              return onSlotClicked(sid, isRmb, isShift);
+              return onSlotClicked(sid, isRmb, isShift, updatedItem);
             }
-            return clickedSlotItem.stackSize == 0;
+
+            // Should be always false
+            transactFail = (clickedSlotItem.stackSize > 0);
           }
         }
       }
@@ -80,40 +93,100 @@ bool IContainer::onSlotClicked(SlotId sid, bool isRmb, bool isShift) {
       if (clickedSlotItem.isEmpty() && !m_carriedItem.isEmpty()) {
         if (clickedSlot->isItemValid(m_carriedItem)) {
           auto maxPossibleTransfer = std::min(isRmb ? int16_t(1) : m_carriedItem.stackSize, clickedSlot->getSlotStackLimit());
-          if (maxPossibleTransfer == 0) return false;
-          clickedSlotItem = m_carriedItem.splitStack(maxPossibleTransfer);
+          if (transactFail = (maxPossibleTransfer > 0)) clickedSlotItem = m_carriedItem.splitStack(maxPossibleTransfer);
         }
         // Special case, we should not to do any resetting if non-applicable item passed to special slot
-        return true;
+        transactFail = false;
       } else if (m_carriedItem.isEmpty()) {
         auto maxPossibleTransfer = isRmb ? (clickedSlotItem.stackSize + 1) / 2 : clickedSlotItem.stackSize;
-        if (maxPossibleTransfer == 0) return false;
-        m_carriedItem     = clickedSlotItem.splitStack(maxPossibleTransfer);
-        m_carriedItemFrom = sid;
-        return true;
+        if (maxPossibleTransfer > 0) {
+          m_carriedItem     = clickedSlotItem.splitStack(maxPossibleTransfer);
+          m_carriedItemFrom = sid;
+          transactFail      = false;
+        }
       } else if (clickedSlot->isItemValid(m_carriedItem)) {
         if (clickedSlotItem.isSimilarTo(m_carriedItem)) {
           auto maxPossibleTransfer = isRmb ? int16_t(1) : m_carriedItem.stackSize;
           maxPossibleTransfer      = std::min(maxPossibleTransfer, clickedSlot->getAvailableRoom());
           m_carriedItem.moveTo(clickedSlotItem, maxPossibleTransfer);
-          return true;
+          transactFail = false;
         } else {
           if (m_carriedItem.stackSize <= clickedSlot->getSlotStackLimit()) {
             m_carriedItem.swapWith(clickedSlotItem);
-            return true;
+            transactFail = false;
           }
         }
       } else {
         // Another special case, no resetting needed there too
-        return true;
+        transactFail = false;
+      }
+    }
+
+    if (!transactFail) {
+      switch (clickedSlot->getSlotType()) {
+        case ISlot::CraftRecipe: {
+          *updatedItem = onCraftingUpdated();
+        } break;
+        case ISlot::Result: {
+          if (!m_carriedItem.isEmpty()) onCraftingDone();
+        } break;
       }
     }
   }
 
-  if (putCarriedItemBack && !m_carriedItem.isEmpty()) {
+  if (transactFail && !m_carriedItem.isEmpty()) {
     m_carriedItem.moveTo(m_slots.at(m_carriedItemFrom)->getHeldItem(), m_carriedItem.stackSize);
     spdlog::warn("Some ItemStack carry operation failed!");
   }
 
-  return false;
+  return !transactFail;
+}
+
+bool IContainer::getRecipe(ItemStack** array, ItemStack** result, uint8_t& rW, uint8_t& rH) {
+  if (array == nullptr || result == nullptr) return false;
+  rW = getRecipeWidth(), rH = getRecipeHeight();
+  auto craftContSize = (rW * rH);
+  if (craftContSize == 0 || craftContSize > 9) return false; // todo throw exception on craftContSize > 9? This should not happen like at all
+
+  uint8_t index = 0;
+
+  for (auto it = m_slots.begin(); (index < craftContSize) && (it != m_slots.end()); ++it) {
+    if (auto slot = it->get()) {
+      switch (slot->getSlotType()) {
+        case ISlot::Result: {
+          *result = &slot->getHeldItem();
+        } break;
+        case ISlot::CraftRecipe: {
+          auto cidx = index++;
+          // Filling the recipe array with crafting slots items
+          array[(cidx / rW) * rH + (cidx % rW)] = &slot->getHeldItem();
+        } break;
+      }
+    }
+  }
+
+  return index > 0 && *result != nullptr;
+}
+
+ItemStack* IContainer::onCraftingUpdated() {
+  ItemStack* resultSlot = nullptr;
+
+  if (CraftingRecipe::scan(this, &resultSlot)) {
+    // todo???
+    return resultSlot;
+  }
+
+  return nullptr;
+}
+
+void IContainer::onCraftingDone() {
+  for (auto it = m_slots.begin(); it != m_slots.end(); ++it) {
+    if (auto slot = (*it).get()) {
+      if (slot->getSlotType() == ISlot::CraftRecipe) {
+        if (!slot->getHeldItem().decrementBy(1)) throw CraftingException();
+      }
+    }
+  }
+
+  onCraftingUpdated();
 }

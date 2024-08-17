@@ -6,13 +6,13 @@ bool ItemStack::validate() const {
   return Item::exists(itemId);
 }
 
-bool ItemStack::decrementBy(int16_t sz) {
+bool ItemStack::decrementBy(uint16_t sz) {
   if (sz < 1 || stackSize < sz || itemId < 0) return false;
   if ((stackSize -= sz) == 0) *this = ItemStack();
   return stackSize >= 0;
 }
 
-bool ItemStack::incrementBy(int16_t sz) {
+bool ItemStack::incrementBy(uint16_t sz) {
   if (sz < 1 || itemId < 0 || (Item::getById(itemId)->getStackLimit() < (stackSize + sz))) return false;
   stackSize += sz;
   return true;

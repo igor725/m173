@@ -22,7 +22,7 @@ class IEntityManager {
   virtual void AddPlayerThread(std::thread&& thread, uint64_t ref) = 0;
   virtual void RemovePlayerThread(uint64_t ref)                    = 0;
 
-  virtual EntityId    AddEntity(std::unique_ptr<EntityBase>&& entity) = 0;
+  virtual EntityBase* AddEntity(std::unique_ptr<EntityBase>&& entity) = 0;
   virtual bool        RemoveEntity(EntityId id)                       = 0;
   virtual EntityBase* GetEntity(EntityId id)                          = 0;
 

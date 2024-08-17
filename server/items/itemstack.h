@@ -20,9 +20,9 @@ struct ItemStack {
 
   bool validate() const;
 
-  bool decrementBy(int16_t sz);
+  bool decrementBy(uint16_t sz);
 
-  bool incrementBy(int16_t sz);
+  bool incrementBy(uint16_t sz);
 
   bool isEmpty() const { return itemId == -1 || stackSize == 0; }
 

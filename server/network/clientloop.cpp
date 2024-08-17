@@ -97,7 +97,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
 
   SafeSocket ss(std::move(sock), std::move(addr));
 
-  IPlayer* linkedEntity = nullptr;
+  IPlayer* linkedPlayer = nullptr;
 
   const auto joinTime = std::chrono::system_clock::now();
   const auto pingFreq = std::chrono::seconds(1);
@@ -119,13 +119,11 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
         case Packet::IDs::Login: {
           Packet::FromClient::LoginRequest data(ss);
 
-          auto entId = accessEntityManager().AddEntity(createPlayer(ss));
+          linkedPlayer = dynamic_cast<IPlayer*>(accessEntityManager().AddEntity(createPlayer(ss)));
 
-          linkedEntity = dynamic_cast<IPlayer*>(accessEntityManager().GetEntity(entId));
-
-          linkedEntity->doLoginProcess(data.getName());
-          linkedEntity->setTime(accessWorld().getTime());
-          linkedEntity->updateWorldChunks(true);
+          linkedPlayer->doLoginProcess(data.getName());
+          linkedPlayer->setTime(accessWorld().getTime());
+          linkedPlayer->updateWorldChunks(true);
         } break;
         case Packet::IDs::Handshake: {
           Packet::FromClient::Handshake data(ss);
@@ -140,13 +138,13 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
 
           if (message.starts_with(L'/')) {
             std::wstring out;
-            if (!accessCommandHandler().execute(linkedEntity, message, out)) {
+            if (!accessCommandHandler().execute(linkedPlayer, message, out)) {
               out = std::format(L"\u00a7cCommand execution failed\u00a7f: {}", out);
             }
 
-            linkedEntity->sendChat(out);
+            linkedPlayer->sendChat(out);
           } else {
-            Packet::ToClient::ChatMessage wdata(std::format(L"<{}>: {}", linkedEntity->getName(), message));
+            Packet::ToClient::ChatMessage wdata(std::format(L"<{}>: {}", linkedPlayer->getName(), message));
 
             accessEntityManager().IterPlayers([&wdata](IPlayer* player) -> bool {
               wdata.sendTo(player->getSocket());
@@ -161,20 +159,20 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
           if (target == nullptr) throw InvalidEntityIndexException(data.getTarget());
 
           if (data.isLeftClick()) {
-            if (!linkedEntity->canHitEntity()) break;
+            if (!linkedPlayer->canHitEntity()) break;
 
             switch (target->getType()) {
               case EntityBase::Player: {
                 auto ply_target = dynamic_cast<IPlayer*>(target);
 
-                auto& his = linkedEntity->getHeldItem();
+                auto& his = linkedPlayer->getHeldItem();
                 auto& dmg = his.getDamageVsEntity(target);
 
-                his.hitEntity(linkedEntity, target);
+                his.hitEntity(linkedPlayer, target);
 
                 ply_target->setHealth(ply_target->getHealth() - dmg.damage);
 
-                auto& kicker_pos   = linkedEntity->getPosition();
+                auto& kicker_pos   = linkedPlayer->getPosition();
                 auto& receiver_pos = ply_target->getPosition();
 
                 const DoubleVector3 knockback = {
@@ -196,32 +194,32 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
         } break;
         case Packet::IDs::PlayerRespawn: {
           Packet::FromClient::Respawn data(ss);
-          linkedEntity->respawn();
-          linkedEntity->teleportPlayer(accessWorld().getSpawnPoint());
+          linkedPlayer->respawn();
+          linkedPlayer->teleportPlayer(accessWorld().getSpawnPoint());
           posUpdated = lookUpdated = true;
           posUpdateNum             = 399;
         } break;
         case Packet::IDs::PlayerFall: {
           Packet::FromClient::PlayerFall data(ss);
-          linkedEntity->updateGroundState(data.isOnGround());
+          linkedPlayer->updateGroundState(data.isOnGround());
         } break;
         case Packet::IDs::PlayerPos: {
           Packet::FromClient::PlayerPos data(ss);
-          linkedEntity->setPosition(data.getPosition());
-          linkedEntity->setStance(data.getStance());
-          linkedEntity->updateGroundState(data.isOnGround());
+          linkedPlayer->setPosition(data.getPosition());
+          linkedPlayer->setStance(data.getStance());
+          linkedPlayer->updateGroundState(data.isOnGround());
           posUpdated = true;
         } break;
         case Packet::IDs::PlayerLook: {
           Packet::FromClient::PlayerLook data(ss);
-          linkedEntity->setRotation(data.getAngle());
+          linkedPlayer->setRotation(data.getAngle());
           lookUpdated = true;
         } break;
         case Packet::IDs::PlayerPnL: {
           Packet::FromClient::PlayerPosAndLook data(ss);
-          linkedEntity->setPosition(data.getPosition());
-          linkedEntity->setStance(data.getStance());
-          linkedEntity->setRotation(data.getAngle());
+          linkedPlayer->setPosition(data.getPosition());
+          linkedPlayer->setStance(data.getStance());
+          linkedPlayer->setRotation(data.getAngle());
           posUpdated = lookUpdated = true;
         } break;
         case Packet::IDs::PlayerDig: {
@@ -231,30 +229,30 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
 
           if (auto prevBlock = accessWorld().getBlock(blockPos)) {
             if (data.isDiggingFinished() || Block::getById(prevBlock)->getHardness() == 0.0f) { // todo dig server event
-              if (accessWorld().setBlockWithNotify(blockPos, 0, 0, linkedEntity)) {
-                linkedEntity->getHeldItem().onDestroyBlock(blockPos, prevBlock, linkedEntity);
+              if (accessWorld().setBlockWithNotify(blockPos, 0, 0, linkedPlayer)) {
+                linkedPlayer->getHeldItem().onDestroyBlock(blockPos, prevBlock, linkedPlayer);
               }
             }
           } else if (data.isDroppingBlock()) {
             Packet::ToClient::ChatMessage wdata(L"* Item dropping is not implemented yet :(");
-            wdata.sendTo(linkedEntity->getSocket());
+            wdata.sendTo(linkedPlayer->getSocket());
             // todo drop block
           }
         } break;
         case Packet::IDs::BlockPlace: {
           Packet::FromClient::BlockPlace data(ss);
 
-          auto& is   = linkedEntity->getHeldItem();
+          auto& is   = linkedPlayer->getHeldItem();
           auto& cpos = data.getClickPosition();
 
           if (data.getDirection() == -1) { // Handle item click
-            if (is.itemId > 0 && Item::getById(is.itemId)->onItemRightClick(is, linkedEntity, cpos, data.getDirection())) break;
+            if (is.itemId > 0 && Item::getById(is.itemId)->onItemRightClick(is, linkedPlayer, cpos, data.getDirection())) break;
           } else {
             if (auto aid = accessWorld().getBlock(cpos)) {
-              if (Block::getById(aid)->blockActivated(cpos, linkedEntity)) break;
+              if (Block::getById(aid)->blockActivated(cpos, linkedPlayer)) break;
             }
 
-            if (is.itemId > 0 && is.useItemOnBlock(linkedEntity, cpos, data.getDirection())) {
+            if (is.itemId > 0 && is.useItemOnBlock(linkedPlayer, cpos, data.getDirection())) {
               break;
             }
           }
@@ -263,23 +261,23 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
         } break;
         case Packet::IDs::HoldChange: {
           Packet::FromClient::PlayerHold data(ss);
-          if (!linkedEntity->setHeldSlot(data.getSlotId())) throw HackedClientException(HackedClientException::WrongHoldSlot);
+          if (!linkedPlayer->setHeldSlot(data.getSlotId())) throw HackedClientException(HackedClientException::WrongHoldSlot);
         } break;
         case Packet::IDs::PlayerAnim: {
           Packet::FromClient::PlayerAnim data(ss);
 
-          Packet::ToClient::PlayerAnim wdata(linkedEntity->getEntityId(), data.getAnimation());
-          linkedEntity->sendToTrackedPlayers(wdata);
+          Packet::ToClient::PlayerAnim wdata(linkedPlayer->getEntityId(), data.getAnimation());
+          linkedPlayer->sendToTrackedPlayers(wdata);
         } break;
         case Packet::IDs::PlayerAction: {
           Packet::FromClient::PlayerAction data(ss);
 
           switch (data.getAction()) {
             case 1: {
-              linkedEntity->setCrouching(true);
+              linkedPlayer->setCrouching(true);
             } break;
             case 2: {
-              linkedEntity->setCrouching(false);
+              linkedPlayer->setCrouching(false);
             } break;
             case 3: {
               // todo something up with the bed action
@@ -289,28 +287,24 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
         case Packet::IDs::CloseWindow: {
           Packet::FromClient::CloseWindow data(ss);
 
-          if (data.getWindow() == 0) {
-            if (linkedEntity->getContainer().onWindowClosed()) linkedEntity->updateInventory();
-          } else {
-            throw GenericKickException("Unsupported operation");
-          }
+          auto cont = linkedPlayer->getContainerByWindowId(data.getWindow());
+          if (cont != nullptr && cont->onWindowClosed()) linkedPlayer->updateInventory();
         } break;
         case Packet::IDs::ClickWindow: {
           Packet::FromClient::ClickWindow data(ss);
 
-          if (data.getWindow() == 0) {
-            if (linkedEntity->getContainer().onSlotClicked(data.getSlot(), data.isRightButton(), data.isShift())) {
-              Packet::ToClient::TransactionWindow wdata_tr(data.getWindow(), data.getTransactionId(), true);
-              wdata_tr.sendTo(linkedEntity->getSocket());
-            } else {
-              Packet::ToClient::TransactionWindow wdata_tr(data.getWindow(), data.getTransactionId(), false);
-              wdata_tr.sendTo(linkedEntity->getSocket());
-              linkedEntity->updateInventory();
-            }
+          auto cont = linkedPlayer->getContainerByWindowId(data.getWindow());
+          if (cont == nullptr) throw GenericKickException("An attempt to close non-existing window");
+          ItemStack* update = nullptr;
+          if (cont->onSlotClicked(data.getSlot(), data.isRightButton(), data.isShift(), &update)) {
+            Packet::ToClient::TransactionWindow wdata_tr(data.getWindow(), data.getTransactionId(), true);
+            wdata_tr.sendTo(linkedPlayer->getSocket());
+            if (update != nullptr) linkedPlayer->resendItem(*update);
           } else {
-            throw GenericKickException("Unsupported operation");
+            Packet::ToClient::TransactionWindow wdata_tr(data.getWindow(), data.getTransactionId(), false);
+            wdata_tr.sendTo(linkedPlayer->getSocket());
+            linkedPlayer->updateInventory();
           }
-
         } break;
         case Packet::IDs::TransactWindow: {
           Packet::FromClient::TransactionWindow data(ss);
@@ -319,7 +313,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
           Packet::FromClient::SignCreate data(ss);
 
           Packet::ToClient::SignUpdate wdata_su(data.getPosition(), L"Signs are not\nReady to use\nJust yet,\nBe patient");
-          wdata_su.sendTo(linkedEntity->getSocket());
+          wdata_su.sendTo(linkedPlayer->getSocket());
         } break;
         case Packet::IDs::ConnectionFin: {
           Packet::FromClient::Disconnect data(ss);
@@ -330,8 +324,8 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
       }
 
       if (nextPing < currTime) {
-        if (linkedEntity) {
-          linkedEntity->setTime(accessWorld().getTime()); // Sync world time, just in case
+        if (linkedPlayer) {
+          linkedPlayer->setTime(accessWorld().getTime()); // Sync world time, just in case
         }
 
         Packet::ToClient::KeepAlive data;
@@ -340,34 +334,34 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
         nextPing = currTime + pingFreq;
       }
 
-      if (linkedEntity) {
+      if (linkedPlayer) {
         if (posUpdated) {
-          linkedEntity->updateWorldChunks();
+          linkedPlayer->updateWorldChunks();
 
           /**
            * @brief The original server sents teleport packet to the clients every
            * 400 movement packets, just to sync the thing. We will keep it that way too.
            */
 
-          if (++posUpdateNum >= 400 || linkedEntity->getMoveDistance() > 4) {
-            Packet::ToClient::EntitySetPos wdata_es(linkedEntity);
-            linkedEntity->sendToTrackedPlayers(wdata_es);
+          if (++posUpdateNum >= 400 || linkedPlayer->getMoveDistance() > 4) {
+            Packet::ToClient::EntitySetPos wdata_es(linkedPlayer);
+            linkedPlayer->sendToTrackedPlayers(wdata_es);
             posUpdateNum = 0;
           } else if (lookUpdated) {
-            Packet::ToClient::EntityLookRM wdata_er(linkedEntity);
-            linkedEntity->sendToTrackedPlayers(wdata_er);
+            Packet::ToClient::EntityLookRM wdata_er(linkedPlayer);
+            linkedPlayer->sendToTrackedPlayers(wdata_er);
           } else {
-            Packet::ToClient::EntityRelaMove wdata_erm(linkedEntity);
-            linkedEntity->sendToTrackedPlayers(wdata_erm);
+            Packet::ToClient::EntityRelaMove wdata_erm(linkedPlayer);
+            linkedPlayer->sendToTrackedPlayers(wdata_erm);
           }
         } else if (lookUpdated) {
-          Packet::ToClient::EntityLook wdata_el(linkedEntity);
-          linkedEntity->sendToTrackedPlayers(wdata_el);
+          Packet::ToClient::EntityLook wdata_el(linkedPlayer);
+          linkedPlayer->sendToTrackedPlayers(wdata_el);
         }
 
-        if (linkedEntity->isFlagsChanged()) {
-          Packet::ToClient::EntityMeta wdata_em(linkedEntity);
-          linkedEntity->sendToTrackedPlayers(wdata_em);
+        if (linkedPlayer->isFlagsChanged()) {
+          Packet::ToClient::EntityMeta wdata_em(linkedPlayer);
+          linkedPlayer->sendToTrackedPlayers(wdata_em);
         }
       }
     }
@@ -393,8 +387,8 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
   }
 
   spdlog::info("Client {} closed!", ss.addr());
-  if (linkedEntity) {
-    accessEntityManager().RemoveEntity(linkedEntity->getEntityId());
+  if (linkedPlayer) {
+    accessEntityManager().RemoveEntity(linkedPlayer->getEntityId());
   }
 
   accessEntityManager().RemovePlayerThread(ref);

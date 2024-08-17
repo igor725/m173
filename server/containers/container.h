@@ -26,9 +26,19 @@ class IContainer {
 
   virtual bool push(const ItemStack& is, SlotId* sid, SlotId prioritySlot) = 0;
 
-  virtual bool onSlotClicked(SlotId sid, bool isRmb, bool isShift);
+  virtual uint8_t getRecipeWidth() { return 0; }
+
+  virtual uint8_t getRecipeHeight() { return 0; }
+
+  virtual bool getRecipe(ItemStack** array, ItemStack** result, uint8_t& rW, uint8_t& rH);
+
+  virtual bool onSlotClicked(SlotId sid, bool isRmb, bool isShift, ItemStack** updatedItem);
 
   virtual bool onWindowClosed();
+
+  virtual ItemStack* onCraftingUpdated();
+
+  virtual void onCraftingDone();
 
   protected: // Protected functions
   void addSlot(std::unique_ptr<ISlot>&& slot);

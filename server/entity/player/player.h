@@ -48,7 +48,8 @@ class IPlayer: public EntityBase {
   virtual bool             updateInventory()                                      = 0;
   virtual bool             resendItem(const ItemStack& is)                        = 0;
   virtual PlayerStorage&   getStorage()                                           = 0;
-  virtual PlayerContainer& getContainer()                                         = 0;
+  virtual PlayerContainer& getInventoryContainer()                                = 0;
+  virtual IContainer*      getContainerByWindowId(WinId id)                       = 0;
   virtual bool             setAttachedEntity(EntityBase* ent, bool reset = false) = 0;
   virtual EntityBase*      getAttachedEntity() const                              = 0;
 

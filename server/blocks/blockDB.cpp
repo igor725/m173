@@ -6,7 +6,7 @@ BasicBlock   stone(1);
 BasicBlock   grassBlock(2);
 BasicBlock   dirt(3);
 BasicBlock   cobblestone(4);
-BasicBlock   wood(5);
+BasicBlock   planks(5);
 SaplingBlock sapling(6);
 BasicBlock   bedrock(7);
 BasicBlock   water(8);
