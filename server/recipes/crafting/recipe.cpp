@@ -53,7 +53,7 @@ bool CraftingRecipe::matches(ItemStack** set, uint8_t setW, uint8_t setH) { // t
       if (oX > 0 || oY > 0) {
         for (auto x = 0; recipeOk && (x < setW); ++x) {
           for (auto y = 0; recipeOk && (y < setH); ++y) {
-            if ((oX > 0 && x < oX) || (oY > 0 && x < oY)) {
+            if ((oX > 0 && x < oX) || (oY > 0 && y < oY)) {
               auto setItem = set[y * setW + x];
               if (setItem != nullptr && !setItem->isEmpty()) {
                 recipeOk = false;

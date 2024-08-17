@@ -18,6 +18,10 @@ bool ItemStack::incrementBy(uint16_t sz) {
   return true;
 }
 
+int16_t ItemStack::availStackRoom() const {
+  return std::max(Item::getById(itemId)->getStackLimit() - stackSize, 0);
+}
+
 bool ItemStack::isDamageable() const {
   return Item::getById(itemId)->isDamageable();
 }

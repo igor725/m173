@@ -9,4 +9,5 @@ CraftingRecipe paper(ItemStack(ItemDB::paper.getId(), 3), "111", {ItemDB::sugarC
 CraftingRecipe book(ItemStack(ItemDB::book.getId(), 1), "11 12", {ItemDB::paper.getId(), ItemDB::leather.getId()});
 CraftingRecipe bookshelf(ItemStack(BlockDB::bookshelf.getId(), 1), "111 222 111", {BlockDB::planks.getId(), ItemDB::book.getId()});
 CraftingRecipe fence(ItemStack(BlockDB::fence.getId(), 2), "111 111", {ItemDB::stick.getId()});
+CraftingRecipe diamondBlock(ItemStack(BlockDB::diamondBlock.getId(), 1), "111 111 111", {ItemDB::diamond.getId()});
 }; // namespace RecipeDB::Crafting

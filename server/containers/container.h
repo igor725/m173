@@ -38,7 +38,7 @@ class IContainer {
 
   virtual ItemStack* onCraftingUpdated();
 
-  virtual void onCraftingDone();
+  virtual ItemStack* onCraftingDone();
 
   protected: // Protected functions
   void addSlot(std::unique_ptr<ISlot>&& slot);

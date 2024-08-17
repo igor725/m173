@@ -2,9 +2,10 @@
 
 #include "../slots/armorSlot.h"
 #include "../slots/basicSlot.h"
+#include "../slots/resultSlot.h"
 
 PlayerContainer::PlayerContainer(PlayerStorage* stor): IContainer(45), m_crafting(this), m_craftRes(), m_storage(stor) {
-  addSlot(std::make_unique<BasicSlot>(&m_craftRes, 0, ISlot::Result));
+  addSlot(std::make_unique<ResultSlot>(&m_craftRes, 0));
 
   for (int32_t y = 0; y < getRecipeHeight(); ++y) {
     for (int32_t x = 0; x < getRecipeWidth(); ++x) {

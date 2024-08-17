@@ -24,6 +24,10 @@ struct ItemStack {
 
   bool incrementBy(uint16_t sz);
 
+  bool isFull() const { return availStackRoom() == 0; }
+
+  int16_t availStackRoom() const;
+
   bool isEmpty() const { return itemId == -1 || stackSize == 0; }
 
   bool isSimilarTo(const ItemStack& is) const { return itemId == is.itemId && itemDamage == is.itemDamage; }
@@ -48,6 +52,4 @@ struct ItemStack {
   bool damageItem(int16_t damage, EntityBase* damager);
 
   ItemStack splitStack(int16_t count);
-
-  void fullStack() { stackSize = 64; }
 };

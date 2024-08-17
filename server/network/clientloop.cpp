@@ -299,12 +299,13 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
           if (cont->onSlotClicked(data.getSlot(), data.isRightButton(), data.isShift(), &update)) {
             Packet::ToClient::TransactionWindow wdata_tr(data.getWindow(), data.getTransactionId(), true);
             wdata_tr.sendTo(linkedPlayer->getSocket());
-            if (update != nullptr) linkedPlayer->resendItem(*update);
           } else {
             Packet::ToClient::TransactionWindow wdata_tr(data.getWindow(), data.getTransactionId(), false);
             wdata_tr.sendTo(linkedPlayer->getSocket());
             linkedPlayer->updateInventory();
           }
+
+          if (update != nullptr) linkedPlayer->resendItem(*update);
         } break;
         case Packet::IDs::TransactWindow: {
           Packet::FromClient::TransactionWindow data(ss);
