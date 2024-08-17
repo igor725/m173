@@ -87,7 +87,7 @@ bool IContainer::onSlotClicked(SlotId sid, bool isRmb, bool isShift, ItemStack**
       if (clickedSlotItem.isEmpty() && !m_carriedItem.isEmpty()) {
         if (clickedSlot->isItemValid(m_carriedItem)) {
           auto maxPossibleTransfer = std::min(isRmb ? int16_t(1) : m_carriedItem.stackSize, clickedSlot->getSlotStackLimit());
-          if (transactFail = (maxPossibleTransfer > 0)) transactFail = !m_carriedItem.splitStack(maxPossibleTransfer).moveTo(clickedSlotItem);
+          if (maxPossibleTransfer > 0) transactFail = !m_carriedItem.splitStack(maxPossibleTransfer).moveTo(clickedSlotItem);
         } else {
           // Special case, we should not to do any resetting if non-applicable item passed to special slot
           transactFail = false;
@@ -135,6 +135,8 @@ bool IContainer::onSlotClicked(SlotId sid, bool isRmb, bool isShift, ItemStack**
           else
             *updatedItem = &clickedSlotItem;
         } break;
+
+        default: break;
       }
     }
   }
@@ -166,6 +168,8 @@ bool IContainer::getRecipe(ItemStack** array, ItemStack** result, uint8_t& rW, u
           // Filling the recipe array with crafting slots items
           array[(cidx / rW) * rH + (cidx % rW)] = &slot->getHeldItem();
         } break;
+
+        default: break;
       }
     }
   }

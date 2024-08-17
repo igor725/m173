@@ -89,7 +89,7 @@ class Player: public IPlayer {
 
   PlayerContainer& getInventoryContainer() final { return m_container; }
 
-  IContainer* getContainerByWindowId(WinId id) {
+  IContainer* getContainerByWindowId(WinId id) final {
     switch (id) {
       case 0: return &getInventoryContainer();
 
@@ -168,7 +168,7 @@ class Player: public IPlayer {
 
   void updateGroundState(bool ground) final {
     if (m_isOnGround != ground) {
-      if (m_isOnGround = ground) {
+      if ((m_isOnGround = ground) == true) {
         auto fallDist = m_lastGround - m_position.y;
         if (fallDist > 2.0) {
           setHealth(m_health - std::max(0.0, std::ceil(fallDist - 3.0)));
