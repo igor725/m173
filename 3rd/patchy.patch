@@ -1,5 +1,5 @@
 diff --git a/src/exception.cpp b/src/exception.cpp
-index 72aae7e..06fbef1 100644
+index 72aae7e..7e15a40 100644
 --- a/src/exception.cpp
 +++ b/src/exception.cpp
 @@ -64,22 +64,20 @@ string sys_error::error_str(int err)
@@ -33,7 +33,7 @@ index 72aae7e..06fbef1 100644
 +		#else
 +			ignore_result(strerror_r(err, buf, sizeof(buf)));
 +		#endif
-+    	#endif
++	#endif
  	return std::string(buf);
  }
  
