@@ -16,13 +16,13 @@ class PlayerContainer: public IContainer {
 
   SlotId getItemSlotById(ItemId iid) final;
 
-  SlotId getItemSlotByItemStack(const ItemStack& is) final;
+  SlotId getItemSlotIdByItemStack(const ItemStack& is);
+
+  ISlot* getItemSlotByItemStack(const ItemStack& is);
 
   bool push(const ItemStack& is, SlotId* sid, SlotId prioritySlot = -1) final;
 
   ItemStack& getHotbarItem(uint8_t iid);
-
-  SlotId getStorageItemSlotId(const ItemStack& is);
 
   private:
   CraftingStorage<2, 2> m_crafting;

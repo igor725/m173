@@ -109,6 +109,14 @@ class ItemsWindow: public PacketWriter {
     writeInteger<int16_t>(m_count = 0);
   }
 
+  ItemsWindow(UiWindow* win): ItemsWindow(win->getId(), win->container()->getSize()) {
+    auto cont = win->container();
+
+    for (SlotId i = 0; i < cont->getSize(); ++i) {
+      addItem(cont->getItem(i));
+    }
+  }
+
   ItemsWindow(PlayerContainer& cont): ItemsWindow(0, cont.getSize()) {
     for (SlotId i = 0; i < cont.getSize(); ++i) {
       addItem(cont.getItem(i));

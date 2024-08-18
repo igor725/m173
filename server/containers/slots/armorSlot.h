@@ -13,6 +13,8 @@ class ArmorSlot: public ISlot {
 
   int16_t getSlotStackLimit() const final { return 64; }
 
+  ArmorType getArmorType() const { return m_armorType; }
+
   private:
   bool armorTest(ItemId iid) const;
 

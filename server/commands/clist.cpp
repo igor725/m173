@@ -1,4 +1,5 @@
 #include "handler.h"
+#include "items/item.h"
 #include "runmanager/runmanager.h"
 
 #include <spdlog/spdlog.h>
@@ -74,27 +75,33 @@ class Give: public Command {
     int16_t damage = 0;
     ss >> iid;
 
-    if (args.size() > 1) {
-      ss.clear();
-      ss << args[1];
-      ss >> count;
-    }
+    if (auto item = Item::getById(iid)) {
+      if (args.size() > 1) {
+        ss.clear();
+        ss << args[1];
+        ss >> count;
+      }
 
-    if (args.size() > 2) {
-      ss.clear();
-      ss << args[2];
-      ss >> damage;
-    }
+      if (args.size() > 2) {
+        ss.clear();
+        ss << args[2];
+        ss >> damage;
+      }
 
-    // Container should be used there, since we operate with absolute SlotIDs (current selected hotbar item)
-    auto& cont = caller->getInventoryContainer();
+      count = std::min(item->getStackLimit(), count);
 
-    SlotId slot;
-    if (cont.push(ItemStack(iid, count, damage), &slot, caller->getHeldItemSlotId())) {
-      caller->resendItem(cont.getItem(slot));
-      out = std::format(L"Given {} of {}:{}", count, iid, damage);
+      // Container should be used there, since we operate with absolute SlotIDs (current selected hotbar item)
+      auto& cont = caller->getInventoryContainer();
+
+      SlotId slot;
+      if (cont.push(ItemStack(iid, count, damage), &slot, caller->getHeldItemSlotId())) {
+        caller->resendItem(cont.getItem(slot));
+        out = std::format(L"Given {} of {}:{}", count, iid, damage);
+      } else {
+        out = L"\u00a7cFailed, no free space in your inventory";
+      }
     } else {
-      out = L"\u00a7cFailed, invalid item id or no free space in your inventory";
+      out = L"\u00a7cFailed, invalid item id";
     }
 
     return true;

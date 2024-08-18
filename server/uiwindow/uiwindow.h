@@ -1,5 +1,6 @@
 #pragma once
 
+#include "containers/container.h"
 #include "helper.h"
 #include "items/itemstack.h"
 
@@ -25,7 +26,7 @@ class UiWindow {
 
   Type getType() const { return m_type; }
 
-  virtual int8_t getSlotsCount() const = 0;
+  virtual IContainer* container() = 0;
 
   void setWinid(WinId id) { m_id = id; }
 

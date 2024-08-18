@@ -16,11 +16,9 @@ class WorkbenchContainer: public IContainer {
 
   SlotId getItemSlotById(ItemId iid) final;
 
-  SlotId getItemSlotByItemStack(const ItemStack& is) final;
+  ISlot* getItemSlotByItemStack(const ItemStack& is) final;
 
   bool push(const ItemStack& is, SlotId* sid, SlotId prioritySlot = -1) final;
-
-  SlotId getStorageItemSlotId(const ItemStack& is);
 
   private:
   CraftingStorage<3, 3> m_crafting;

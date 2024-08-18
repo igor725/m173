@@ -10,7 +10,7 @@ struct ItemStack {
 
   ItemStack(): stackSize(0), itemId(-1), itemDamage(0) {}
 
-  ItemStack(ItemId iid): stackSize(0), itemId(iid), itemDamage(0) {}
+  ItemStack(ItemId iid): stackSize(1), itemId(iid), itemDamage(0) {}
 
   ItemStack(ItemId iid, int16_t ss): stackSize(ss), itemId(iid), itemDamage(0) {}
 
@@ -41,7 +41,7 @@ struct ItemStack {
 
   int16_t getMaxDamage() const;
 
-  const VsDamageInfo& getDamageVsEntity(EntityBase* ent) const;
+  void getDamageVsEntity(EntityBase* ent, VsDamageInfo& vif) const;
 
   void onDestroyBlock(const IntVector3& pos, BlockId id, EntityBase* destroyer);
 

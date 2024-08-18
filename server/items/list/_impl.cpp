@@ -39,6 +39,8 @@ bool ItemBlock::onUseItemOnBlock(ItemStack& is, EntityBase* user, const IntVecto
   auto dmg = is.itemDamage;
   if (DoubleVector3(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5).distanceTo(ppos) < 8.0) {
     if (is.decrementBy(1)) {
+      ply->resendItem(ply->getHeldItem());
+
       if (world.setBlockWithNotify(npos, m_blockId, getMetadata(dmg), ply)) {
         return true;
       } else { // Uh oh
@@ -158,7 +160,7 @@ bool ItemSign::onUseItemOnBlock(ItemStack& is, EntityBase* clicker, const IntVec
 bool ItemSnowball::onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) {
   auto ply = dynamic_cast<IPlayer*>(clicker);
   if (!is.decrementBy(1)) {
-    ply->updateEquipedItem();
+    ply->updateEquipedItem(IPlayer::HeldItem);
     return true;
   }
 

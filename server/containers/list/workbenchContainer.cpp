@@ -31,18 +31,10 @@ SlotId WorkbenchContainer::getItemSlotById(ItemId iid) {
   return it->get()->getAbsoluteSlotId();
 }
 
-SlotId WorkbenchContainer::getItemSlotByItemStack(const ItemStack& is) {
+ISlot* WorkbenchContainer::getItemSlotByItemStack(const ItemStack& is) {
   auto it = std::find_if(m_slots.begin(), m_slots.end(), [&](auto& s) -> bool { return &s->getHeldItem() == &is; });
-  if (it == m_slots.end()) return -1;
-  return it->get()->getAbsoluteSlotId();
-}
-
-SlotId WorkbenchContainer::getStorageItemSlotId(const ItemStack& is) {
-  for (auto it = m_slots.begin(); it != m_slots.end(); ++it) {
-    if (&it->get()->getHeldItem() == &is) return it->get()->getAbsoluteSlotId();
-  }
-
-  return -1;
+  if (it == m_slots.end()) return nullptr;
+  return it->get();
 }
 
 bool WorkbenchContainer::push(const ItemStack& is, SlotId* sid, SlotId prioritySlot) {

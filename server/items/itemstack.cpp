@@ -42,8 +42,8 @@ bool ItemStack::useItemOnBlock(EntityBase* user, const IntVector3& pos, int8_t d
   return Item::getById(itemId)->onUseItemOnBlock(*this, user, pos, direction);
 }
 
-const VsDamageInfo& ItemStack::getDamageVsEntity(EntityBase* ent) const {
-  return Item::getById(itemId)->getDamageVsEntity(ent);
+void ItemStack::getDamageVsEntity(EntityBase* ent, VsDamageInfo& vif) const {
+  return Item::getById(itemId)->getDamageVsEntity(ent, vif);
 }
 
 bool ItemStack::damageItem(int16_t damage, EntityBase* damager) {

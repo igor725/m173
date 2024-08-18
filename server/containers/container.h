@@ -22,7 +22,9 @@ class IContainer {
 
   ItemStack& getItem(SlotId sid);
 
-  virtual SlotId getItemSlotByItemStack(const ItemStack& is) = 0;
+  SlotId getItemSlotIdByItemStack(const ItemStack& is) { return getItemSlotByItemStack(is)->getAbsoluteSlotId(); }
+
+  virtual ISlot* getItemSlotByItemStack(const ItemStack& is) = 0;
 
   virtual bool push(const ItemStack& is, SlotId* sid, SlotId prioritySlot) = 0;
 

@@ -44,8 +44,5 @@ class Item {
 
   ItemId getId() const { return shiftedIndex; }
 
-  virtual const VsDamageInfo& getDamageVsEntity(EntityBase* ent) {
-    static const VsDamageInfo baseDamage(1, 0.1);
-    return baseDamage;
-  }
+  virtual void getDamageVsEntity(EntityBase* ent, VsDamageInfo& vif) const { vif = VsDamageInfo(1, 0.1); }
 };

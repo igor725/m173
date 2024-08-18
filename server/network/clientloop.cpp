@@ -174,8 +174,10 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
               case EntityBase::Player: {
                 auto ply_target = dynamic_cast<IPlayer*>(target);
 
+                VsDamageInfo dmg;
+
                 auto& his = linkedPlayer->getHeldItem();
-                auto& dmg = his.getDamageVsEntity(target);
+                his.getDamageVsEntity(target, dmg);
 
                 his.hitEntity(linkedPlayer, target);
 
@@ -204,7 +206,6 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
         case Packet::IDs::PlayerRespawn: {
           Packet::FromClient::Respawn data(ss);
           linkedPlayer->respawn();
-          linkedPlayer->teleportPlayer(accessWorld().getSpawnPoint());
           posUpdated = lookUpdated = true;
           posUpdateNum             = 399;
         } break;
@@ -301,18 +302,20 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
         case Packet::IDs::ClickWindow: {
           Packet::FromClient::ClickWindow data(ss);
 
-          ItemStack* update = nullptr;
-          bool       succ   = false;
+          std::array<ItemStack*, 3> update = {nullptr};
+          bool                      succ   = false;
 
           if (auto window = linkedPlayer->getWindowById(data.getWindow())) {
-            succ = window->onClick(data.getSlot(), data.isRightButton(), data.isShift(), &update);
+            succ = window->onClick(data.getSlot(), data.isRightButton(), data.isShift(), update.data());
             if (succ == false) linkedPlayer->updateInventory();
           }
 
           Packet::ToClient::TransactionWindow wdata_tr(data.getWindow(), data.getTransactionId(), succ);
           wdata_tr.sendTo(linkedPlayer->getSocket());
 
-          if (update != nullptr) linkedPlayer->resendItem(*update);
+          for (auto it = update.begin(); it != update.end() && (*it) != nullptr; ++it) {
+            linkedPlayer->resendItem(**it);
+          }
         } break;
         case Packet::IDs::TransactWindow: {
           Packet::FromClient::TransactionWindow data(ss);

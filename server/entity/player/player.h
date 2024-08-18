@@ -13,6 +13,15 @@
 
 class IPlayer: public EntityBase {
   public:
+  enum Equipment {
+    None,
+    Helmet   = 1 << 0,
+    Chest    = 1 << 1,
+    Pants    = 1 << 2,
+    Boots    = 1 << 3,
+    HeldItem = 1 << 4,
+  };
+
   IPlayer(): EntityBase(EntityBase::Type::Player) {}
 
   virtual ~IPlayer() = default;
@@ -37,7 +46,7 @@ class IPlayer: public EntityBase {
 
   /* Ingame world/entity manipualtions */
 
-  virtual void updateEquipedItem()                   = 0;
+  virtual void updateEquipedItem(Equipment flags)    = 0;
   virtual bool updateWorldChunks(bool force = false) = 0;
   virtual bool canHitEntity()                        = 0;
 
@@ -54,7 +63,7 @@ class IPlayer: public EntityBase {
   virtual EntityBase*      getAttachedEntity() const                              = 0;
 
   /* UI manipulations */
-  virtual WinId      createWindow(std::unique_ptr<UiWindow>&& win) = 0;
+  virtual WinId     createWindow(std::unique_ptr<UiWindow>&& win) = 0;
   virtual UiWindow* getWindowById(WinId id)                       = 0;
   virtual bool      closeWindow(WinId id)                         = 0;
 

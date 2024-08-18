@@ -1,6 +1,7 @@
 #include "player.h"
 
 #include "config/config.h"
+#include "containers/slots/armorSlot.h"
 #include "entity/manager.h"
 #include "network/packets/ChatMessage.h"
 #include "network/packets/Entity.h"
@@ -126,21 +127,45 @@ class Player: public IPlayer {
   }
 
   bool resendItem(const ItemStack& is) final {
-    Packet::ToClient::SetSlotWindow wdata_ss(0, m_container.getStorageItemSlotId(is), is);
-    return wdata_ss.sendTo(m_selfSock);
+    auto& cwin = m_windows.top();
+
+    if (auto slot = cwin->container()->getItemSlotByItemStack(is)) {
+      if (&is == &getHeldItem())
+        updateEquipedItem(Equipment::HeldItem);
+      else if (slot->getSlotType() == ISlot::Armor) {
+        auto armor = dynamic_cast<ArmorSlot*>(slot);
+        updateEquipedItem(Equipment(1 << armor->getArmorType()));
+      }
+      Packet::ToClient::SetSlotWindow wdata_ss(cwin->getId(), slot->getAbsoluteSlotId(), is);
+      return wdata_ss.sendTo(m_selfSock);
+    }
+
+    return false;
   }
 
   bool updateInventory() final {
-    Packet::ToClient::ItemsWindow wdata(m_container);
+    Packet::ToClient::ItemsWindow wdata(m_windows.top().get());
     return wdata.sendTo(m_selfSock);
   }
 
+  void untrackAllEntities() {
+    for (auto it = m_trackedEntities.begin(); it != m_trackedEntities.end();) {
+      Packet::ToClient::EntityDestroy wdata_es(*it);
+      wdata_es.sendTo(m_selfSock);
+      it = m_trackedEntities.erase(it);
+    }
+  }
+
   bool respawn() final {
+    if (m_health > 0) return false;
     using namespace Packet::ToClient;
 
     setHealth(m_maxHealth);
     m_storage.clear();
+    m_loadedChunks.clear();
+    untrackAllEntities(); // Player can't hit anyone otherwise
     updateInventory();
+    updateWorldChunks(true); // Player hangs on loading screen otherwise
 
     // Mojang... Just why...
     EntityDestroy wdata_es(getEntityId());
@@ -148,10 +173,12 @@ class Player: public IPlayer {
     PlayerSpawn wdata_ps(this);
     sendToTrackedPlayers(wdata_ps, false);
 
-    updateEquipedItem(); // Should be called after player's spawn packet
+    updateEquipedItem(Equipment(0xFFFF)); // Should be called after player's spawn packet
 
     PlayerRespawn wdata(m_dimension);
-    return wdata.sendTo(m_selfSock);
+    if (!wdata.sendTo(m_selfSock)) return false;
+
+    return teleportPlayer(accessWorld().getSpawnPoint());
   }
 
   bool setHealth(int16_t health) final {
@@ -470,20 +497,44 @@ class Player: public IPlayer {
     return false;
   }
 
-  void updateEquipedItem() final {
-    Packet::ToClient::EntityEquipment wdata_eq(getEntityId(), 0, getHeldItem());
-    sendToTrackedPlayers(wdata_eq, false);
+  void updateEquipedItem(Equipment flags) final {
+    if (flags & Equipment::HeldItem) {
+      Packet::ToClient::EntityEquipment wdata_eq(getEntityId(), 0, getHeldItem());
+      sendToTrackedPlayers(wdata_eq, false);
+    }
+
+    auto& stor = getStorage();
+
+    if (flags & Equipment::Helmet) {
+      Packet::ToClient::EntityEquipment wdata_eq(getEntityId(), 4, stor.getByOffset(stor.getArmorOffset() + 0));
+      sendToTrackedPlayers(wdata_eq, false);
+    }
+
+    if (flags & Equipment::Chest) {
+      Packet::ToClient::EntityEquipment wdata_eq(getEntityId(), 3, stor.getByOffset(stor.getArmorOffset() + 1));
+      sendToTrackedPlayers(wdata_eq, false);
+    }
+
+    if (flags & Equipment::Pants) {
+      Packet::ToClient::EntityEquipment wdata_eq(getEntityId(), 2, stor.getByOffset(stor.getArmorOffset() + 2));
+      sendToTrackedPlayers(wdata_eq, false);
+    }
+
+    if (flags & Equipment::Boots) {
+      Packet::ToClient::EntityEquipment wdata_eq(getEntityId(), 1, stor.getByOffset(stor.getArmorOffset() + 3));
+      sendToTrackedPlayers(wdata_eq, false);
+    }
   }
 
   ItemStack& getHeldItem() final { return m_container.getHotbarItem(m_heldSlot); }
 
-  SlotId getHeldItemSlotId() final { return m_container.getItemSlotByItemStack(getHeldItem()); }
+  SlotId getHeldItemSlotId() final { return m_container.getItemSlotIdByItemStack(getHeldItem()); }
 
   bool setHeldSlot(SlotId slot) final {
     if (slot < 0 || slot > 8) return false;
     m_heldSlot = slot;
 
-    updateEquipedItem();
+    updateEquipedItem(Equipment::HeldItem);
     return true;
   }
 

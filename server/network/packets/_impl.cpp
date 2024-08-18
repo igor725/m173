@@ -32,7 +32,7 @@ OpenWindow::OpenWindow(UiWindow* win): PacketWriter(Packet::IDs::NewWindow) {
   writeInteger<WinId>(win->getId());
   writeInteger<UiWindow::Type>(win->getType());
   writeString(std::string_view(win->getName()));
-  writeInteger<int8_t>(win->getSlotsCount());
+  writeInteger<int8_t>(win->container()->getSize());
 }
 } // namespace Packet::ToClient
 

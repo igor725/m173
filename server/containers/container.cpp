@@ -71,21 +71,53 @@ bool IContainer::onSlotClicked(SlotId sid, bool isRmb, bool isShift, ItemStack**
     auto  clickedSlot     = m_slots.at(sid).get(); // User will be kicked immediately if this slot does not exists
     auto& clickedSlotItem = clickedSlot->getHeldItem();
 
+    /**
+     * Probably this fuckery covers all the click cases,
+     * need to optimize it someday. Minecraft inventory
+     * behavior is quite inconsistent and this is why
+     * this thing is so big. I'm sure it can be
+     * shrinked, but I'm too lazy for this rn.
+     *
+     */
     if (isShift) {
       auto getFreeSlot = [this, &clickedSlot, &clickedSlotItem]() -> ISlot* {
-        if (clickedSlot->getSlotType() == ISlot::Inventory) {
-          ISlot* lastFree = nullptr;
+        ISlot* lastFree = nullptr;
 
-          for (auto it = m_slots.rbegin(); (it != m_slots.rend()) && ((*it)->getSlotType() == ISlot::Hotbar); ++it) {
-            auto slotItem = (*it)->getHeldItem();
-            if (slotItem.isEmpty() || slotItem.isSimilarTo(clickedSlotItem)) lastFree = (*it).get();
-          }
+        switch (clickedSlot->getSlotType()) {
+          case ISlot::Inventory: {
+            for (auto it = m_slots.rbegin(); (it != m_slots.rend()) && ((*it)->getSlotType() == ISlot::Hotbar); ++it) {
+              if ((*it).get() == clickedSlot) continue;
+              auto slotItem = (*it)->getHeldItem();
+              if ((slotItem.isEmpty() || slotItem.isSimilarTo(clickedSlotItem)) && slotItem.availStackRoom() > 0) lastFree = (*it).get();
+            }
+          } break;
+          case ISlot::CraftRecipe: {
+            for (auto it = m_slots.begin(); (it != m_slots.end()); ++it) {
+              if ((*it).get() == clickedSlot) continue;
+              auto type = (*it)->getSlotType();
+              if (type != ISlot::Hotbar && type != ISlot::Inventory) continue;
+              auto slotItem = (*it)->getHeldItem();
+              if (slotItem.isSimilarTo(clickedSlotItem) && slotItem.availStackRoom() > 0) return (*it).get();
+            }
+          } break;
+          case ISlot::Result: {
+            for (auto it = m_slots.rbegin(); (it != m_slots.rend()) && ((*it)->getSlotType() == ISlot::Hotbar); ++it) {
+              if ((*it).get() == clickedSlot) continue;
+              auto slotItem = (*it)->getHeldItem();
+              if ((slotItem.isEmpty() || slotItem.isSimilarTo(clickedSlotItem)) && slotItem.availStackRoom() > 0) return (*it).get();
+            }
+          } break;
 
-          return lastFree;
+          default: break;
         }
 
-        for (auto it = m_slots.begin(); (it != m_slots.end()) && ((*it)->getSlotType() != ISlot::Hotbar); ++it) {
-          if ((*it)->getSlotType() == ISlot::Inventory) {
+        if (lastFree) return lastFree;
+
+        for (auto it = m_slots.begin(); it != m_slots.end(); ++it) {
+          if ((*it).get() == clickedSlot) continue;
+          auto type = (*it)->getSlotType();
+          if (type != ISlot::Hotbar && type != ISlot::Inventory) continue;
+          if ((*it)->isItemValid(clickedSlotItem) && (*it)->getAvailableRoom() > 0) {
             auto slotItem = (*it)->getHeldItem();
             if (slotItem.isEmpty() || slotItem.isSimilarTo(clickedSlotItem)) return (*it).get();
           }
@@ -105,7 +137,9 @@ bool IContainer::onSlotClicked(SlotId sid, bool isRmb, bool isShift, ItemStack**
           }
 
           // Should be always false
-          transactFail = (clickedSlotItem.stackSize > 0);
+          transactFail   = (clickedSlotItem.stackSize > 0);
+          updatedItem[0] = &itSlotItem;
+          updatedItem[1] = &clickedSlotItem;
         }
       } else {
         transactFail = false;
@@ -119,7 +153,7 @@ bool IContainer::onSlotClicked(SlotId sid, bool isRmb, bool isShift, ItemStack**
           // Special case, we should not to do any resetting if non-applicable item passed to special slot
           transactFail = false;
         }
-      } else if (m_carriedItem.isEmpty()) {
+      } else if (!clickedSlotItem.isEmpty() && m_carriedItem.isEmpty()) {
         auto maxPossibleTransfer = isRmb ? (clickedSlotItem.stackSize + 1) / 2 : clickedSlotItem.stackSize;
         if (maxPossibleTransfer > 0) {
           m_carriedItem     = clickedSlotItem.splitStack(maxPossibleTransfer);
@@ -166,6 +200,8 @@ bool IContainer::onSlotClicked(SlotId sid, bool isRmb, bool isShift, ItemStack**
         default: break;
       }
     }
+
+    if (*updatedItem == nullptr) *updatedItem = &clickedSlotItem;
   }
 
   if (transactFail && !m_carriedItem.isEmpty()) {

@@ -25,6 +25,19 @@ class EntityBase {
 
   virtual void onSpawned() {}
 
+  virtual float_t getEyeHeight() const { return 1.6; }
+
+  virtual void updateGroundState(bool state) {}
+
+  virtual void setPosition(const DoubleVector3& pos) {
+    m_prevPosition = m_position;
+    m_position     = pos;
+  }
+
+  virtual void setRotation(const FloatAngle& rot);
+
+  virtual void setCrouching(bool value);
+
   Type getType() const { return m_type; }
 
   Dimension getDimension() const { return m_dimension; }
@@ -56,20 +69,7 @@ class EntityBase {
 
   void _setEntId(int32_t id) { m_id = id; }
 
-  virtual float_t getEyeHeight() const { return 1.6; }
-
-  virtual void updateGroundState(bool state) {}
-
   const DoubleVector3& getForwardVector() const { return m_forward; }
-
-  virtual void setPosition(const DoubleVector3& pos) {
-    m_prevPosition = m_position;
-    m_position     = pos;
-  }
-
-  virtual void setRotation(const FloatAngle& rot);
-
-  virtual void setCrouching(bool value);
 
   bool isFlagsChanged() const { return m_prevFlags != m_flags; }
 
