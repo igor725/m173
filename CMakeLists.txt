@@ -60,16 +60,14 @@ endif()
 
 target_link_libraries(m173_server PRIVATE Sockpp::sockpp-static spdlog::spdlog ${platform_libs})
 
-set(InstallDir ${CMAKE_INSTALL_PREFIX}/${CMAKE_BUILD_TYPE})
-
 install(
   TARGETS m173_server
-  DESTINATION ${InstallDir}
+  DESTINATION ${CMAKE_INSTALL_PREFIX}
 )
 
 if(WIN32)
   install(
     FILES $<TARGET_PDB_FILE:m173_server>
-    DESTINATION ${InstallDir} OPTIONAL
+    DESTINATION ${CMAKE_INSTALL_PREFIX} OPTIONAL
   )
 endif()
