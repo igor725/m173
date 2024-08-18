@@ -144,7 +144,7 @@ class PacketWriter {
 
   template <typename T>
   void writeString(const T& str) {
-    writeInteger(static_cast<int16_t>(str.size()));
+    writeInteger(static_cast<int16_t>(str.length()));
 
     if (sizeof(typename T::value_type) < 4) { // Fix some Linux fuckery
       for (auto it = str.begin(); it != str.end(); ++it) {

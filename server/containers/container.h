@@ -16,7 +16,7 @@ class IContainer {
   IContainer(uint32_t slotNum);
   ~IContainer();
 
-  int16_t getSize() const { return m_slots.size(); }
+  int8_t getSize() const { return m_slots.size(); }
 
   ISlot* getSlot(SlotId sid) const;
 
@@ -44,8 +44,6 @@ class IContainer {
   void addSlot(std::unique_ptr<ISlot>&& slot);
 
   virtual SlotId getItemSlotById(ItemId iid) = 0;
-
-  virtual ItemStack& getHotbarItem(uint8_t iid) = 0;
 
   protected: // Protected variables
   std::vector<std::unique_ptr<ISlot>> m_slots;

@@ -5,14 +5,14 @@
 #include "../storages/craftingStorage.h"
 #include "../storages/playerStorage.h"
 
-class PlayerContainer: public IContainer {
+class WorkbenchContainer: public IContainer {
   public:
-  PlayerContainer(PlayerStorage* inv);
-  ~PlayerContainer();
+  WorkbenchContainer(PlayerStorage* pstor);
+  ~WorkbenchContainer();
 
-  uint8_t getRecipeWidth() final { return 2; }
+  uint8_t getRecipeWidth() final { return 3; }
 
-  uint8_t getRecipeHeight() final { return 2; }
+  uint8_t getRecipeHeight() final { return 3; }
 
   SlotId getItemSlotById(ItemId iid) final;
 
@@ -20,12 +20,9 @@ class PlayerContainer: public IContainer {
 
   bool push(const ItemStack& is, SlotId* sid, SlotId prioritySlot = -1) final;
 
-  ItemStack& getHotbarItem(uint8_t iid);
-
   SlotId getStorageItemSlotId(const ItemStack& is);
 
   private:
-  CraftingStorage<2, 2> m_crafting;
+  CraftingStorage<3, 3> m_crafting;
   CraftingResultStorage m_craftRes;
-  PlayerStorage*        m_storage;
 };

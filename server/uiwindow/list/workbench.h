@@ -1,11 +1,11 @@
 #pragma once
 
 #include "../uiwindow.h"
-#include "containers/list/playerContainer.h"
+#include "containers/list/workbenchContainer.h"
 
-class InventoryWindow: public UiWindow {
+class WorkbenchWindow: public UiWindow {
   public:
-  InventoryWindow(PlayerContainer& cont): UiWindow("Inventory", UiWindow::Inventory), m_cont(cont) {}
+  WorkbenchWindow(PlayerStorage* pstor): UiWindow("Crafting", UiWindow::Workbench), m_cont(pstor) {}
 
   bool onClick(SlotId sid, bool isRmb, bool isShift, ItemStack** updatedItem) final {
     // Forwarding call to container
@@ -14,8 +14,8 @@ class InventoryWindow: public UiWindow {
 
   bool onClose() final { return m_cont.onClosed(); }
 
-  int16_t getSlotsCount() const { return m_cont.getSize(); }
+  int8_t getSlotsCount() const { return m_cont.getSize(); }
 
   private:
-  PlayerContainer& m_cont;
+  WorkbenchContainer m_cont;
 };

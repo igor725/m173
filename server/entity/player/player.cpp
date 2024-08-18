@@ -10,7 +10,7 @@
 #include "network/packets/Window.h"
 #include "network/packets/World.h"
 #include "network/safesock.h"
-#include "uiwindow/list/invwindow.h"
+#include "uiwindow/list/inventory.h"
 #include "uiwindow/uiwindow.h"
 #include "world/world.h"
 
@@ -93,15 +93,17 @@ class Player: public IPlayer {
 
   PlayerContainer& getInventoryContainer() final { return m_container; }
 
-  void addWindow(std::unique_ptr<UiWindow>&& win) {
+  UiWindow* addWindow(std::unique_ptr<UiWindow>&& win) {
     win->setWinid(m_windows.size());
-    auto& cwin = m_windows.emplace(std::move(win));
+    return m_windows.emplace(std::move(win)).get();
   }
 
-  void createWindow(std::unique_ptr<UiWindow>&& win) final {
-    Packet::ToClient::OpenWindow wdata_ow(*win.get());
+  WinId createWindow(std::unique_ptr<UiWindow>&& win) final {
+    auto win_ptr = addWindow(std::move(win));
+
+    Packet::ToClient::OpenWindow wdata_ow(win_ptr);
     wdata_ow.sendTo(m_selfSock);
-    addWindow(std::move(win));
+    return win_ptr->getId();
   }
 
   UiWindow* getWindowById(WinId id) final {

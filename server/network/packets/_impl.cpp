@@ -25,6 +25,19 @@ PacketWriter::PacketWriter(PacketId id) {
 
 #pragma endregion
 
+#pragma region("Window.h")
+
+namespace Packet::ToClient {
+OpenWindow::OpenWindow(UiWindow* win): PacketWriter(Packet::IDs::NewWindow) {
+  writeInteger<WinId>(win->getId());
+  writeInteger<UiWindow::Type>(win->getType());
+  writeString(std::string_view(win->getName()));
+  writeInteger<int8_t>(win->getSlotsCount());
+}
+} // namespace Packet::ToClient
+
+#pragma endregion
+
 #pragma region("World.h")
 
 static UniqueZlibPP cmp(createCompressor());
@@ -35,13 +48,6 @@ class TooMuchSignLinesException: public std::exception {
 };
 
 namespace Packet::ToClient {
-OpenWindow::OpenWindow(UiWindow& win): PacketWriter(Packet::IDs::NewWindow) {
-  writeInteger<WinId>(win.getId());
-  writeString(std::string_view(win.getName()));
-  writeInteger<UiWindow::Type>(win.getType());
-  writeInteger<int16_t>(win.getSlotsCount());
-}
-
 SignUpdate::SignUpdate(const IntVector3& pos, const std::wstring& data): PacketWriter(Packet::IDs::SignUpdate, 10 + data.size()) {
   writeInteger<int32_t>(pos.x);
   writeInteger<int16_t>(pos.y);

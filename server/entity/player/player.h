@@ -54,7 +54,7 @@ class IPlayer: public EntityBase {
   virtual EntityBase*      getAttachedEntity() const                              = 0;
 
   /* UI manipulations */
-  virtual void      createWindow(std::unique_ptr<UiWindow>&& win) = 0;
+  virtual WinId      createWindow(std::unique_ptr<UiWindow>&& win) = 0;
   virtual UiWindow* getWindowById(WinId id)                       = 0;
   virtual bool      closeWindow(WinId id)                         = 0;
 

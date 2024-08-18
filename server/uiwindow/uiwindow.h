@@ -25,7 +25,7 @@ class UiWindow {
 
   Type getType() const { return m_type; }
 
-  virtual int16_t getSlotsCount() const = 0;
+  virtual int8_t getSlotsCount() const = 0;
 
   void setWinid(WinId id) { m_id = id; }
 

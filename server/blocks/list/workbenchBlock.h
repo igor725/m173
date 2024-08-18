@@ -2,9 +2,9 @@
 
 #include "../basicBlock.h"
 
-class NoteBlock: public BasicBlock {
+class WorkbenchBlock: public BasicBlock {
   public:
-  NoteBlock(BlockId bid): BasicBlock(bid) {}
+  WorkbenchBlock(BlockId bid): BasicBlock(bid) {}
 
   bool blockActivated(const IntVector3& pos, EntityBase* activator) final;
 };

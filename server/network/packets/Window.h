@@ -81,7 +81,7 @@ class TransactionWindow: private PacketReader {
 namespace ToClient {
 class OpenWindow: public PacketWriter {
   public:
-  OpenWindow(UiWindow& win);
+  OpenWindow(UiWindow* win);
 };
 
 class CloseWindow: public PacketWriter {
