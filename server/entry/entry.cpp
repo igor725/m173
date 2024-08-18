@@ -12,15 +12,16 @@
 #include <spdlog/spdlog.h>
 
 int main(int argc, char* argv[]) {
-  Platform::RegisterCtrlCHandler([]() { RunManager::stop(); });
+  Platform::RegisterCtrlCHandler([]() {
+    std::cout << "\r";
+    RunManager::stop();
+  });
 
   // spdlog::set_level(spdlog::level::trace);
   spdlog::info("Initializing libraries...");
   sockpp::initialize();
   (void)accessConfig();
   (void)accessWorld();
-  spdlog::info("Loaded {} crafting recipes", CraftingRecipe::getCount());
-  spdlog::info("Loading config...");
   {
     auto& lvl    = accessConfig().getItem("logging.level");
     auto  spdlvl = spdlog::level::from_str(lvl.getValue<const char*>());
@@ -28,6 +29,8 @@ int main(int argc, char* argv[]) {
     spdlog::set_level(spdlvl);
   }
 
+  // All the built in recipes being initialized before the main() gets called
+  spdlog::info("Loaded {} crafting recipes", CraftingRecipe::getCount());
   spdlog::info("Creating the connection acceptor server loop...");
   std::thread acceptThread([]() {
     Platform::SetCurrentThreadName("TCP acceptor");
@@ -86,7 +89,7 @@ int main(int argc, char* argv[]) {
 
       for (auto it = out.begin(); it != out.end();) {
         if (*it == L'\u00a7') {
-          it = out.erase(it, it + 2);
+          it = out.erase(it, it + std::min(ptrdiff_t(2), std::distance(it, out.end())));
           continue;
         }
 
@@ -99,14 +102,7 @@ int main(int argc, char* argv[]) {
   });
   console.detach();
 
-  spdlog::info("Starting the main program loop...");
-  while (RunManager::isRunning()) {
-    // Does this loop even needed for something?
-    // Probably we can just join to acceptThread...
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  }
-
-  spdlog::info("Finishing the TCP client acceptation loop...");
+  // We don't really need main thread to do something, so just waiting til acceptor finishes to destroy the rest
   acceptThread.join();
   spdlog::info("Finishing the World routines...");
   accessWorld().finish();

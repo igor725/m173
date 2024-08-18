@@ -134,7 +134,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
         case Packet::IDs::ChatMessage: {
           Packet::FromClient::ChatMessage data(ss);
 
-          auto message = data.getMessage();
+          auto& message = data.getMessage();
 
           if (message.starts_with(L'/')) {
             std::wstring out;
@@ -144,6 +144,15 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
 
             linkedPlayer->sendChat(out);
           } else {
+            for (auto it = message.begin(); it != message.end();) { // todo more message sanitizing
+              if (*it == L'\u00a7') {
+                it = message.erase(it, it + std::min(ptrdiff_t(2), std::distance(it, message.end())));
+                continue;
+              }
+
+              ++it;
+            }
+
             Packet::ToClient::ChatMessage wdata(std::format(L"<{}>: {}", linkedPlayer->getName(), message));
 
             accessEntityManager().IterPlayers([&wdata](IPlayer* player) -> bool {

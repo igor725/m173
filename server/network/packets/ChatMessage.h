@@ -10,7 +10,7 @@ class ChatMessage: private PacketReader {
   public:
   ChatMessage(SafeSocket& sock): PacketReader(sock) { readString(m_message); }
 
-  const auto& getMessage() const { return m_message; }
+  auto& getMessage() { return m_message; }
 
   private:
   std::wstring m_message;

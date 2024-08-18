@@ -13,10 +13,8 @@
 class World: public IWorld {
   public:
   World() {
-    m_tickThread = std::thread([]() {
+    m_tickThread = std::thread([this]() {
       Platform::SetCurrentThreadName("World ticker");
-
-      auto& world = accessWorld();
 
       auto curr = std::chrono::system_clock::now();
       auto prev = std::chrono::system_clock::now();
@@ -25,7 +23,7 @@ class World: public IWorld {
         prev = curr;
         curr = std::chrono::system_clock::now();
 
-        world.advanceTick(std::chrono::duration_cast<std::chrono::milliseconds>(curr - prev).count());
+        advanceTick(std::chrono::duration_cast<std::chrono::milliseconds>(curr - prev).count());
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
       }
     });

@@ -5,6 +5,7 @@
 #include <memory>
 #include <zlib.h>
 
+// Unused and untested at this point.
 class Decompressor: public IZLibPP {
   public:
   Decompressor() {
@@ -42,7 +43,7 @@ class Decompressor: public IZLibPP {
     switch (ret = inflate(&m_stream, m_stream.avail_in == 0 ? Z_FINISH : Z_NO_FLUSH)) {
       case Z_OK: {
         if (m_stream.avail_out == 0) return MoreOut;
-      }
+      } break;
 
       default: throw ZlibException(ret);
     }
