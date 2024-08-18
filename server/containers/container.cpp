@@ -6,6 +6,13 @@
 #include <exception>
 #include <spdlog/spdlog.h>
 
+class FreeSlotException: public std::exception {
+  public:
+  FreeSlotException() {}
+
+  const char* what() const noexcept override { return "getFreeSlot() function returned fully occupied slot!"; }
+};
+
 IContainer::IContainer(uint32_t slotsNum) {
   m_slots.reserve(slotsNum);
 }
@@ -65,23 +72,43 @@ bool IContainer::onSlotClicked(SlotId sid, bool isRmb, bool isShift, ItemStack**
     auto& clickedSlotItem = clickedSlot->getHeldItem();
 
     if (isShift) {
-      // todo actual implementation of searching for free slot, this will solve a lot of desync issues
-      auto oppositeType = clickedSlot->getSlotType() == ISlot::Hotbar ? ISlot::Inventory : ISlot::Hotbar;
-      for (auto it = m_slots.begin(); it != m_slots.end(); ++it) {
-        if (it->get()->getSlotType() == oppositeType) {
-          auto& itSlotItem = it->get()->getHeldItem();
-          if (itSlotItem.isEmpty() || itSlotItem.isSimilarTo(clickedSlotItem)) {
-            auto maxPossibleTransfer = Item::getById(clickedSlotItem.itemId)->getStackLimit();
-            if (itSlotItem.stackSize > 0) maxPossibleTransfer -= itSlotItem.stackSize;
-            if (maxPossibleTransfer <= 0) continue;
-            if (clickedSlotItem.moveTo(itSlotItem, std::min(maxPossibleTransfer, clickedSlotItem.stackSize)) && clickedSlotItem.stackSize > 0) {
-              return onSlotClicked(sid, isRmb, isShift, updatedItem);
-            }
+      auto getFreeSlot = [this, &clickedSlot, &clickedSlotItem]() -> ISlot* {
+        if (clickedSlot->getSlotType() == ISlot::Inventory) {
+          ISlot* lastFree = nullptr;
 
-            // Should be always false
-            transactFail = (clickedSlotItem.stackSize > 0);
+          for (auto it = m_slots.rbegin(); (it != m_slots.rend()) && ((*it)->getSlotType() == ISlot::Hotbar); ++it) {
+            auto slotItem = (*it)->getHeldItem();
+            if (slotItem.isEmpty() || slotItem.isSimilarTo(clickedSlotItem)) lastFree = (*it).get();
+          }
+
+          return lastFree;
+        }
+
+        for (auto it = m_slots.begin(); (it != m_slots.end()) && ((*it)->getSlotType() != ISlot::Hotbar); ++it) {
+          if ((*it)->getSlotType() == ISlot::Inventory) {
+            auto slotItem = (*it)->getHeldItem();
+            if (slotItem.isEmpty() || slotItem.isSimilarTo(clickedSlotItem)) return (*it).get();
           }
         }
+
+        return nullptr;
+      };
+
+      if (auto freeSlot = getFreeSlot()) {
+        auto& itSlotItem = freeSlot->getHeldItem();
+        if (itSlotItem.isEmpty() || itSlotItem.isSimilarTo(clickedSlotItem)) {
+          auto maxPossibleTransfer = Item::getById(clickedSlotItem.itemId)->getStackLimit();
+          if (itSlotItem.stackSize > 0) maxPossibleTransfer -= itSlotItem.stackSize;
+          if (maxPossibleTransfer <= 0) throw FreeSlotException();
+          if (clickedSlotItem.moveTo(itSlotItem, std::min(maxPossibleTransfer, clickedSlotItem.stackSize)) && clickedSlotItem.stackSize > 0) {
+            return onSlotClicked(sid, isRmb, isShift, updatedItem);
+          }
+
+          // Should be always false
+          transactFail = (clickedSlotItem.stackSize > 0);
+        }
+      } else {
+        transactFail = false;
       }
     } else {
       if (clickedSlotItem.isEmpty() && !m_carriedItem.isEmpty()) {
