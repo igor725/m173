@@ -4,6 +4,7 @@
 #include "../packet.h"
 #include "containers/list/playerContainer.h"
 #include "helper.h"
+#include "uiwindow/uiwindow.h"
 
 namespace Packet {
 #ifdef M173_ACTIVATE_READER_API
@@ -80,12 +81,7 @@ class TransactionWindow: private PacketReader {
 namespace ToClient {
 class OpenWindow: public PacketWriter {
   public:
-  OpenWindow(WinId wid, InvId iid, const std::string& name, int8_t numslots): PacketWriter(Packet::IDs::NewWindow) {
-    writeInteger<WinId>(wid);
-    writeString(name);
-    writeInteger<InvId>(iid);
-    writeInteger<int16_t>(numslots);
-  }
+  OpenWindow(UiWindow& win);
 };
 
 class CloseWindow: public PacketWriter {

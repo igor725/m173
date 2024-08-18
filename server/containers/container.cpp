@@ -25,7 +25,7 @@ ItemStack& IContainer::getItem(SlotId sid) {
   return m_slots.at(sid)->getHeldItem();
 }
 
-bool IContainer::onWindowClosed() {
+bool IContainer::onClosed() {
   bool shouldUpdateInv = false;
 
   for (auto it = m_slots.begin(); it != m_slots.end(); ++it) {
@@ -65,7 +65,7 @@ bool IContainer::onSlotClicked(SlotId sid, bool isRmb, bool isShift, ItemStack**
     auto& clickedSlotItem = clickedSlot->getHeldItem();
 
     if (isShift) {
-      // todo actual implementation of searching free slot
+      // todo actual implementation of searching for free slot, this will solve a lot of desync issues
       auto oppositeType = clickedSlot->getSlotType() == ISlot::Hotbar ? ISlot::Inventory : ISlot::Hotbar;
       for (auto it = m_slots.begin(); it != m_slots.end(); ++it) {
         if (it->get()->getSlotType() == oppositeType) {

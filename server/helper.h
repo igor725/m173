@@ -16,7 +16,6 @@ typedef uint8_t BlockId;
 typedef int16_t ItemId;
 typedef int8_t  AnimId;
 typedef int8_t  WinId;
-typedef int8_t  InvId;
 typedef uint8_t PacketId;
 typedef int16_t SlotId;
 

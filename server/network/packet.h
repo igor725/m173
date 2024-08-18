@@ -143,7 +143,7 @@ class PacketWriter {
   }
 
   template <typename T>
-  void writeString(T& str) {
+  void writeString(const T& str) {
     writeInteger(static_cast<int16_t>(str.size()));
 
     if (sizeof(typename T::value_type) < 4) { // Fix some Linux fuckery

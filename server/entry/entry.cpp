@@ -17,7 +17,6 @@ int main(int argc, char* argv[]) {
     RunManager::stop();
   });
 
-  // spdlog::set_level(spdlog::level::trace);
   spdlog::info("Initializing libraries...");
   sockpp::initialize();
   (void)accessConfig();

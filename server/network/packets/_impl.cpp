@@ -1,5 +1,6 @@
 #define M173_ACTIVATE_READER_API
 #include "Handshake.h"
+#include "Window.h"
 #include "World.h"
 #include "zlibpp/zlibpp_unique.h"
 
@@ -34,6 +35,13 @@ class TooMuchSignLinesException: public std::exception {
 };
 
 namespace Packet::ToClient {
+OpenWindow::OpenWindow(UiWindow& win): PacketWriter(Packet::IDs::NewWindow) {
+  writeInteger<WinId>(win.getId());
+  writeString(std::string_view(win.getName()));
+  writeInteger<UiWindow::Type>(win.getType());
+  writeInteger<int16_t>(win.getSlotsCount());
+}
+
 SignUpdate::SignUpdate(const IntVector3& pos, const std::wstring& data): PacketWriter(Packet::IDs::SignUpdate, 10 + data.size()) {
   writeInteger<int32_t>(pos.x);
   writeInteger<int16_t>(pos.y);

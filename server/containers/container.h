@@ -34,7 +34,7 @@ class IContainer {
 
   virtual bool onSlotClicked(SlotId sid, bool isRmb, bool isShift, ItemStack** updatedItem);
 
-  virtual bool onWindowClosed();
+  virtual bool onClosed();
 
   virtual ItemStack* onCraftingUpdated();
 

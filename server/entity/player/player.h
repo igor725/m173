@@ -6,6 +6,7 @@
 #include "items/itemstack.h"
 #include "network/packet.h"
 #include "network/safesock.h"
+#include "uiwindow/uiwindow.h"
 
 #include <memory>
 #include <string>
@@ -49,9 +50,13 @@ class IPlayer: public EntityBase {
   virtual bool             resendItem(const ItemStack& is)                        = 0;
   virtual PlayerStorage&   getStorage()                                           = 0;
   virtual PlayerContainer& getInventoryContainer()                                = 0;
-  virtual IContainer*      getContainerByWindowId(WinId id)                       = 0;
   virtual bool             setAttachedEntity(EntityBase* ent, bool reset = false) = 0;
   virtual EntityBase*      getAttachedEntity() const                              = 0;
+
+  /* UI manipulations */
+  virtual void      createWindow(std::unique_ptr<UiWindow>&& win) = 0;
+  virtual UiWindow* getWindowById(WinId id)                       = 0;
+  virtual bool      closeWindow(WinId id)                         = 0;
 
   /* Movement control */
   virtual bool addVelocity(const DoubleVector3& motion) = 0;

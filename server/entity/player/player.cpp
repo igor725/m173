@@ -10,9 +10,12 @@
 #include "network/packets/Window.h"
 #include "network/packets/World.h"
 #include "network/safesock.h"
+#include "uiwindow/list/invwindow.h"
+#include "uiwindow/uiwindow.h"
 #include "world/world.h"
 
 #include <spdlog/spdlog.h>
+#include <stack>
 
 class Player: public IPlayer {
   public:
@@ -20,6 +23,7 @@ class Player: public IPlayer {
     auto& dist = accessConfig().getItem("chunk.load_distance");
 
     m_trackDistance = dist.getValue<uint32_t>();
+    addWindow(std::make_unique<InventoryWindow>(m_container));
   }
 
   ~Player() {
@@ -89,12 +93,34 @@ class Player: public IPlayer {
 
   PlayerContainer& getInventoryContainer() final { return m_container; }
 
-  IContainer* getContainerByWindowId(WinId id) final {
-    switch (id) {
-      case 0: return &getInventoryContainer();
+  void addWindow(std::unique_ptr<UiWindow>&& win) {
+    win->setWinid(m_windows.size());
+    auto& cwin = m_windows.emplace(std::move(win));
+  }
 
-      default: return nullptr;
+  void createWindow(std::unique_ptr<UiWindow>&& win) final {
+    Packet::ToClient::OpenWindow wdata_ow(*win.get());
+    wdata_ow.sendTo(m_selfSock);
+    addWindow(std::move(win));
+  }
+
+  UiWindow* getWindowById(WinId id) final {
+    auto& cwin = m_windows.top();
+
+    if ((*cwin) == id)
+      return cwin.get();
+    else {
+      spdlog::warn("An attempt to operate with non-top window was made!");
+      return nullptr;
     }
+  }
+
+  bool closeWindow(WinId id) final {
+    auto& cwin = m_windows.top();
+    if ((*cwin) != id) return false;
+    cwin->onClose();
+    if (id > 0) m_windows.pop(); // We should leave inventory window at the stack bottom
+    return true;
   }
 
   bool resendItem(const ItemStack& is) final {
@@ -511,6 +537,8 @@ class Player: public IPlayer {
   std::recursive_mutex    m_lock;
   PlayerStorage           m_storage;
   PlayerContainer         m_container;
+
+  std::stack<std::unique_ptr<UiWindow>> m_windows;
 };
 
 std::unique_ptr<IPlayer> createPlayer(SafeSocket& sock) {

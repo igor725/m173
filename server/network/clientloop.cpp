@@ -296,23 +296,21 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
         case Packet::IDs::CloseWindow: {
           Packet::FromClient::CloseWindow data(ss);
 
-          auto cont = linkedPlayer->getContainerByWindowId(data.getWindow());
-          if (cont != nullptr && cont->onWindowClosed()) linkedPlayer->updateInventory();
+          if (linkedPlayer->closeWindow(data.getWindow())) linkedPlayer->updateInventory();
         } break;
         case Packet::IDs::ClickWindow: {
           Packet::FromClient::ClickWindow data(ss);
 
-          auto cont = linkedPlayer->getContainerByWindowId(data.getWindow());
-          if (cont == nullptr) throw GenericKickException("An attempt to close non-existing window");
           ItemStack* update = nullptr;
-          if (cont->onSlotClicked(data.getSlot(), data.isRightButton(), data.isShift(), &update)) {
-            Packet::ToClient::TransactionWindow wdata_tr(data.getWindow(), data.getTransactionId(), true);
-            wdata_tr.sendTo(linkedPlayer->getSocket());
-          } else {
-            Packet::ToClient::TransactionWindow wdata_tr(data.getWindow(), data.getTransactionId(), false);
-            wdata_tr.sendTo(linkedPlayer->getSocket());
-            linkedPlayer->updateInventory();
+          bool       succ   = false;
+
+          if (auto window = linkedPlayer->getWindowById(data.getWindow())) {
+            succ = window->onClick(data.getSlot(), data.isRightButton(), data.isShift(), &update);
+            if (succ == false) linkedPlayer->updateInventory();
           }
+
+          Packet::ToClient::TransactionWindow wdata_tr(data.getWindow(), data.getTransactionId(), succ);
+          wdata_tr.sendTo(linkedPlayer->getSocket());
 
           if (update != nullptr) linkedPlayer->resendItem(*update);
         } break;
