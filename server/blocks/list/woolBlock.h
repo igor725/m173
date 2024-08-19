@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../database.cpp"
+#include "../database.h"
 #include "helper.h"
 #include "items/list/wool.h"
 
