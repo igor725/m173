@@ -20,6 +20,7 @@ CraftingRecipe::CraftingRecipe(const ItemStack& result, const std::string& recip
     spdlog::warn("0 used items in recipe!");
     return;
   }
+
   if (used.size() < m_usedItems.size()) {
     for (auto it = used.begin(); it != used.end(); ++it) {
       m_usedItems[std::distance(used.begin(), it)] = *it;
@@ -58,17 +59,17 @@ void CraftingRecipe::registerme() {
   g_recipes.push_back(this);
 }
 
-bool CraftingRecipe::innerMatcher(ItemStack** set, uint8_t setW, uint8_t setH, uint8_t oX, uint8_t oY) {
-  for (auto x = 0; x < setW; ++x) {
-    for (auto y = 0; y < setH; ++y) {
-      auto   ax = x - oX, ay = y - oY, idx = 0;
+bool CraftingRecipe::innerMatcher(ItemStack** set, uint8_t setW, uint8_t setH, uint8_t oX, uint8_t oY, bool inverse) {
+  for (int8_t x = 0; x < setW; ++x) {
+    for (int8_t y = 0; y < setH; ++y) {
+      int8_t ax = x - oX, ay = y - oY, idx = 0;
       int8_t craftItem = -1;
 
       if (ax >= 0 && ay >= 0 && ax < m_width && ay < m_height) {
         craftItem = m_recipe[ax + ay * 3];
       }
 
-      auto setItem          = set[x + y * setW];
+      auto setItem          = set[inverse ? setW - x - 1 + y * setW : x + y * setW];
       bool setItemPresent   = (setItem != nullptr && !setItem->isEmpty());
       bool craftItemPresent = craftItem != -1;
 
@@ -83,9 +84,12 @@ bool CraftingRecipe::innerMatcher(ItemStack** set, uint8_t setW, uint8_t setH, u
 }
 
 bool CraftingRecipe::matches(ItemStack** set, uint8_t setW, uint8_t setH) {
+  if (m_width > setW || m_height > setH) return false;
+
   for (auto oX = 0; oX <= (setW - m_width); ++oX) {
     for (auto oY = 0; oY <= (setH - m_height); ++oY) {
-      if (innerMatcher(set, setW, setH, oX, oY)) return true;
+      if (innerMatcher(set, setW, setH, oX, oY, false)) return true;
+      if (innerMatcher(set, setW, setH, oX, oY, true)) return true;
     }
   }
 

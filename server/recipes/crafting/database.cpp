@@ -64,7 +64,7 @@ CraftingRecipeAR shears(ItemStack(ItemDB::shears.getId(), 1), "10 01", {ItemDB::
 
 // Redstone related stuff
 CraftingRecipeAR button(ItemStack(BlockDB::stoneButton.getId(), 1), "1 1", {BlockDB::stone.getId()});
-CraftingRecipeAR lever(ItemStack(BlockDB::lever.getId(), 1), "1 1", {ItemDB::stick.getId(), BlockDB::cobblestone.getId()});
+CraftingRecipeAR lever(ItemStack(BlockDB::lever.getId(), 1), "1 2", {ItemDB::stick.getId(), BlockDB::cobblestone.getId()});
 CraftingRecipeAR redTorch(ItemStack(BlockDB::redstoneTorch.getId(), 1), "1 2", {ItemDB::redstonePowder.getId(), ItemDB::stick.getId()});
 CraftingRecipeAR woodenPressure(ItemStack(BlockDB::woodPressurePlate.getId(), 1), "11", {BlockDB::planks.getId()});
 CraftingRecipeAR stonePressure(ItemStack(BlockDB::stonePressurePlate.getId(), 1), "11", {BlockDB::stone.getId()});

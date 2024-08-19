@@ -28,7 +28,7 @@ class CraftingRecipe {
   static uint32_t getCount();
 
   private:
-  bool innerMatcher(ItemStack** set, uint8_t setW, uint8_t setH, uint8_t oX, uint8_t oY);
+  bool innerMatcher(ItemStack** set, uint8_t setW, uint8_t setH, uint8_t oX, uint8_t oY, bool inverse);
 
   std::array<int8_t, WIDTH * HEIGHT>    m_recipe;
   std::array<ItemStack, WIDTH * HEIGHT> m_usedItems;

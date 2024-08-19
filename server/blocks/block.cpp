@@ -16,20 +16,20 @@ class InvalidBlockIdException: public std::exception {
   std::string m_what;
 };
 
-std::array<Block*, 256> g_blocks = {};
+std::array<Block*, 256> g_blocksList = {};
 
 Block::Block(BlockId bid): m_index(bid) {
-  if (g_blocks[bid] != nullptr) {
+  if (g_blocksList[bid] != nullptr) {
     spdlog::warn("Block id conflict {}!", bid);
   }
 
-  g_blocks[bid] = this;
+  g_blocksList[bid] = this;
 }
 
 Block::~Block() {
-  g_blocks[m_index] = nullptr;
+  g_blocksList[m_index] = nullptr;
 }
 
 Block* Block::getById(BlockId bid) {
-  return g_blocks[bid];
+  return g_blocksList[bid];
 }
