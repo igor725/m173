@@ -18,6 +18,8 @@ class UiWindow {
 
   UiWindow(const std::string_view name, Type type): m_name(name), m_type(type) {}
 
+  virtual ~UiWindow() = default;
+
   bool operator==(const WinId id) const { return m_id == id; }
 
   const char* getName() const { return m_name.c_str(); }
