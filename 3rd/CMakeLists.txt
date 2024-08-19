@@ -13,7 +13,7 @@ set(INSTALL_DIR ${CMAKE_SOURCE_DIR}/install)
 ExternalProject_Add(sockpp
   SOURCE_DIR ${CMAKE_SOURCE_DIR}/sockpp
   BINARY_DIR "${CMAKE_BINARY_DIR}/sockpp-build"
-  PATCH_COMMAND git apply --reverse --check ${CMAKE_SOURCE_DIR}/patchy.patch
+  PATCH_COMMAND git apply ${CMAKE_SOURCE_DIR}/patchy.patch || true
   CMAKE_ARGS
   -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
   -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
