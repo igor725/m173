@@ -1,6 +1,6 @@
 add_library(blocks OBJECT
   block.cpp
-  blockDB.cpp
+  database.cpp
   list/_impl.cpp
 )
 

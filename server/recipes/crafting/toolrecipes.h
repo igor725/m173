@@ -1,7 +1,7 @@
 #pragma once
 
-#include "blocks/blockDB.h"
-#include "items/itemDB.h"
+#include "blocks/database.h"
+#include "items/database.h"
 #include "recipe.h"
 
 #include <array>

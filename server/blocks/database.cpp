@@ -1,4 +1,4 @@
-#include "blockDB.h"
+#include "database.h"
 
 namespace BlockDB {
 BasicBlock     air(0);

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../slot.h"
-#include "blocks/blockDB.h"
+#include "blocks/database.h"
 #include "items/item.h"
 #include "items/list/armor.h"
 

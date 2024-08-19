@@ -1,7 +1,8 @@
+#include "blocks/database.h"
+
 #include "armorrecipes.h"
 #include "blockrecipes.h"
-#include "blocks/blockDB.h"
-#include "items/itemDB.h"
+#include "items/database.h"
 #include "recipe.h"
 #include "toolrecipes.h"
 

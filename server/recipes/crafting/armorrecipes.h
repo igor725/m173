@@ -1,6 +1,6 @@
 #pragma once
 
-#include "items/itemDB.h"
+#include "items/database.h"
 #include "recipe.h"
 
 #include <array>
