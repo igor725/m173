@@ -65,7 +65,7 @@ class EntityBase {
 
   const FloatAngle& getRotation() const { return m_rotation; }
 
-  int32_t getEntityId() const { return m_id; }
+  EntityId getEntityId() const { return m_id; }
 
   void _setEntId(int32_t id) { m_id = id; }
 

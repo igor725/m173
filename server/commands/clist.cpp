@@ -1,6 +1,7 @@
 #include "handler.h"
 #include "items/item.h"
 #include "runmanager/runmanager.h"
+#include "world/world.h"
 
 #include <spdlog/spdlog.h>
 #include <sstream>
@@ -108,8 +109,21 @@ class Give: public Command {
   }
 };
 
+class WInfo: public Command {
+  public:
+  WInfo(): Command(L"winfo", L"Information abot the loaded world", true) {}
+
+  bool execute(IPlayer* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
+    auto& world = accessWorld();
+
+    out = std::format(L"Current world time: {}\nLoaded chunks: {}", world.getTime(), world.getChunksCount());
+    return true;
+  }
+};
+
 static Stop   stop_reg;
 static Killme killme_reg;
 static Hurtme hurtme_reg;
 static Hat    hat_reg;
 static Give   give_reg;
+static WInfo  winfo_reg;

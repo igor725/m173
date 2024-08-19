@@ -28,14 +28,14 @@ void ConfigItem::setValue(const char* value) {
 void ConfigItem::setValue(uint32_t value) {
   typeAssert(ConfigType::UINT);
   if (m_value.u32 == value) return;
-  m_value.u32 = value;
+  m_value.u32 = std::min(m_limits.umax, std::max(value, m_limits.umin));
   m_flags |= CONFIG_ITEM_FLAG_CHANGED;
 }
 
 void ConfigItem::setValue(int32_t value) {
   typeAssert(ConfigType::INT);
   if (m_value.i32 == value) return;
-  m_value.i32 = value;
+  m_value.i32 = std::min(m_limits.imax, std::max(value, m_limits.imin));
   m_flags |= CONFIG_ITEM_FLAG_CHANGED;
 }
 
@@ -152,9 +152,9 @@ ConfigItem& Config::getItem(std::string_view name) {
 IConfig& accessConfig() {
   static Config inst(ConfigItemsList {
       {"logging.level", {"info"}},
-      {"bind.port", {25565u}},
-      {"bind.queue_size", {4u}},
-      {"chunk.load_distance", {10u}},
+      {"bind.port", {25565u, 0u, 65535u}},
+      {"bind.queue_size", {4u, 1u, 128u}},
+      {"chunk.load_distance", {10u, 1u, 80u}},
   });
   return inst;
 }

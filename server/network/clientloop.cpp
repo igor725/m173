@@ -2,6 +2,7 @@
 #include "clientloop.h"
 
 #include "blocks/block.h"
+#include "bmanager.h"
 #include "commands/handler.h"
 #include "entity/manager.h"
 #include "entity/player/player.h"
@@ -131,7 +132,8 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
           linkedPlayer->setTime(accessWorld().getTime());
           linkedPlayer->updateWorldChunks(true);
 
-          spdlog::info("Player {} just spawned!", bname);
+          BroadcastManager::chatToClients(std::format(L"{} joined the game", uname));
+          spdlog::info("Player {} ({}) just spawned!", bname, addr.to_string());
         } break;
         case Packet::IDs::Handshake: {
           Packet::FromClient::Handshake data(ss);
@@ -405,10 +407,12 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
     spdlog::error("[{}] {} thrown on client handling: {}", ss.addr(), typeid(ex).name(), ex.what());
   }
 
-  spdlog::info("Client {} closed!", ss.addr());
   if (linkedPlayer) {
+    BroadcastManager::chatToClients(std::format(L"{} left the game", linkedPlayer->getName()));
     accessEntityManager().RemoveEntity(linkedPlayer->getEntityId());
   }
+
+  spdlog::info("Client {} closed!", ss.addr());
 
   accessEntityManager().RemovePlayerThread(ref);
 }

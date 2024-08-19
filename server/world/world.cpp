@@ -115,6 +115,11 @@ class World: public IWorld {
 
   int64_t getSeed() const final { return m_seed; }
 
+  size_t getChunksCount() final {
+    std::unique_lock lock(m_accChunks);
+    return m_ldChunks.size();
+  }
+
   const IntVector3& getSpawnPoint() const final { return m_spawnPoint; }
 
   void finish() final { m_tickThread.join(); }

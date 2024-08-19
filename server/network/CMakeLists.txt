@@ -1,6 +1,7 @@
 add_library(network OBJECT
   packets/_impl.cpp
   clientloop.cpp
+  bmanager.cpp
   safesock.cpp
 )
 

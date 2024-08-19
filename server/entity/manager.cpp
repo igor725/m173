@@ -3,9 +3,17 @@
 #include "platform/platform.h"
 #include "runmanager/runmanager.h"
 
+#include <exception>
 #include <mutex>
 #include <thread>
 #include <unordered_map>
+
+class EntityCounterOverflowException: public std::exception {
+  public:
+  EntityCounterOverflowException() {}
+
+  const char* what() const noexcept override { return "EntityId counter got overflowed"; }
+};
 
 class EntityManager: public IEntityManager {
   public:
@@ -32,6 +40,7 @@ class EntityManager: public IEntityManager {
     std::unique_lock lock(m_lock);
 
     static EntityId entcounter = 0;
+    if (entcounter == UINT_MAX) throw EntityCounterOverflowException();
 
     auto p    = m_loadedents.emplace(std::make_pair(++entcounter, std::move(entity)));
     auto eptr = p.first->second.get();

@@ -62,6 +62,8 @@ class IWorld {
 
   virtual int64_t getTime() const = 0;
 
+  virtual size_t getChunksCount() = 0;
+
   virtual const IntVector3& getSpawnPoint() const = 0;
 
   virtual void finish() = 0;

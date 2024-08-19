@@ -11,13 +11,13 @@
   name(name&&) noexcept            = delete;                                                                                                                   \
   name& operator=(name&&) noexcept = delete
 
-typedef int32_t EntityId;
-typedef uint8_t BlockId;
-typedef int16_t ItemId;
-typedef int8_t  AnimId;
-typedef int8_t  WinId;
-typedef uint8_t PacketId;
-typedef int16_t SlotId;
+typedef uint32_t EntityId;
+typedef uint8_t  BlockId;
+typedef int16_t  ItemId;
+typedef int8_t   AnimId;
+typedef int8_t   WinId;
+typedef uint8_t  PacketId;
+typedef int16_t  SlotId;
 
 struct IntVector2 {
   int32_t x, z;

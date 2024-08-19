@@ -7,6 +7,9 @@
 #include <cstdint>
 
 class ISlot {
+  CLASS_NO_COPY(ISlot);
+  CLASS_NO_MOVE(ISlot);
+
   public:
   enum Type {
     Result,
