@@ -13,6 +13,7 @@ BlockRecipes blocks;
 CraftingRecipeAR workbench(ItemStack(BlockDB::workbench.getId(), 1), "11 11", {BlockDB::planks.getId()});
 CraftingRecipeAR furnace(ItemStack(BlockDB::furnace.getId(), 1), "111 101 111", {BlockDB::cobblestone.getId()});
 CraftingRecipeAR chest(ItemStack(BlockDB::chest.getId(), 1), "111 101 111", {BlockDB::planks.getId()});
+CraftingRecipeAR bed(ItemStack(ItemDB::bed.getId(), 1), "111 222", {BlockDB::wool.getId(), BlockDB::planks.getId()});
 CraftingRecipeAR stick(ItemStack(ItemDB::stick.getId(), 3), "1", {BlockDB::planks.getId()});
 CraftingRecipeAR planks(ItemStack(BlockDB::planks.getId(), 4), "1", {BlockDB::logBlock.getId()});
 CraftingRecipeAR book(ItemStack(ItemDB::book.getId(), 1), "11 12", {ItemDB::paper.getId(), ItemDB::leather.getId()});
@@ -27,7 +28,7 @@ CraftingRecipeAR clay(ItemStack(BlockDB::clayBlock.getId(), 1), "11 11", {ItemDB
 CraftingRecipeAR brick(ItemStack(BlockDB::brick.getId(), 1), "11 11", {ItemDB::brick.getId()});
 CraftingRecipeAR glovestone(ItemStack(BlockDB::glovestone.getId(), 1), "11 11", {ItemDB::glowDust.getId()});
 CraftingRecipeAR wool(ItemStack(BlockDB::wool.getId(), 1), "11 11", {ItemDB::string.getId()});
-CraftingRecipeAR tnt(ItemStack(BlockDB::wool.getId(), 1), "121 212 121", {ItemDB::gunpowder.getId(), BlockDB::sand.getId()});
+CraftingRecipeAR tnt(ItemStack(BlockDB::tnt.getId(), 1), "121 212 121", {ItemDB::gunpowder.getId(), BlockDB::sand.getId()});
 CraftingRecipeAR stoneSlab(ItemStack(BlockDB::slab.getId(), 3, 0), "111", {BlockDB::stone.getId()});
 CraftingRecipeAR sandSlab(ItemStack(BlockDB::slab.getId(), 3, 1), "111", {BlockDB::sandStone.getId()});
 CraftingRecipeAR woodenSlab(ItemStack(BlockDB::slab.getId(), 3, 2), "111", {BlockDB::planks.getId()});
@@ -54,6 +55,19 @@ CraftingRecipeAR stairs(ItemStack(BlockDB::stairs.getId(), 4), "1 11 111", {Bloc
 CraftingRecipeAR stoneStairs(ItemStack(BlockDB::stoneStairs.getId(), 4), "1 11 111", {BlockDB::cobblestone.getId()});
 CraftingRecipeAR fishingRod(ItemStack(ItemDB::fishingRod.getId(), 1), "001 012 102", {ItemDB::stick.getId(), ItemDB::string.getId()});
 CraftingRecipeAR goldenApple(ItemStack(ItemDB::goldenApple.getId(), 1), "111 121 111", {BlockDB::goldBlock.getId(), ItemDB::apple.getId()});
+CraftingRecipeAR shears(ItemStack(ItemDB::shears.getId(), 1), "10 01", {ItemDB::ironIngot.getId()});
+
+// Redstone related stuff
 CraftingRecipeAR compass(ItemStack(ItemDB::compass.getId(), 1), "010 121 010", {ItemDB::ironIngot.getId(), ItemDB::redstonePowder.getId()});
+CraftingRecipeAR dispenser(ItemStack(BlockDB::dispenser.getId(), 1), "111 121 131",
+                           {BlockDB::cobblestone.getId(), ItemDB::bow.getId(), ItemDB::redstonePowder.getId()});
+CraftingRecipeAR sundial(ItemStack(ItemDB::clockItem.getId(), 1), "010 121 010", {ItemDB::goldIngot.getId(), ItemDB::redstonePowder.getId()});
 CraftingRecipeAR map(ItemStack(ItemDB::map.getId(), 1), "111 121 111", {ItemDB::paper.getId(), ItemDB::compass.getId()});
+CraftingRecipeAR repeater(ItemStack(ItemDB::redstoneRepeater.getId(), 1), "121 333",
+                          {BlockDB::redstoneTorch.getId(), ItemDB::redstonePowder.getId(), BlockDB::stone.getId()});
+CraftingRecipeAR redRail(ItemStack(BlockDB::poweredRail.getId(), 6), "101 121 131",
+                         {ItemDB::ironIngot.getId(), ItemDB::stick.getId(), ItemDB::redstonePowder.getId()});
+CraftingRecipeAR btnRail(ItemStack(BlockDB::buttonRail.getId(), 6), "101 121 131",
+                         {ItemDB::ironIngot.getId(), BlockDB::stonePressurePlate.getId(), ItemDB::redstonePowder.getId()});
+
 }; // namespace RecipeDB::Crafting

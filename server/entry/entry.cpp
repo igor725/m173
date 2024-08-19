@@ -30,6 +30,7 @@ int main(int argc, char* argv[]) {
 
   // All the built in recipes being initialized before the main() gets called
   spdlog::info("Loaded {} crafting recipes", CraftingRecipe::getCount());
+  // spdlog::info("Uncraftable {} items", CraftingRecipe::getUncraftable());
   spdlog::info("Creating the connection acceptor server loop...");
   std::thread acceptThread([]() {
     Platform::SetCurrentThreadName("TCP acceptor");

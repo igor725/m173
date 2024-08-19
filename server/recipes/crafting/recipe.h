@@ -23,9 +23,12 @@ class CraftingRecipe {
 
   bool matches(ItemStack** set, uint8_t setW, uint8_t setH);
 
+  ItemId getResultItemId() { return m_result.itemId; }
+
   static bool scan(IContainer* cont, ItemStack** result);
 
   static uint32_t getCount();
+  // static uint32_t getUncraftable();
 
   private:
   bool innerMatcher(ItemStack** set, uint8_t setW, uint8_t setH, uint8_t oX, uint8_t oY);

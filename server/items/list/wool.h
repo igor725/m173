@@ -23,7 +23,7 @@ class ItemWool: public ItemBlock {
     Black,
   };
 
-  ItemWool(ItemId iid): ItemBlock(iid) {
+  ItemWool(BlockId bid): ItemBlock(bid) {
     maxStackSize = 64;
     maxDamage    = 0;
   }
