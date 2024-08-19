@@ -121,31 +121,6 @@ uint32_t CraftingRecipe::getCount() {
   return g_recipes.size();
 }
 
-// uint32_t CraftingRecipe::getUncraftable() {
-//   uint32_t i, uncraftable = 0;
-
-//   try {
-//     for (i = 22; (i > 96 && i < 256) || (Item::getById(i) != nullptr); ++i) {
-//       bool found = i > 96 && i < 256;
-//       found |= i > 347 && i < 354;
-//       found |= i == 344 || i == 341 || i == 338 || i == 337;
-
-//       for (auto it = g_recipes.begin(); !found && (it != g_recipes.end()); ++it) {
-//         found = i == (*it)->getResultItemId();
-//       }
-
-//       if (!found) {
-//         ++uncraftable;
-//         spdlog::warn("Uncraftable item: {}", i);
-//       }
-//     }
-//   } catch (...) {
-//     spdlog::warn("Hole at {}", i);
-//   }
-
-//   return uncraftable;
-// }
-
 CraftingRecipeAR::~CraftingRecipeAR() {
   if (RunManager::isRunning()) {
     spdlog::warn("Autoregistered recipe {:#010x} got destroyed in runtime, that's definitely not good!!", reinterpret_cast<std::uintptr_t>(this));

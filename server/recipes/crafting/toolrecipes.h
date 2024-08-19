@@ -18,7 +18,7 @@ class ToolRecipes {
         "2 1 1",       // SHOVEL_PATTERN
     };
 
-    static std::array<ItemId, 24> MATERIALS = {
+    static std::array<ItemId, 30> MATERIALS = {
         BlockDB::planks.getId(),       // Wooden tools start
         ItemDB::woodenHoe.getId(),     //
         ItemDB::woodenSword.getId(),   //
@@ -40,6 +40,13 @@ class ToolRecipes {
         ItemDB::goldenAxe.getId(),     //
         ItemDB::goldenShovel.getId(),  //
 
+        ItemDB::ironIngot.getId(),   // Iron tools start
+        ItemDB::ironHoe.getId(),     //
+        ItemDB::ironSword.getId(),   //
+        ItemDB::ironPickaxe.getId(), //
+        ItemDB::ironAxe.getId(),     //
+        ItemDB::ironShovel.getId(),  //
+
         ItemDB::diamond.getId(),        // Diamond tools start
         ItemDB::diamondHoe.getId(),     //
         ItemDB::diamondSword.getId(),   //
@@ -48,7 +55,7 @@ class ToolRecipes {
         ItemDB::diamondShovel.getId(),  //
     };
 
-    m_recipes.reserve(MATERIALS.size() * 2);
+    m_recipes.reserve(MATERIALS.size());
 
     std::vector<ItemStack> m_items = {ItemDB::stick.getId(), 0};
     for (auto it = MATERIALS.begin(); it != MATERIALS.end(); ++it) {
