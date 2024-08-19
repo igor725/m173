@@ -324,7 +324,7 @@ class Player: public IPlayer {
       }
     }
 
-    lock.unlock();
+    lock.unlock(); // Avoiding deadlock on mutual tracking
     return updateTrackedEntities();
   }
 
