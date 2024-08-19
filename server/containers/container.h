@@ -14,7 +14,7 @@ class IContainer {
 
   public:
   IContainer(uint32_t slotNum);
-  ~IContainer();
+  virtual ~IContainer();
 
   int8_t getSize() const { return m_slots.size(); }
 
