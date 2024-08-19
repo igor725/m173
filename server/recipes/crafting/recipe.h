@@ -23,8 +23,6 @@ class CraftingRecipe {
 
   bool matches(ItemStack** set, uint8_t setW, uint8_t setH);
 
-  ItemId getResultItemId() { return m_result.itemId; }
-
   static bool scan(IContainer* cont, ItemStack** result);
 
   static uint32_t getCount();
