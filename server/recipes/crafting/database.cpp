@@ -9,6 +9,7 @@ ToolRecipes  tools;
 ArmorRecipes armor;
 
 CraftingRecipeAR workbench(ItemStack(BlockDB::workbench.getId(), 1), "11 11", {BlockDB::planks.getId()});
+CraftingRecipeAR chest(ItemStack(BlockDB::chest.getId(), 1), "111 101 111", {BlockDB::planks.getId()});
 CraftingRecipeAR stick(ItemStack(ItemDB::stick.getId(), 3), "1", {BlockDB::planks.getId()});
 CraftingRecipeAR planks(ItemStack(BlockDB::planks.getId(), 4), "1", {BlockDB::logBlock.getId()});
 CraftingRecipeAR book(ItemStack(ItemDB::book.getId(), 1), "11 12", {ItemDB::paper.getId(), ItemDB::leather.getId()});
@@ -40,6 +41,9 @@ CraftingRecipeAR paper(ItemStack(ItemDB::paper.getId(), 3), "111", {ItemDB::suga
 CraftingRecipeAR torch(ItemStack(BlockDB::torch.getId(), 4), "1 2", {ItemDB::coal.getId(), ItemDB::stick.getId()});
 CraftingRecipeAR torch2(ItemStack(BlockDB::torch.getId(), 4), "1 2", {ItemStack(ItemDB::coal.getId(), 1, 1), ItemDB::stick.getId()});
 CraftingRecipeAR bowl(ItemStack(ItemDB::bowl.getId(), 4), "101 010", {BlockDB::planks.getId()});
+CraftingRecipeAR soup(ItemStack(ItemDB::soup.getId(), 1), "1 2 3", {BlockDB::mushroom2.getId(), BlockDB::mushroom.getId(), ItemDB::bowl.getId()});
+CraftingRecipeAR soup2(ItemStack(ItemDB::soup.getId(), 1), "1 2 3", {BlockDB::mushroom.getId(), BlockDB::mushroom2.getId(), ItemDB::bowl.getId()});
+CraftingRecipeAR cookie(ItemStack(ItemDB::cookie.getId(), 8), "121", {ItemDB::wheat.getId(), ItemStack(ItemDB::genericDye.getId(), 3)});
 CraftingRecipeAR bucket(ItemStack(ItemDB::bucket.getId(), 1), "101 010", {ItemDB::ironIngot.getId()});
 CraftingRecipeAR lighter(ItemStack(ItemDB::lighter.getId(), 1), "10 02", {ItemDB::ironIngot.getId(), ItemDB::flint.getId()});
 CraftingRecipeAR stairs(ItemStack(BlockDB::stairs.getId(), 4), "1 11 111", {BlockDB::planks.getId()});
