@@ -7,7 +7,7 @@ class InventoryWindow: public UiWindow {
   public:
   InventoryWindow(PlayerContainer& cont): UiWindow("Inventory", UiWindow::Inventory), m_cont(cont) {}
 
-  virtual ~InventoryWindow() = default;
+  ~InventoryWindow() {}
 
   IContainer* container() final { return &m_cont; }
 

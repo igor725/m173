@@ -7,7 +7,7 @@ class WorkbenchWindow: public UiWindow {
   public:
   WorkbenchWindow(PlayerStorage* pstor): UiWindow("Crafting", UiWindow::Workbench), m_cont(pstor) {}
 
-  virtual ~WorkbenchWindow() = default;
+  ~WorkbenchWindow() {}
 
   IContainer* container() final { return &m_cont; }
 
