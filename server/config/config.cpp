@@ -86,6 +86,10 @@ class Config: public IConfig {
             std::stringstream(tempstr) >> tempuint;
             item.setValue(tempuint);
           } break;
+
+          default: {
+            throw ConfigInvalidTypeException();
+          } break;
         }
 
         // No need to keep "changed" flag for loaded entry
@@ -120,6 +124,10 @@ class Config: public IConfig {
         case ConfigType::BOOL: cfile << (item.getValue<bool>() ? "True" : "False"); break;
         case ConfigType::UINT: cfile << item.getValue<uint32_t>(); break;
         case ConfigType::INT: cfile << item.getValue<int32_t>(); break;
+
+        default: {
+          throw ConfigInvalidTypeException();
+        } break;
       }
 
       cfile << std::endl;

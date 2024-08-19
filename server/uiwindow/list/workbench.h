@@ -7,6 +7,8 @@ class WorkbenchWindow: public UiWindow {
   public:
   WorkbenchWindow(PlayerStorage* pstor): UiWindow("Crafting", UiWindow::Workbench), m_cont(pstor) {}
 
+  virtual ~WorkbenchWindow() = default;
+
   IContainer* container() final { return &m_cont; }
 
   bool onClick(SlotId sid, bool isRmb, bool isShift, ItemStack** updatedItem) final {

@@ -18,6 +18,8 @@ class ConfigUnknownEntryException: public std::exception {
 
 class ConfigInvalidTypeException: public std::exception {
   public:
+  ConfigInvalidTypeException() { m_what = "ConfigItem has UNSPECIFIED type"; }
+
   ConfigInvalidTypeException(ConfigType ex, ConfigType rc) {
     m_what = std::format("Invalid config entry type (ex: {}, rc: {})", static_cast<uint32_t>(ex), static_cast<uint32_t>(rc));
   }
