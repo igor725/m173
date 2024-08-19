@@ -1,4 +1,5 @@
 #include "armorrecipes.h"
+#include "blockrecipes.h"
 #include "blocks/blockDB.h"
 #include "items/itemDB.h"
 #include "recipe.h"
@@ -7,8 +8,10 @@
 namespace RecipeDB::Crafting {
 ToolRecipes  tools;
 ArmorRecipes armor;
+BlockRecipes blocks;
 
 CraftingRecipeAR workbench(ItemStack(BlockDB::workbench.getId(), 1), "11 11", {BlockDB::planks.getId()});
+CraftingRecipeAR furnace(ItemStack(BlockDB::furnace.getId(), 1), "111 101 111", {BlockDB::cobblestone.getId()});
 CraftingRecipeAR chest(ItemStack(BlockDB::chest.getId(), 1), "111 101 111", {BlockDB::planks.getId()});
 CraftingRecipeAR stick(ItemStack(ItemDB::stick.getId(), 3), "1", {BlockDB::planks.getId()});
 CraftingRecipeAR planks(ItemStack(BlockDB::planks.getId(), 4), "1", {BlockDB::logBlock.getId()});
@@ -19,6 +22,7 @@ CraftingRecipeAR diamondBlock(ItemStack(BlockDB::diamondBlock.getId(), 1), "111 
 CraftingRecipeAR jukebox(ItemStack(BlockDB::jukebox.getId(), 1), "111 121 111", {BlockDB::planks.getId(), ItemDB::diamond.getId()});
 CraftingRecipeAR noteblock(ItemStack(BlockDB::noteBlock.getId(), 1), "111 121 111", {BlockDB::planks.getId(), ItemDB::redstonePowder.getId()});
 CraftingRecipeAR snowball(ItemStack(BlockDB::snowBlock.getId(), 1), "11 11", {ItemDB::snowBall.getId()});
+CraftingRecipeAR sandStone(ItemStack(BlockDB::sandStone.getId(), 1), "11 11", {BlockDB::sand.getId()});
 CraftingRecipeAR clay(ItemStack(BlockDB::clayBlock.getId(), 1), "11 11", {ItemDB::clay.getId()});
 CraftingRecipeAR brick(ItemStack(BlockDB::brick.getId(), 1), "11 11", {ItemDB::brick.getId()});
 CraftingRecipeAR glovestone(ItemStack(BlockDB::glovestone.getId(), 1), "11 11", {ItemDB::glowDust.getId()});
@@ -51,4 +55,5 @@ CraftingRecipeAR stoneStairs(ItemStack(BlockDB::stoneStairs.getId(), 4), "1 11 1
 CraftingRecipeAR fishingRod(ItemStack(ItemDB::fishingRod.getId(), 1), "001 012 102", {ItemDB::stick.getId(), ItemDB::string.getId()});
 CraftingRecipeAR goldenApple(ItemStack(ItemDB::goldenApple.getId(), 1), "111 121 111", {BlockDB::goldBlock.getId(), ItemDB::apple.getId()});
 CraftingRecipeAR compass(ItemStack(ItemDB::compass.getId(), 1), "010 121 010", {ItemDB::ironIngot.getId(), ItemDB::redstonePowder.getId()});
+CraftingRecipeAR map(ItemStack(ItemDB::map.getId(), 1), "111 121 111", {ItemDB::paper.getId(), ItemDB::compass.getId()});
 }; // namespace RecipeDB::Crafting

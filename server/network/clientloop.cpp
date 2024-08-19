@@ -119,11 +119,19 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
         case Packet::IDs::Login: {
           Packet::FromClient::LoginRequest data(ss);
 
+          auto& uname = data.getName();
+
+          std::string bname;
+          bname.resize(uname.length());
+          std::wcstombs(bname.data(), uname.c_str(), bname.size() - 1);
+
           linkedPlayer = dynamic_cast<IPlayer*>(accessEntityManager().AddEntity(createPlayer(ss)));
 
-          linkedPlayer->doLoginProcess(data.getName());
+          linkedPlayer->doLoginProcess(uname);
           linkedPlayer->setTime(accessWorld().getTime());
           linkedPlayer->updateWorldChunks(true);
+
+          spdlog::info("Player {} just spawned!", bname);
         } break;
         case Packet::IDs::Handshake: {
           Packet::FromClient::Handshake data(ss);

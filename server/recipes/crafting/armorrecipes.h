@@ -1,6 +1,5 @@
 #pragma once
 
-#include "blocks/blockDB.h"
 #include "items/itemDB.h"
 #include "recipe.h"
 
@@ -44,7 +43,7 @@ class ArmorRecipes {
 
     };
 
-    m_recipes.reserve(MATERIALS.size() * 2);
+    m_recipes.reserve(MATERIALS.size());
 
     ItemStack item;
     for (auto it = MATERIALS.begin(); it != MATERIALS.end(); ++it) {
