@@ -57,7 +57,9 @@ class World: public IWorld {
 
     auto& chunk = allocChunk(pos);
 
-    if (!accessRegionManager().loadChunk(pos, chunk)) {
+    auto& rm = accessRegionManager();
+
+    if (!rm.loadChunk(pos, chunk)) {
       chunk.m_light.fill(Nibble(15, 15)); // All fullbright for now
       chunk.m_sky.fill(Nibble(15, 15));
 
@@ -69,7 +71,7 @@ class World: public IWorld {
         }
       }
 
-      accessRegionManager().saveChunk(pos, chunk);
+      rm.saveChunk(pos, chunk);
     }
 
     return chunk;
@@ -122,6 +124,7 @@ class World: public IWorld {
     std::unique_lock lock(m_accChunks);
 
     auto& em = accessEntityManager();
+    auto& rm = accessRegionManager();
 
     for (auto it = m_ldChunks.begin(); it != m_ldChunks.end();) {
       auto& pos   = it->first;
@@ -132,7 +135,7 @@ class World: public IWorld {
         lock.lock();
         if ((chunk.unloadTimer -= delta) <= 0) {
           // No players in this chunk, so we can safely destroy it
-          accessRegionManager().saveChunk(pos, chunk);
+          rm.saveChunk(pos, chunk);
           it = m_ldChunks.erase(it);
           continue;
         }
