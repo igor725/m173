@@ -99,6 +99,7 @@ class EntityBase {
   bool      m_shouldBeDestroyed = false;
   int8_t    m_flags             = Flags::None;
   int8_t    m_prevFlags         = Flags::None;
+  int16_t   m_maxHealth         = 1;
 
   DoubleVector3 m_prevPosition {0.0, 0.0, 0.0};
   DoubleVector3 m_position {0.0, 0.0, 0.0};

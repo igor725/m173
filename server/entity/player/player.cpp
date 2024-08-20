@@ -15,6 +15,7 @@
 #include "uiwindow/uiwindow.h"
 #include "world/world.h"
 
+#include <atomic>
 #include <spdlog/spdlog.h>
 #include <stack>
 
@@ -85,6 +86,8 @@ class Player: public IPlayer {
     setSpawnPos(spawn);
     teleportPlayer(spawn);
     m_lastGround = m_position.y;
+    setTime(world.getTime());
+    updateWorldChunks(true);
     updateInventory();
     m_bLoggedIn = true;
     return true;
@@ -234,9 +237,20 @@ class Player: public IPlayer {
     }
   }
 
-  void setPosition(const DoubleVector3& pos) override final {
+  void setPosition(const DoubleVector3& pos) final {
     EntityBase::setPosition(pos);
     m_stance = pos.y;
+  }
+
+  bool isHoldingChunk(const IntVector2& pos) {
+    if (!m_bLoggedIn) return false;
+    std::unique_lock lock(m_lock);
+
+    for (auto it = m_loadedChunks.begin(); it != m_loadedChunks.end(); ++it) {
+      if (it->x == pos.x && it->z == pos.z) return true;
+    }
+
+    return false;
   }
 
   bool updateWorldChunks(bool force) final {
@@ -258,7 +272,6 @@ class Player: public IPlayer {
       const auto diff = IntVector2 {it->x - currchunk_pos.x, it->z - currchunk_pos.z};
       const auto dist = std::sqrt((diff.x * diff.x) + (diff.z * diff.z));
       if (dist > m_trackDistance * 1.5) {
-        spdlog::trace("Unloading distant chunk Vec2({}, {}), distance: {}", it->x, it->z, dist);
         Packet::ToClient::PreChunk wdata_uc(*it, false);
         wdata_uc.sendTo(m_selfSock);
         it = m_loadedChunks.erase(it);
@@ -310,11 +323,10 @@ class Player: public IPlayer {
     for (int32_t cx = opos.x; cx <= dpos.x; ++cx) {
       for (int32_t cz = opos.z; cz <= dpos.z; ++cz) {
         IntVector2 chunkpos = {cx, cz};
-        if (isChunkAlreadyLoaded(chunkpos)) continue;
-        spdlog::trace("Loading chunk Vec2({}:{})", cx, cz);
+        if (isHoldingChunk(chunkpos)) continue;
 
         m_loadedChunks.push_back(chunkpos);
-        auto chunk = world.getChunk(chunkpos);
+        auto& chunk = world.getChunk(chunkpos);
 
         Packet::ToClient::PreChunk wdata_pc(chunkpos, true);
         if (!wdata_pc.sendTo(m_selfSock)) return false;
@@ -564,19 +576,7 @@ class Player: public IPlayer {
   }
 
   private:
-  bool isChunkAlreadyLoaded(const IntVector2& pos) {
-    std::unique_lock lock(m_lock);
-
-    for (auto it = m_loadedChunks.begin(); it != m_loadedChunks.end(); ++it) {
-      if (it->x == pos.x && it->z == pos.z) return true;
-    }
-
-    return false;
-  }
-
-  const int16_t m_maxHealth = 20;
-
-  bool                    m_bLoggedIn = false;
+  std::atomic<bool>       m_bLoggedIn = false;
   SlotId                  m_heldSlot  = 0;
   SafeSocket&             m_selfSock;
   int64_t                 m_nextHit       = 0;

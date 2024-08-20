@@ -129,8 +129,6 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
           linkedPlayer = dynamic_cast<IPlayer*>(accessEntityManager().AddEntity(createPlayer(ss)));
 
           linkedPlayer->doLoginProcess(uname);
-          linkedPlayer->setTime(accessWorld().getTime());
-          linkedPlayer->updateWorldChunks(true);
 
           BroadcastManager::chatToClients(std::format(L"{} joined the game", uname));
           spdlog::info("Player {} ({}) just spawned!", bname, addr.to_string());

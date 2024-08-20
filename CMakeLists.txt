@@ -45,6 +45,7 @@ add_executable(m173_server
   $<TARGET_OBJECTS:recipes>
   $<TARGET_OBJECTS:entity>
   $<TARGET_OBJECTS:containers>
+  $<TARGET_OBJECTS:mcregion>
   $<TARGET_OBJECTS:world>
   $<TARGET_OBJECTS:zlibpp>
   $<TARGET_OBJECTS:platform>

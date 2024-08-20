@@ -27,7 +27,7 @@ class NibbleArray {
     nibb         = (blockIndex & 1) == 0 ? Nibble(value, nibb.b) : Nibble(nibb.a, value);
   }
 
-  auto data() const { return m_data.data(); }
+  auto data() { return m_data.data(); }
 
   auto size() const { return m_data.size(); }
 

@@ -21,6 +21,28 @@ typedef int16_t  SlotId;
 
 struct IntVector2 {
   int32_t x, z;
+
+  bool operator==(const IntVector2& other) const { return x == other.x && z == other.z; }
+
+  struct HashFunction {
+    union UPack {
+      size_t hash;
+
+      struct {
+        int64_t x : 32;
+        int64_t z : 32;
+      };
+    };
+
+    size_t operator()(const IntVector2& pos) const {
+      UPack p;
+
+      p.x = pos.x;
+      p.z = pos.z;
+
+      return p.hash;
+    }
+  };
 };
 
 struct ByteVector3 {
@@ -96,3 +118,16 @@ enum ArmorType : int8_t {
   Pants,
   Boots,
 };
+
+template <typename T>
+T bswap(T val) {
+  T     retVal;
+  char* pVal    = (char*)&val;
+  char* pRetVal = (char*)&retVal;
+  int   size    = sizeof(T);
+  for (int i = 0; i < size; i++) {
+    pRetVal[size - 1 - i] = pVal[i];
+  }
+
+  return retVal;
+}

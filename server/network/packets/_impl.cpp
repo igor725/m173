@@ -63,7 +63,7 @@ SignUpdate::SignUpdate(const IntVector3& pos, const std::wstring& data): PacketW
   if (m_lineCount > 4) throw TooMuchSignLinesException();
 }
 
-MapChunk::MapChunk(const IntVector3& pos, const ByteVector3& size, Chunk* chunk): PacketWriter(Packet::IDs::MapChunk, 512) {
+MapChunk::MapChunk(const IntVector3& pos, const ByteVector3& size, Chunk& chunk): PacketWriter(Packet::IDs::MapChunk, 512) {
   writeInteger<int32_t>(pos.x);
   writeInteger<int16_t>(pos.y);
   writeInteger<int32_t>(pos.z);
@@ -86,16 +86,16 @@ MapChunk::MapChunk(const IntVector3& pos, const ByteVector3& size, Chunk* chunk)
     if (compr->getAvailableInput() == 0) {
       switch (cstate++) {
         case 0: { // First things first, send the blocks array
-          compr->setInput(chunk->m_blocks.data(), sizeof(chunk->m_blocks));
+          compr->setInput(chunk.m_blocks.data(), sizeof(chunk.m_blocks));
         } break;
         case 1: { // Now the meta for blocks
-          compr->setInput(chunk->m_meta.data(), sizeof(chunk->m_meta));
+          compr->setInput(chunk.m_meta.data(), sizeof(chunk.m_meta));
         } break;
         case 2: { // Aaand block light array, whatever it means
-          compr->setInput(chunk->m_light.data(), sizeof(chunk->m_light));
+          compr->setInput(chunk.m_light.data(), sizeof(chunk.m_light));
         } break;
         case 3: { // This one I don't even know
-          compr->setInput(chunk->m_sky.data(), sizeof(chunk->m_sky));
+          compr->setInput(chunk.m_sky.data(), sizeof(chunk.m_sky));
         } break;
       }
     }

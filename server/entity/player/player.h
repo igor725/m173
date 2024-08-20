@@ -22,7 +22,7 @@ class IPlayer: public EntityBase {
     HeldItem = 1 << 4,
   };
 
-  IPlayer(): EntityBase(EntityBase::Type::Player) {}
+  IPlayer(): EntityBase(EntityBase::Type::Player) { m_maxHealth = 20; }
 
   virtual ~IPlayer() = default;
 
@@ -47,6 +47,7 @@ class IPlayer: public EntityBase {
   /* Ingame world/entity manipualtions */
 
   virtual void updateEquipedItem(Equipment flags)    = 0;
+  virtual bool isHoldingChunk(const IntVector2& pos) = 0;
   virtual bool updateWorldChunks(bool force = false) = 0;
   virtual bool canHitEntity()                        = 0;
 
