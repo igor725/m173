@@ -127,7 +127,9 @@ class World: public IWorld {
       auto& pos   = it->first;
       auto& chunk = it->second;
 
+      lock.unlock();
       if (em.IterPlayers([&pos](IPlayer* ply) -> bool { return !ply->isHoldingChunk(pos); })) {
+        lock.lock();
         if ((chunk.unloadTimer -= delta) <= 0) {
           // No players in this chunk, so we can safely destroy it
           accessRegionManager().saveChunk(pos, chunk);
@@ -135,6 +137,7 @@ class World: public IWorld {
           continue;
         }
       } else {
+        lock.lock();
         chunk.unloadTimer = CHUNK_UNLOAD_TIMER_INIT;
       }
 

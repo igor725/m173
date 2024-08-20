@@ -51,12 +51,11 @@ class RegionFile: public IRegionFile {
     auto snum = fsize / uintptr_t(SECTOR_SIZE);
     m_sectorFree.resize(snum, true);
     m_sectorFree.at(0) = false; // Sector 0x0 is a offsets table
-    m_file.read(reinterpret_cast<char*>(m_offsets.data()), m_offsets.size());
+    m_file.read(reinterpret_cast<char*>(m_offsets.data()), m_offsets.size() * 4);
 
     uint32_t sec_count = 1;
     for (auto it = m_offsets.begin(); it != m_offsets.end(); ++it) {
-      auto offset = (*it);
-
+      auto offset     = (*it);
       auto secNum     = offset >> 8;
       auto secAlloced = offset & 255;
 
@@ -162,10 +161,8 @@ class RegionFile: public IRegionFile {
 
   void setOffset(const IntVector2& pos, uint32_t offset) {
     auto idx = getIndex(pos);
-
-    m_offsets[idx] = offset;
     m_file.seekp(idx * 4, std::ios::beg);
-    m_file.write((char*)&(m_offsets[idx]), 4);
+    m_file.write((char*)&(m_offsets[idx] = offset), 4);
     m_file.flush();
   }
 
