@@ -28,7 +28,7 @@ class UnsupportedCompression: public std::exception {
   UnsupportedCompression(CompressionType t) {
     static const char* types[5] = {"Unspecified", "GZipNBT", "ZlibNBT", "UncompressedNBT", "UncompressedChunk"};
 
-    m_what = std::format("Unsupported format ({}) passed to RegionFile reader!", types[t]);
+    m_what = std::format("Unsupported format ({}) passed to RegionFile reader!", types[t > 4 ? 0 : t]);
   }
 
   const char* what() const noexcept override { return m_what.c_str(); }
