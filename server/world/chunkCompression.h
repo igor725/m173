@@ -3,26 +3,21 @@
 #include "chunk.h"
 #include "zlibpp/zlibpp.h"
 
-class ChunkCompressor {
+class ChunkZlib {
   public:
-  ChunkCompressor(IZLibPP* compr, Chunk& chunk);
+  enum Type {
+    Unspecified,
+    Compressor,
+    Decompressor,
+  };
+
+  ChunkZlib(IZLibPP* compr, Chunk& chunk, Type t);
 
   bool feed();
 
   private:
-  Chunk&   m_chunk;
-  uint32_t m_state;
-  IZLibPP* m_compr;
-};
-
-class ChunkDecompressor {
-  public:
-  ChunkDecompressor(IZLibPP* compr, Chunk& chunk);
-
-  bool feed();
-
-  private:
-  Chunk&   m_chunk;
-  uint32_t m_state;
-  IZLibPP* m_compr;
+  Chunk&     m_chunk;
+  uint32_t   m_state;
+  IZLibPP*   m_compr;
+  const Type m_type;
 };

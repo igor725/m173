@@ -81,7 +81,7 @@ MapChunk::MapChunk(const IntVector3& pos, const ByteVector3& size, Chunk& chunk)
   auto acq   = cmp.acquire();
   auto compr = acq.get();
 
-  ChunkCompressor ccomp(compr, chunk);
+  ChunkZlib ccomp(compr, chunk, ChunkZlib::Type::Compressor);
 
   do {
     ccomp.feed();

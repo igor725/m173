@@ -194,7 +194,7 @@ class RegionFile: public IRegionFile {
 
     bool compr_done = false;
 
-    ChunkCompressor ccompr(worker, chunk);
+    ChunkZlib ccompr(worker, chunk, ChunkZlib::Type::Compressor);
 
     do {
       ccompr.feed();
@@ -257,7 +257,7 @@ class RegionFile: public IRegionFile {
 
         bool decomp_done = false;
 
-        ChunkDecompressor cdcomp(worker, chunk);
+        ChunkZlib cdcomp(worker, chunk, ChunkZlib::Type::Decompressor);
 
         do {
           if (worker->getAvailableInput() == 0) {
