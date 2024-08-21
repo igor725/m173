@@ -80,7 +80,9 @@ class EntityManager: public IEntityManager {
 
     for (auto it = m_loadedents.begin(); it != m_loadedents.end(); ++it) {
       if (auto entity = it->second.get()) {
+        lock.unlock();
         if (entity->getType() == EntityBase::Type::Player && !cb(dynamic_cast<IPlayer*>(entity))) return false;
+        lock.lock();
       }
     }
 
@@ -132,6 +134,7 @@ class EntityManager: public IEntityManager {
   void AddPlayerThread(std::thread&& thread, uint64_t ref) final {
     std::unique_lock lock(m_ptLock);
     m_playerThreads.emplace(std::make_pair(ref, std::move(thread)));
+    ++m_playersCount;
   }
 
   void RemovePlayerThread(uint64_t ref) final {
@@ -141,10 +144,13 @@ class EntityManager: public IEntityManager {
     for (auto it = m_playerThreads.begin(); it != m_playerThreads.end(); ++it) {
       if (it->first == ref) {
         it->second.canBeDestroyed = true;
+        --m_playersCount;
         return;
       }
     }
   }
+
+  uint32_t GetPlayersCount() const final { return m_playersCount; }
 
   void WaitPlayerThreads() {
     std::unique_lock lock(m_ptLock);
@@ -161,6 +167,8 @@ class EntityManager: public IEntityManager {
     std::thread thread;
     bool        canBeDestroyed;
   };
+
+  std::atomic<uint32_t> m_playersCount;
 
   std::thread          m_tickThread;
   std::recursive_mutex m_lock;

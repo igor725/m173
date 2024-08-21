@@ -4,6 +4,7 @@
 #include "blocks/block.h"
 #include "bmanager.h"
 #include "commands/handler.h"
+#include "config/config.h"
 #include "entity/manager.h"
 #include "entity/player/player.h"
 #include "ids.h"
@@ -86,9 +87,20 @@ class GenericKickException: public std::exception {
   std::string m_what;
 };
 
-ClientLoop::ClientLoop(sockpp::tcp_socket& sock, sockpp::inet_address& addr) {
-  static uint64_t playerRef = 0;
+static std::atomic<uint32_t> g_clientCount = 0;
 
+ClientLoop::ClientLoop(sockpp::tcp_socket& sock, sockpp::inet_address& addr) {
+  static uint64_t playerRef  = 0;
+  static uint32_t maxClients = accessConfig().getItem("bind.max_clients").getValue<uint32_t>();
+
+  if (g_clientCount >= maxClients) {
+    Packet::ToClient::PlayerKick wdata_kick(L"Server is full!");
+    wdata_kick.sendTo(sock);
+    sock.shutdown(SHUT_WR);
+    return;
+  }
+
+  ++g_clientCount;
   std::thread reader(ThreadLoop, std::move(sock), std::move(addr), ++playerRef);
   accessEntityManager().AddPlayerThread(std::move(reader), playerRef);
 }
@@ -412,4 +424,5 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
   spdlog::info("Client {} closed!", ss.addr());
 
   accessEntityManager().RemovePlayerThread(ref);
+  --g_clientCount;
 }

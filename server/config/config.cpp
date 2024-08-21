@@ -160,6 +160,7 @@ ConfigItem& Config::getItem(std::string_view name) {
 IConfig& accessConfig() {
   static Config inst(ConfigItemsList {
       {"logging.level", {"info"}},
+      {"bind.max_clients", {40u, 1u, 512u}},
       {"bind.port", {25565u, 0u, 65535u}},
       {"bind.queue_size", {4u, 1u, 128u}},
       {"chunk.load_distance", {10u, 1u, 80u}},

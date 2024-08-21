@@ -19,8 +19,9 @@ class IEntityManager {
   virtual bool IterPlayers(PlayerIterCallback cb)  = 0;
   virtual bool IterEntities(EntityIterCallback cb) = 0;
 
-  virtual void AddPlayerThread(std::thread&& thread, uint64_t ref) = 0;
-  virtual void RemovePlayerThread(uint64_t ref)                    = 0;
+  virtual void     AddPlayerThread(std::thread&& thread, uint64_t ref) = 0;
+  virtual void     RemovePlayerThread(uint64_t ref)                    = 0;
+  virtual uint32_t GetPlayersCount() const                             = 0;
 
   virtual EntityBase* AddEntity(std::unique_ptr<EntityBase>&& entity) = 0;
   virtual bool        RemoveEntity(EntityId id)                       = 0;
