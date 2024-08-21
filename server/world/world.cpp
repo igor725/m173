@@ -1,6 +1,7 @@
 #include "world.h"
 
 #include "entity/manager.h"
+#include "generators/glist.h"
 #include "items/item.h"
 #include "mcregion/mcregion.h"
 #include "network/packets/World.h"
@@ -17,7 +18,7 @@ class World: public IWorld {
   using vec2_map = std::unordered_map<IntVector2, T, IntVector2::HashFunction>;
 
   public:
-  World() {
+  World(int64_t seed): m_generator(createFlat(seed)) {
     m_tickThread = std::thread([this]() {
       Platform::SetCurrentThreadName("World ticker");
 
@@ -40,7 +41,7 @@ class World: public IWorld {
       }
     });
 
-    m_spawnPoint = {5, 16, 5};
+    m_generator->getSpawnPoint(m_spawnPoint);
   }
 
   virtual ~World() = default;
@@ -60,17 +61,7 @@ class World: public IWorld {
     auto& rm = accessRegionManager();
 
     if (!rm.loadChunk(pos, chunk)) {
-      chunk.m_light.fill(Nibble(15, 15)); // All fullbright for now
-      chunk.m_sky.fill(Nibble(15, 15));
-
-      for (int32_t x = 0; x < 16; ++x) {
-        for (int32_t y = 0; y < (m_spawnPoint.y - 2); ++y) {
-          for (int32_t z = 0; z < 16; ++z) {
-            chunk.m_blocks[chunk.getLocalIndex({x, y, z})] = y < 1 ? 7 : y < (m_spawnPoint.y - 3) ? 3 : 2;
-          }
-        }
-      }
-
+      m_generator->fillChunk(pos, chunk);
       rm.saveChunk(pos, chunk);
     }
 
@@ -159,7 +150,7 @@ class World: public IWorld {
 
   int64_t getTime() const final { return m_wtime; }
 
-  int64_t getSeed() const final { return m_seed; }
+  int64_t getSeed() const final { return m_generator->getSeed(); }
 
   size_t getChunksCount() final {
     std::unique_lock lock(m_accChunks);
@@ -175,13 +166,14 @@ class World: public IWorld {
   std::recursive_mutex m_accChunks;
   std::thread          m_tickThread;
 
+  std::unique_ptr<IGenerator> m_generator;
+
   IntVector3 m_spawnPoint;
-  int64_t    m_seed   = 0;
   int64_t    m_wtime  = 0;
   int64_t    m_witime = 0;
 };
 
 IWorld& accessWorld() {
-  static World inst;
+  static World inst(0);
   return inst;
 }
