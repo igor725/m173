@@ -15,9 +15,10 @@
 namespace {
 typedef uint32_t RegOff;
 
-constexpr uint32_t SECTOR_SIZE       = 4096;
-constexpr uint32_t OFFSET_TAB_SZ     = (SECTOR_SIZE / sizeof(RegOff));
-constexpr uint32_t START_COMP_BUF_SZ = 512;
+constexpr uint32_t SECTOR_SIZE            = 4096;
+constexpr uint32_t OFFSET_TAB_SZ          = (SECTOR_SIZE / sizeof(RegOff));
+constexpr uint32_t START_COMP_BUF_SZ      = 512;
+constexpr uint32_t MAX_SECTORS_PER_OFFSET = 0xff;
 
 enum CompressionType : uint8_t {
   Unspecified,
@@ -102,7 +103,7 @@ class RegionFile: public IRegionFile {
     for (auto it = m_offsets.begin(); it != m_offsets.end(); ++it) {
       auto offset     = (*it);
       auto secNum     = offset >> 8;
-      auto secAlloced = offset & 255;
+      auto secAlloced = offset & MAX_SECTORS_PER_OFFSET;
 
       if (offset > 0 && (secNum + secAlloced) <= m_sectorFree.size()) changeFree(secNum, secAlloced, false);
     }
@@ -122,11 +123,11 @@ class RegionFile: public IRegionFile {
 
     auto     offset       = m_offsets[getIndex(pos)];
     uint32_t sectorNum    = offset >> 8;
-    uint32_t sectorsAlloc = offset & 0xff;
+    uint32_t sectorsAlloc = offset & MAX_SECTORS_PER_OFFSET;
     uint32_t comprSize    = compressChunk(chunk);
     uint32_t sectorsNeed  = comprSize / SECTOR_SIZE + 1;
 
-    if (sectorsNeed >= 256) return false;
+    if (sectorsNeed > MAX_SECTORS_PER_OFFSET) return false;
 
     if (sectorNum != 0 && sectorsAlloc == sectorsNeed) {
       return writeComprDataToSector(sectorNum, comprSize);
