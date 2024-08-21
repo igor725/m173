@@ -2,6 +2,7 @@
 
 #include "helper.h"
 
+#include <array>
 #include <cstddef>
 
 struct Nibble {

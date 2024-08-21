@@ -209,6 +209,8 @@ class RegionFile: public IRegionFile {
         case IZLibPP::Done: {
           compr_done = true;
         } break;
+
+        default: break;
       }
     } while (!compr_done);
 
