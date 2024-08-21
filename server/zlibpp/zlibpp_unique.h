@@ -22,13 +22,16 @@ private:
     UniqueZlibPP& m_cmp;
   };
 
+  friend class ZlibPPAcquire;
+
   UniqueZlibPP(std::unique_ptr<IZLibPP> compr): m_compr(std::move(compr)) {}
 
+  ZlibPPAcquire acquire() { return ZlibPPAcquire(*this, m_compr.get()); }
+
+  protected:
   void lock() { m_mutex.lock(); }
 
   void unlock() { m_mutex.unlock(); }
-
-  ZlibPPAcquire acquire() { return ZlibPPAcquire(*this, m_compr.get()); }
 
   private:
   std::mutex               m_mutex;
