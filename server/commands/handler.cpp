@@ -71,8 +71,7 @@ class CommandHandler: public ICommandHandler {
     for (auto it = m_commands.begin(); it != m_commands.end(); ++it) {
       if (pstart-- > 0) continue;
       if (perpage-- < 1) break;
-      auto cmd = *it;
-      out += std::format(L"\n  \u00a7e/{}\u00a7f - {}", cmd->getName(), cmd->getHelp());
+      out += std::format(L"\n  \u00a7e/{}\u00a7f - {}", (*it)->getName(), (*it)->getHelp());
     }
   }
 
