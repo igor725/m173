@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <format>
 #include <fstream>
+#include <spdlog/spdlog.h>
 #include <string>
 #include <vector>
 
@@ -64,6 +65,7 @@ class RegionFile: public IRegionFile {
   public:
   RegionFile(const std::string& fname): m_lastAccess(), m_offsets({0}) {
     if (!std::filesystem::exists(fname)) {
+      spdlog::trace("No RegionFile({}) found, creating an empty one...", fname);
       std::filesystem::path fpath(fname);
       fpath.remove_filename();
       std::filesystem::create_directory(fpath);
@@ -119,6 +121,7 @@ class RegionFile: public IRegionFile {
   }
 
   bool writeChunk(const IntVector2& pos, Chunk& chunk) final {
+    spdlog::trace("RegionFile->writeChunk(Vec2({},{}), {})", pos.x, pos.z, (void*)&chunk);
     m_lastAccess = std::chrono::system_clock::now();
 
     auto     offset       = m_offsets[getIndex(pos)];
@@ -224,7 +227,7 @@ class RegionFile: public IRegionFile {
     return true;
   }
 
-  bool writeToSector(uint32_t snum, Chunk& chunk) { // uncompressed writing, do not use! Region files big af
+  bool writeToSector(uint32_t snum, Chunk& chunk) { // uncompressed writing, do not use! Region files will be big af
     moveWriteCursorToSector(snum);
     PayloadHeader hdr = {sizeof(Chunk), CompressionType::UncompressedChunk};
     m_file.write(reinterpret_cast<const char*>(&hdr), sizeof(PayloadHeader));
@@ -238,7 +241,8 @@ class RegionFile: public IRegionFile {
 
   void moveWriteCursorToSector(uint32_t snum) { m_file.seekp(snum * SECTOR_SIZE, std::ios::beg); }
 
-  bool readFromSector(uint32_t snum, Chunk& chunk) { // todo decompression
+  bool readFromSector(uint32_t snum, Chunk& chunk) {
+    spdlog::trace("RegionFile->readFromSector({}, {})", snum, (void*)&chunk);
     m_file.seekg(snum * SECTOR_SIZE, std::ios::beg);
     PayloadHeader hdr;
     m_file.read(reinterpret_cast<char*>(&hdr), sizeof(PayloadHeader));
@@ -292,6 +296,7 @@ class RegionFile: public IRegionFile {
   static uint32_t getIndex(const IntVector2& pos) { return (pos.x & 31) + (pos.z & 31) * 32; }
 
   void setOffset(const IntVector2& pos, RegOff offset) {
+    spdlog::trace("RegionFile->setOffset(Vec2({}, {}), {})", pos.x, pos.z, offset);
     auto idx = getIndex(pos);
     m_file.seekp(idx * sizeof(RegOff), std::ios::beg);
     m_file.write((char*)&(m_offsets[idx] = offset), sizeof(RegOff));
