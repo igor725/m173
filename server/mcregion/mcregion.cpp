@@ -39,7 +39,7 @@ class MCRegion: public IMCRegion {
         ++it;
       }
 
-      auto   rfile = createRegionFile(std::format("regions/r.{}.{}.mcr", pos.x, pos.z));
+      auto   rfile = createRegionFile(std::format("regions/r.{}.{}.mcr0", pos.x, pos.z));
       auto&& f     = m_files.emplace(std::make_pair(pos, std::move(rfile)));
 
       return *f.first->second;
