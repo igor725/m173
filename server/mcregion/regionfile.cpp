@@ -77,10 +77,7 @@ class RegionFile: public IRegionFile {
 
     if (fsize < SECTOR_SIZE) {
       m_file.seekp(0, std::ios::beg);
-      RegOff empty = 0;
-      for (int i = 0; i < OFFSET_TAB_SZ; ++i) {
-        m_file.write(reinterpret_cast<char*>(&empty), sizeof(RegOff));
-      }
+      m_file.write((char*)m_offsets.data(), m_offsets.size() * sizeof(RegOff));
       fsize = SECTOR_SIZE;
     }
 

@@ -395,8 +395,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
     }
   } catch (std::exception& ex) {
     std::string_view exwhat(ex.what());
-
-    std::wstring reason(exwhat.begin(), exwhat.end());
+    std::wstring     reason(exwhat.begin(), exwhat.end());
 
     Packet::ToClient::PlayerKick wdata(std::format(L"\u00a7cClientLoop exception\u00a7f: {}", reason));
     wdata.sendTo(ss);
