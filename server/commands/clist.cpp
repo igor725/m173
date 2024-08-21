@@ -6,12 +6,30 @@
 #include <spdlog/spdlog.h>
 #include <sstream>
 
+class Help: public Command {
+  public:
+  Help(): Command(L"help", L"Shows this message") {}
+
+  bool execute(IPlayer*, std::vector<std::wstring_view>& args, std::wstring& out) final {
+    int32_t page = 0;
+
+    if (args.size() > 0) {
+      std::wstringstream ss;
+      ss << args[0];
+      ss >> page;
+      --page;
+    }
+
+    accessCommandHandler().genHelp(page, 10, out);
+    return true;
+  }
+};
+
 class Stop: public Command {
   public:
   Stop(): Command(L"stop", L"Stops the server") {}
 
   bool execute(IPlayer*, std::vector<std::wstring_view>&, std::wstring& out) final {
-    out = L"Stopping the server...";
     RunManager::stop();
     return true;
   }
@@ -121,6 +139,7 @@ class WInfo: public Command {
   }
 };
 
+static Help   help_reg;
 static Stop   stop_reg;
 static Killme killme_reg;
 static Hurtme hurtme_reg;

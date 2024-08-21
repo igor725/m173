@@ -15,6 +15,8 @@ class ICommandHandler {
   virtual bool unregisterCommand(Command* cmd) = 0;
 
   virtual bool execute(IPlayer* caller, std::wstring command, std::wstring& out) = 0;
+
+  virtual void genHelp(int32_t page, int32_t perpage, std::wstring& out) = 0;
 };
 
 ICommandHandler& accessCommandHandler();

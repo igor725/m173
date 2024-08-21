@@ -61,6 +61,21 @@ class CommandHandler: public ICommandHandler {
     return true;
   }
 
+  void genHelp(int32_t page, int32_t perpage, std::wstring& out) final {
+    auto pagecnt = int32_t(m_commands.size()) / perpage;
+    page         = std::min(pagecnt, std::max(0, page));
+
+    int32_t pstart = page * perpage;
+
+    out = std::format(L"Server commands help (page {}/{}):", page + 1, pagecnt + 1);
+    for (auto it = m_commands.begin(); it != m_commands.end(); ++it) {
+      if (pstart-- > 0) continue;
+      if (perpage-- < 1) break;
+      auto cmd = *it;
+      out += std::format(L"\n  \u00a7e/{}\u00a7f - {}", cmd->getName(), cmd->getHelp());
+    }
+  }
+
   private:
   std::vector<Command*> m_commands;
 };
