@@ -1,6 +1,7 @@
 #include "handler.h"
 #include "items/item.h"
 #include "runmanager/runmanager.h"
+#include "uiwindow/list/workbench.h"
 #include "world/world.h"
 
 #include <spdlog/spdlog.h>
@@ -139,6 +140,16 @@ class WInfo: public Command {
   }
 };
 
+class Craft: public Command {
+  public:
+  Craft(): Command(L"craft", L"Opens the crafting window", true) {}
+
+  bool execute(IPlayer* caller, std::vector<std::wstring_view>&, std::wstring&) final {
+    caller->createWindow(std::make_unique<WorkbenchWindow>(&caller->getStorage()));
+    return true;
+  }
+};
+
 static Help   help_reg;
 static Stop   stop_reg;
 static Killme killme_reg;
@@ -146,3 +157,4 @@ static Hurtme hurtme_reg;
 static Hat    hat_reg;
 static Give   give_reg;
 static WInfo  winfo_reg;
+static Craft  craft_reg;
