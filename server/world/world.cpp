@@ -85,8 +85,8 @@ class World: public IWorld {
     if (pos.y < 0 || pos.y > CHUNK_DIMS.y) return false;
     auto& chunk = getChunk({pos.x >> 4, pos.z >> 4});
     if (!canBlockBePlacedHere(pos, id)) return false;
-    chunk.m_blocks[chunk.getWorldIndex(pos)] = id;
-    chunk.m_meta.setNibble(chunk.getLocalIndex(chunk.toLocalChunkCoords(pos)), meta);
+    chunk.m_blocks[chunk.getBlockOffset(pos)] = id;
+    chunk.m_meta.setNibble(chunk.getBlockOffset(chunk.toLocalChunkCoords(pos)), meta);
     return true;
   }
 
@@ -107,8 +107,8 @@ class World: public IWorld {
   BlockId getBlock(const IntVector3& pos, int8_t* meta = nullptr) final {
     if (pos.y < 0 || pos.y > CHUNK_DIMS.y) return false;
     auto& chunk = getChunk({pos.x >> 4, pos.z >> 4});
-    if (meta != nullptr) *meta = chunk.m_meta.getNibble(chunk.getLocalIndex(chunk.toLocalChunkCoords(pos)));
-    return chunk.m_blocks[chunk.getWorldIndex(pos)];
+    if (meta != nullptr) *meta = chunk.m_meta.getNibble(chunk.getBlockOffset(chunk.toLocalChunkCoords(pos)));
+    return chunk.m_blocks[chunk.getBlockOffset(pos)];
   }
 
   void freeUnusedChunks(int64_t delta) {

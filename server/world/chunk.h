@@ -18,9 +18,9 @@ struct Chunk { // todo unique access here
 
   int32_t unloadTimer = CHUNK_UNLOAD_TIMER_INIT;
 
-  static inline int32_t getLocalIndex(const IntVector3& pos) { return pos.y + (pos.z * (CHUNK_DIMS.y + 1)) + (pos.x * (CHUNK_DIMS.y + 1) * 16); }
-
-  static inline int32_t getWorldIndex(const IntVector3& pos) { return pos.y + ((pos.z & 15) * (CHUNK_DIMS.y + 1)) + ((pos.x & 15) * (CHUNK_DIMS.y + 1) * 16); }
+  static inline int32_t getBlockOffset(const IntVector3& pos) {
+    return pos.y + ((pos.z & CHUNK_DIMS.z) * (CHUNK_DIMS.y + 1)) + ((pos.x & CHUNK_DIMS.x) * (CHUNK_DIMS.y + 1) * (CHUNK_DIMS.z + 1));
+  }
 
   static inline IntVector2 toChunkCoords(const IntVector2& pos) { return {pos.x >> 4, pos.z >> 4}; }
 

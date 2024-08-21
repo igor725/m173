@@ -15,7 +15,7 @@ void FlatGen::fillChunk(const IntVector2& pos, Chunk& chunk) {
   for (int32_t x = 0; x < 16; ++x) {
     for (int32_t y = 0; y < (m_spawnPoint.y - 2); ++y) {
       for (int32_t z = 0; z < 16; ++z) {
-        chunk.m_blocks[chunk.getLocalIndex({x, y, z})] = y < 1 ? 7 : y < (m_spawnPoint.y - 3) ? 3 : 2;
+        chunk.m_blocks[chunk.getBlockOffset({x, y, z})] = y < 1 ? 7 : y < (m_spawnPoint.y - 3) ? 3 : 2;
       }
     }
   }
