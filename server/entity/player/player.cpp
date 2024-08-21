@@ -31,7 +31,7 @@ class Player: public IPlayer {
   ~Player() {
     auto& em = accessEntityManager();
 
-    std::unique_lock lock(m_lock);
+    std::unique_lock lock(m_lockEntities);
     for (auto it = m_trackedEntities.begin(); it != m_trackedEntities.end(); ++it) {
       auto ent = em.GetEntity(*it);
       if (ent != nullptr && ent->getType() == EntityBase::Player) {
@@ -244,7 +244,7 @@ class Player: public IPlayer {
 
   bool isHoldingChunk(const IntVector2& pos) {
     if (!m_bLoggedIn) return false;
-    std::unique_lock lock(m_lock);
+    std::unique_lock lock(m_lockChunks);
 
     for (auto it = m_loadedChunks.begin(); it != m_loadedChunks.end(); ++it) {
       if (it->x == pos.x && it->z == pos.z) return true;
@@ -254,7 +254,7 @@ class Player: public IPlayer {
   }
 
   bool updateWorldChunks(bool force) final {
-    std::unique_lock lock(m_lock);
+    std::unique_lock lock(m_lockChunks);
 
     const auto prevchunk_pos = Chunk::toChunkCoords(IntVector2 {
         static_cast<int32_t>(std::round(m_prevPosition.x)),
@@ -336,12 +336,11 @@ class Player: public IPlayer {
       }
     }
 
-    lock.unlock(); // Avoiding deadlock on mutual tracking
-    return updateTrackedEntities();
+    return true;
   }
 
   bool isTrackingEntity(EntityId eid) final {
-    std::unique_lock lock(m_lock);
+    std::unique_lock lock(m_lockEntities);
 
     for (auto it = m_trackedEntities.begin(); it != m_trackedEntities.end(); ++it) {
       if (*it == eid) return true;
@@ -354,7 +353,7 @@ class Player: public IPlayer {
     if (!m_bLoggedIn || ent == this || !isEntityCloseEnough(ent)) return false;
 
     {
-      std::unique_lock lock(m_lock);
+      std::unique_lock lock(m_lockEntities);
 
       auto eid = ent->getEntityId();
 
@@ -409,7 +408,7 @@ class Player: public IPlayer {
 
   bool removeTrackedEntity(EntityBase* ent) final {
     if (ent == this) return false;
-    std::unique_lock lock(m_lock);
+    std::unique_lock lock(m_lockEntities);
 
     auto eid = ent->getEntityId();
 
@@ -426,7 +425,7 @@ class Player: public IPlayer {
   void sendToTrackedPlayers(PacketWriter& pw, bool self) final {
     if (self) pw.sendTo(m_selfSock);
 
-    std::unique_lock lock(m_lock);
+    std::unique_lock lock(m_lockEntities);
 
     auto& em = accessEntityManager();
 
@@ -455,7 +454,7 @@ class Player: public IPlayer {
     auto& em = accessEntityManager();
 
     {
-      std::unique_lock lock(m_lock);
+      std::unique_lock lock(m_lockEntities);
 
       for (auto it = m_trackedEntities.begin(); it != m_trackedEntities.end();) {
         auto ent = em.GetEntity(*it);
@@ -587,7 +586,8 @@ class Player: public IPlayer {
   std::wstring            m_name;
   std::vector<IntVector2> m_loadedChunks;
   std::vector<EntityId>   m_trackedEntities;
-  std::recursive_mutex    m_lock;
+  std::recursive_mutex    m_lockEntities;
+  std::recursive_mutex    m_lockChunks;
   PlayerStorage           m_storage;
   PlayerContainer         m_container;
 

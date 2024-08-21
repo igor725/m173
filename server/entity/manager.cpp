@@ -80,9 +80,7 @@ class EntityManager: public IEntityManager {
 
     for (auto it = m_loadedents.begin(); it != m_loadedents.end(); ++it) {
       if (auto entity = it->second.get()) {
-        lock.unlock();
         if (entity->getType() == EntityBase::Type::Player && !cb(dynamic_cast<IPlayer*>(entity))) return false;
-        lock.lock();
       }
     }
 

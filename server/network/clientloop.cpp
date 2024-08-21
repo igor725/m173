@@ -367,7 +367,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
 
       if (linkedPlayer) {
         if (posUpdated) {
-          linkedPlayer->updateWorldChunks();
+          if (linkedPlayer->updateWorldChunks()) linkedPlayer->updateTrackedEntities();
 
           /**
            * @brief The original server sents teleport packet to the clients every
