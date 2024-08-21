@@ -1,5 +1,8 @@
 #include "regionfile.h"
 
+#include "world/chunkCompression.h"
+#include "zlibpp/zlibpp_unique.h"
+
 #include <array>
 #include <chrono>
 #include <exception>
@@ -12,8 +15,9 @@
 namespace {
 typedef uint32_t RegOff;
 
-constexpr uint32_t SECTOR_SIZE   = 4096;
-constexpr uint32_t OFFSET_TAB_SZ = (SECTOR_SIZE / sizeof(RegOff));
+constexpr uint32_t SECTOR_SIZE       = 4096;
+constexpr uint32_t OFFSET_TAB_SZ     = (SECTOR_SIZE / sizeof(RegOff));
+constexpr uint32_t START_COMP_BUF_SZ = 512;
 
 enum CompressionType : uint8_t {
   Unspecified,
@@ -21,14 +25,15 @@ enum CompressionType : uint8_t {
   ZlibNBT           = 2,
   UncompressedNBT   = 3,
   UncompressedChunk = 4,
+  Zlib              = 5,
 };
 
 class UnsupportedCompression: public std::exception {
   public:
   UnsupportedCompression(CompressionType t) {
-    static const char* types[5] = {"Unspecified", "GZipNBT", "ZlibNBT", "UncompressedNBT", "UncompressedChunk"};
+    static std::array<const char*, 6> types = {"Unspecified", "GZipNBT", "ZlibNBT", "UncompressedNBT", "UncompressedChunk", "Zlib"};
 
-    m_what = std::format("Unsupported format ({}) passed to RegionFile reader!", types[t > 4 ? 0 : t]);
+    m_what = std::format("Unsupported format ({}) passed to RegionFile reader!", types[t < types.size() ? t : 0]);
   }
 
   const char* what() const noexcept override { return m_what.c_str(); }
@@ -45,6 +50,9 @@ struct PayloadHeader {
 };
 
 #pragma pack(pop)
+
+static UniqueZlibPP g_compr(createCompressor());
+static UniqueZlibPP g_decom(createDecompressor());
 } // namespace
 
 class InvalidRegionFileException;
@@ -55,6 +63,9 @@ class RegionFile: public IRegionFile {
   public:
   RegionFile(const std::string& fname): m_lastAccess(), m_offsets({0}) {
     if (!std::filesystem::exists(fname)) {
+      std::filesystem::path fpath(fname);
+      fpath.remove_filename();
+      std::filesystem::create_directory(fpath);
       std::ofstream(fname).close();
     }
 
@@ -115,12 +126,13 @@ class RegionFile: public IRegionFile {
     auto     offset       = m_offsets[getIndex(pos)];
     uint32_t sectorNum    = offset >> 8;
     uint32_t sectorsAlloc = offset & 0xff;
-    uint32_t sectorsNeed  = (sizeof(Chunk) + sizeof(PayloadHeader)) / SECTOR_SIZE + 1;
+    uint32_t comprSize    = compressChunk(chunk);
+    uint32_t sectorsNeed  = comprSize / SECTOR_SIZE + 1;
 
     if (sectorsNeed >= 256) return false;
 
     if (sectorNum != 0 && sectorsAlloc == sectorsNeed) {
-      return writeToSector(sectorNum, chunk);
+      return writeComprDataToSector(sectorNum, comprSize);
     } else {
       // Free now unused sectors
       changeFree(sectorNum, sectorsAlloc, true);
@@ -154,7 +166,7 @@ class RegionFile: public IRegionFile {
         }
       }
 
-      if (!writeToSector(sectorNum, chunk)) return false;
+      if (!writeComprDataToSector(sectorNum, comprSize)) return false;
       setOffset(pos, (sectorNum << 8) | sectorsNeed);
       return true;
     }
@@ -175,8 +187,45 @@ class RegionFile: public IRegionFile {
     std::fill(it, it + length, value);
   }
 
-  bool writeToSector(uint32_t snum, Chunk& chunk) { // todo compression
-    m_file.seekp(snum * SECTOR_SIZE, std::ios::beg);
+  int32_t compressChunk(Chunk& chunk) {
+    auto compacq = g_compr.acquire();
+    auto worker  = compacq.get();
+
+    m_compBuffer.erase(m_compBuffer.begin(), m_compBuffer.end());
+    worker->setOutput(m_compBuffer.data(), m_compBuffer.size());
+
+    bool compr_done = false;
+
+    ChunkCompressor ccompr(worker, chunk);
+
+    do {
+      ccompr.feed();
+
+      switch (worker->tick()) {
+        case IZLibPP::MoreOut: {
+          m_compBuffer.resize(m_compBuffer.size() + START_COMP_BUF_SZ);
+          worker->setOutput(m_compBuffer.data(), m_compBuffer.size());
+        } break;
+        case IZLibPP::Done: {
+          compr_done = true;
+        } break;
+      }
+    } while (!compr_done);
+
+    return worker->getTotalOutput();
+  }
+
+  bool writeComprDataToSector(uint32_t snum, uint32_t length) {
+    PayloadHeader hdr = {length, CompressionType::Zlib};
+    moveWriteCursorToSector(snum);
+    m_file.write(reinterpret_cast<const char*>(&hdr), sizeof(PayloadHeader));
+    m_file.write(m_compBuffer.data(), length);
+    m_file.flush();
+    return true;
+  }
+
+  bool writeToSector(uint32_t snum, Chunk& chunk) { // uncompressed writing, do not use! Region files big af
+    moveWriteCursorToSector(snum);
     PayloadHeader hdr = {sizeof(Chunk), CompressionType::UncompressedChunk};
     m_file.write(reinterpret_cast<const char*>(&hdr), sizeof(PayloadHeader));
     m_file.write(reinterpret_cast<const char*>(chunk.m_blocks.data()), chunk.m_blocks.size());
@@ -186,6 +235,8 @@ class RegionFile: public IRegionFile {
     m_file.flush();
     return true;
   }
+
+  void moveWriteCursorToSector(uint32_t snum) { m_file.seekp(snum * SECTOR_SIZE, std::ios::beg); }
 
   bool readFromSector(uint32_t snum, Chunk& chunk) { // todo decompression
     m_file.seekg(snum * SECTOR_SIZE, std::ios::beg);
@@ -197,6 +248,38 @@ class RegionFile: public IRegionFile {
         m_file.read(reinterpret_cast<char*>(chunk.m_meta.data()), chunk.m_meta.size());
         m_file.read(reinterpret_cast<char*>(chunk.m_light.data()), chunk.m_light.size());
         m_file.read(reinterpret_cast<char*>(chunk.m_sky.data()), chunk.m_sky.size());
+      } break;
+      case CompressionType::Zlib: {
+        auto dacq   = g_decom.acquire();
+        auto worker = dacq.get();
+
+        if (m_compBuffer.size() < START_COMP_BUF_SZ) m_compBuffer.resize(START_COMP_BUF_SZ);
+
+        bool decomp_done = false;
+
+        ChunkDecompressor cdcomp(worker, chunk);
+
+        do {
+          if (worker->getAvailableInput() == 0) {
+            auto rd = std::min(uint32_t(m_compBuffer.size()), hdr.length);
+            if (rd > 0) {
+              hdr.length -= rd;
+              m_file.read(m_compBuffer.data(), rd);
+              worker->setInput(m_compBuffer.data(), rd);
+            }
+          }
+
+          switch (worker->tick()) {
+            case IZLibPP::MoreOut: {
+              cdcomp.feed();
+            } break;
+            case IZLibPP::Done: {
+              decomp_done = true;
+            } break;
+
+            default: break;
+          }
+        } while (!decomp_done);
       } break;
 
       default: {
@@ -219,6 +302,7 @@ class RegionFile: public IRegionFile {
   std::vector<bool>                     m_sectorFree;
   std::array<RegOff, OFFSET_TAB_SZ>     m_offsets;
   std::fstream                          m_file;
+  std::vector<char>                     m_compBuffer;
 };
 
 std::unique_ptr<IRegionFile> createRegionFile(const std::string& fname) {

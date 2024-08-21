@@ -37,12 +37,16 @@ class Decompressor: public IZLibPP {
 
   State tick() final {
     if (m_state == Idle) m_state = InProcess;
+    if (m_stream.avail_out == 0 && m_state != Done) return MoreOut;
 
     int ret;
     m_lastTotal = m_stream.total_out;
     switch (ret = inflate(&m_stream, m_stream.avail_in == 0 ? Z_FINISH : Z_NO_FLUSH)) {
       case Z_OK: {
         if (m_stream.avail_out == 0) return MoreOut;
+      } break;
+      case Z_STREAM_END: {
+        m_state = Done;
       } break;
 
       default: throw ZlibException(ret);
@@ -108,6 +112,7 @@ class Compressor: public IZLibPP {
       default: break;
     }
 
+    if (m_stream.avail_out == 0 && m_state != Done) return MoreOut;
     if (m_stream.avail_in == 0 && m_state == InProcess) m_state = Finishing;
 
     int ret;

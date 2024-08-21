@@ -2,6 +2,7 @@
 #include "Handshake.h"
 #include "Window.h"
 #include "World.h"
+#include "world/chunkCompression.h"
 #include "zlibpp/zlibpp_unique.h"
 
 #include <exception>
@@ -73,8 +74,6 @@ MapChunk::MapChunk(const IntVector3& pos, const ByteVector3& size, Chunk& chunk)
   auto csize_pos = m_data.size();
   writeInteger<int32_t>(0);
 
-  int32_t cstate = 0;
-
   std::array<char, 256> buffer;
 
   bool compr_done = false;
@@ -82,23 +81,10 @@ MapChunk::MapChunk(const IntVector3& pos, const ByteVector3& size, Chunk& chunk)
   auto acq   = cmp.acquire();
   auto compr = acq.get();
 
+  ChunkCompressor ccomp(compr, chunk);
+
   do {
-    if (compr->getAvailableInput() == 0) {
-      switch (cstate++) {
-        case 0: { // First things first, send the blocks array
-          compr->setInput(chunk.m_blocks.data(), sizeof(chunk.m_blocks));
-        } break;
-        case 1: { // Now the meta for blocks
-          compr->setInput(chunk.m_meta.data(), sizeof(chunk.m_meta));
-        } break;
-        case 2: { // Aaand block light array, whatever it means
-          compr->setInput(chunk.m_light.data(), sizeof(chunk.m_light));
-        } break;
-        case 3: { // This one I don't even know
-          compr->setInput(chunk.m_sky.data(), sizeof(chunk.m_sky));
-        } break;
-      }
-    }
+    ccomp.feed();
 
     switch (compr->tick()) {
       case IZLibPP::MoreOut: {
