@@ -336,7 +336,7 @@ class Player: public IPlayer {
       }
     }
 
-    return true;
+    return updateTrackedEntities();
   }
 
   bool isTrackingEntity(EntityId eid) final {

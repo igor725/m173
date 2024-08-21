@@ -117,7 +117,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
 
   auto nextPing = joinTime;
 
-  int32_t posUpdateNum = 0;
+  int32_t posUpdateNum = 399;
 
   try {
     PacketId id;
