@@ -24,5 +24,5 @@ struct Chunk { // todo unique access here
 
   static inline IntVector2 toChunkCoords(const IntVector2& pos) { return {pos.x >> 4, pos.z >> 4}; }
 
-  static inline IntVector3 toLocalChunkCoords(const IntVector3& pos) { return {pos.x & 15, pos.y, pos.z & 15}; }
+  static inline IntVector3 toLocalChunkCoords(const IntVector3& pos) { return {pos.x & CHUNK_DIMS.x, pos.y, pos.z & CHUNK_DIMS.z}; }
 };
