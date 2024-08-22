@@ -7,15 +7,45 @@
 #include "runmanager/runmanager.h"
 #include "world/world.h"
 
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <sockpp/tcp_acceptor.h>
 #include <spdlog/spdlog.h>
+
+namespace {
+constexpr const char* LOCKFILE = "server.lock";
+}
 
 int main(int argc, char* argv[]) {
   Platform::RegisterCtrlCHandler([]() {
     std::cout << "\r";
     RunManager::stop();
   });
+
+  if (std::filesystem::exists(LOCKFILE)) {
+    spdlog::warn("***************************************");
+    spdlog::warn("Oh no! Something bad happened since {} file is still present!", LOCKFILE);
+    spdlog::warn("Your server may misbehave because of that.");
+    spdlog::warn("This warning usually means that you closed the server by terminating the process, which is not good at all.");
+    spdlog::warn("This way you could loose some data, or the whole world in worst case scenario!");
+    spdlog::warn("Please finish the server's work using Ctrl+C combination or /stop command.");
+    spdlog::warn("***************************************");
+    try {
+      std::filesystem::remove(LOCKFILE);
+    } catch (std::filesystem::filesystem_error& ex) {
+      RunManager::stop();
+      spdlog::critical("Failed to remove {} file!", LOCKFILE);
+      spdlog::warn("Probably you have another instance of the same server running.");
+      return 1;
+    }
+  }
+
+  std::ofstream locker(LOCKFILE);
+  if (!locker.is_open()) {
+    spdlog::error("Failed to open {} file!", LOCKFILE);
+    return 2;
+  }
 
   spdlog::info("Initializing libraries...");
   sockpp::initialize();
@@ -108,6 +138,15 @@ int main(int argc, char* argv[]) {
   spdlog::info("Finishing the EntityManager routines...");
   accessEntityManager().finish();
   spdlog::info("No issues found, closing the process now...");
+
+  locker.close();
+  try {
+    std::filesystem::remove(LOCKFILE);
+  } catch (std::filesystem::filesystem_error& ex) {
+    spdlog::warn("Failed to remove {} file for some reason!", LOCKFILE);
+    spdlog::warn("The next server run will be followed by warning");
+    return 1;
+  }
 
   return 0;
 }

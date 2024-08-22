@@ -40,7 +40,7 @@ class Killme: public Command {
   public:
   Killme(): Command(L"killme", L"Kills you", true) {}
 
-  bool execute(IPlayer* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
+  bool execute(IPlayer* caller, std::vector<std::wstring_view>&, std::wstring&) final {
     caller->setHealth(0);
     return true;
   }
@@ -57,6 +57,7 @@ class Hurtme: public Command {
     ss >> hcnt;
 
     caller->setHealth(caller->getHealth() - hcnt);
+    out = std::format(L"Your current health level: {}", caller->getHealth());
     return true;
   }
 };
