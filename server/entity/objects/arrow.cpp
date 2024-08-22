@@ -1,7 +1,5 @@
 #include "arrow.h"
 
-#include "network/packets/Entity.h"
-
 class Arrow: public IArrow {
   public:
   Arrow(const DoubleVector3& pos, EntityId owner, const DoubleVector3& motion): IArrow(owner, motion) { m_position = pos, m_prevPosition = pos; }

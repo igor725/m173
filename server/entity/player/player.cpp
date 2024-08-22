@@ -256,10 +256,10 @@ class Player: public IPlayer {
   void unloadDistantChunks(bool all = false) {
     for (auto it = m_loadedChunks.begin(); it != m_loadedChunks.end();) {
       if (all == false) {
-        const auto diff = IntVector2 {
+        const auto diff = Chunk::toChunkCoords(IntVector2 {
             it->x - static_cast<int32_t>(std::round(m_position.x)),
             it->z - static_cast<int32_t>(std::round(m_position.z)),
-        };
+        });
         const auto dist = std::sqrt((diff.x * diff.x) + (diff.z * diff.z));
         if (dist < m_trackDistance * 1.5) {
           ++it;
@@ -384,6 +384,10 @@ class Player: public IPlayer {
       case EntityBase::Object: {
         Packet::ToClient::ObjectSpawn wdata_osp(dynamic_cast<ObjectBase*>(ent));
         wdata_osp.sendTo(m_selfSock);
+      } break;
+      case EntityBase::Thunderbolt: {
+        Packet::ToClient::SpawnThunderbolt wdata_stb(ent);
+        wdata_stb.sendTo(m_selfSock);
       } break;
 
       default: {

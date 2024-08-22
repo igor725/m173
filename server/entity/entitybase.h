@@ -11,6 +11,7 @@ class EntityBase {
     Mob,
     Player,
     Object,
+    Thunderbolt,
   };
 
   enum Flags : int8_t {

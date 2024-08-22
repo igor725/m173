@@ -1,7 +1,5 @@
 #include "fishfloat.h"
 
-#include "network/packets/Entity.h"
-
 class FishFloat: public IFishFloat {
   public:
   FishFloat(const DoubleVector3& pos, EntityId owner, const DoubleVector3& motion): IFishFloat(owner, motion), m_owner(owner) {

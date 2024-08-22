@@ -137,12 +137,10 @@ class EntityMeta: public PacketWriter {
 
 class SpawnThunderbolt: public PacketWriter {
   public:
-  SpawnThunderbolt(EntityId eid, const IntVector3& pos): PacketWriter(Packet::IDs::Thunderbolt, 17) {
-    writeInteger<EntityId>(eid);
+  SpawnThunderbolt(EntityBase* ent): PacketWriter(Packet::IDs::Thunderbolt, 17) {
+    writeInteger<EntityId>(ent->getEntityId());
     writeBoolean(true);
-    writeInteger<int32_t>(pos.x);
-    writeInteger<int32_t>(pos.y);
-    writeInteger<int32_t>(pos.z);
+    writeAIVector(ent->getPosition());
   }
 };
 } // namespace ToClient

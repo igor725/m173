@@ -1,7 +1,5 @@
 #include "snowball.h"
 
-#include "network/packets/Entity.h"
-
 class SnowBall: public ISnowBall {
   public:
   SnowBall(const DoubleVector3& pos, EntityId owner, const DoubleVector3& motion): ISnowBall(owner, motion) { m_position = pos, m_prevPosition = pos; }

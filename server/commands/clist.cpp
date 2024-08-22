@@ -1,3 +1,5 @@
+#include "entity/manager.h"
+#include "entity/objects/thunderbolt.h"
 #include "handler.h"
 #include "items/item.h"
 #include "runmanager/runmanager.h"
@@ -152,6 +154,16 @@ class Craft: public Command {
   }
 };
 
+class Thor: public Command {
+  public:
+  Thor(): Command(L"thor", L"Summons some lightning strike around", true) {}
+
+  bool execute(IPlayer* caller, std::vector<std::wstring_view>&, std::wstring&) final {
+    accessEntityManager().AddEntity(createThunderbolt(caller->getPosition()));
+    return true;
+  }
+};
+
 static Help   help_reg;
 static Stop   stop_reg;
 static Killme killme_reg;
@@ -160,3 +172,4 @@ static Hat    hat_reg;
 static Give   give_reg;
 static WInfo  winfo_reg;
 static Craft  craft_reg;
+static Thor   thor_reg;

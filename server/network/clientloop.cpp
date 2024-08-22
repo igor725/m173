@@ -94,7 +94,7 @@ ClientLoop::ClientLoop(sockpp::tcp_socket& sock, sockpp::inet_address& addr) {
   static uint32_t maxClients = accessConfig().getItem("bind.max_clients").getValue<uint32_t>();
 
   if (g_clientCount >= maxClients) {
-    Packet::ToClient::PlayerKick wdata_kick(L"Server is full!");
+    Packet::ToClient::PlayerKick wdata_kick(L"The server is full!");
     wdata_kick.sendTo(sock);
     sock.shutdown(SHUT_WR);
     return;
