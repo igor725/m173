@@ -189,8 +189,7 @@ class RegionFile: public IRegionFile {
   }
 
   int32_t compressChunk(const ChunkUnique& chunk) {
-    auto compacq = g_compr.acquire();
-    auto worker  = compacq.get();
+    auto worker = g_compr.acquire();
 
     m_compBuffer.erase(m_compBuffer.begin(), m_compBuffer.end());
     worker->setOutput(m_compBuffer.data(), m_compBuffer.size());
@@ -254,8 +253,7 @@ class RegionFile: public IRegionFile {
         m_file.read(reinterpret_cast<char*>(chunk->m_sky.data()), chunk->m_sky.size());
       } break;
       case CompressionType::Zlib: {
-        auto dacq   = g_decom.acquire();
-        auto worker = dacq.get();
+        auto worker = g_decom.acquire();
 
         if (m_compBuffer.size() < START_COMP_BUF_SZ) m_compBuffer.resize(START_COMP_BUF_SZ);
 

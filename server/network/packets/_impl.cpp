@@ -78,17 +78,16 @@ MapChunk::MapChunk(const IntVector3& pos, const ByteVector3& size, const ChunkUn
 
   bool compr_done = false;
 
-  auto acq   = cmp.acquire();
-  auto compr = acq.get();
+  auto worker = cmp.acquire();
 
-  ChunkZlib ccomp(compr, chunk, ChunkZlib::Type::Compressor);
+  ChunkZlib ccomp(worker, chunk, ChunkZlib::Type::Compressor);
 
   do {
     ccomp.feed();
 
-    switch (compr->tick()) {
+    switch (worker->tick()) {
       case IZLibPP::MoreOut: {
-        compr->setOutput(buffer.data(), buffer.size());
+        worker->setOutput(buffer.data(), buffer.size());
       } break;
       case IZLibPP::Done: {
         compr_done = true;
@@ -97,11 +96,11 @@ MapChunk::MapChunk(const IntVector3& pos, const ByteVector3& size, const ChunkUn
       default: break;
     }
 
-    m_data.insert(m_data.end(), buffer.begin(), buffer.begin() + compr->getFrameSize());
-    compr->setOutput(buffer.data(), buffer.size());
+    m_data.insert(m_data.end(), buffer.begin(), buffer.begin() + worker->getFrameSize());
+    worker->setOutput(buffer.data(), buffer.size());
   } while (!compr_done);
 
-  *reinterpret_cast<uint32_t*>(m_data.data() + csize_pos) = bswap(static_cast<uint32_t>(compr->getTotalOutput()));
+  *reinterpret_cast<uint32_t*>(m_data.data() + csize_pos) = bswap(static_cast<uint32_t>(worker->getTotalOutput()));
 }
 } // namespace Packet::ToClient
 

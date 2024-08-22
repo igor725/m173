@@ -15,7 +15,9 @@ public:
 
     ~ZlibPPAcquire() { m_cmp.unlock(); }
 
-    auto get() const { return m_zlib; }
+    IZLibPP* operator->() const { return m_zlib; }
+
+    operator IZLibPP*() const { return m_zlib; }
 
 private:
     IZLibPP*      m_zlib;
