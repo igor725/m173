@@ -6,7 +6,7 @@
 FurnaceContainer::FurnaceContainer(PlayerStorage* pstor, SmeltingStorage* sstor): IContainer(38), m_smelting(sstor) {
   addSlot(std::make_unique<BasicSlot>(sstor, 0, ISlot::FurnaceCook));
   addSlot(std::make_unique<BasicSlot>(sstor, 1, ISlot::FurnaceFuel));
-  addSlot(std::make_unique<ResultSlot>(sstor, 2, ISlot::Result));
+  addSlot(std::make_unique<ResultSlot>(sstor, 2));
 
   for (int32_t y = 0; y < 3; ++y) {
     for (int32_t x = 0; x < 9; ++x) {

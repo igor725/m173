@@ -88,35 +88,37 @@ class Give: public Command {
       out = L"Usage /give <item id> [item count]";
       return true;
     }
-    std::wstringstream ss;
-    ss << args[0];
-    ItemId  iid;
-    int16_t count  = 64;
-    int16_t damage = 0;
-    ss >> iid;
 
-    if (auto item = Item::getById(iid)) {
+    ItemStack is;
+
+    std::wstringstream ss;
+
+    ss << args[0];
+    ss >> is.itemId;
+    if (auto item = Item::getById(is.itemId)) {
+      is.stackSize = 64;
+
+      if (ss.peek() == L':') {
+        wchar_t t;
+        ss.read(&t, 1);
+        ss >> is.itemDamage;
+      }
+
       if (args.size() > 1) {
         ss.clear();
         ss << args[1];
-        ss >> count;
+        ss >> is.stackSize;
       }
 
-      if (args.size() > 2) {
-        ss.clear();
-        ss << args[2];
-        ss >> damage;
-      }
-
-      count = std::min(item->getStackLimit(), count);
+      is.stackSize = std::min(item->getStackLimit(), is.stackSize);
 
       // Container should be used there, since we operate with absolute SlotIDs (current selected hotbar item)
       auto& cont = caller->getInventoryContainer();
 
       SlotId slot;
-      if (cont.push(ItemStack(iid, count, damage), &slot, caller->getHeldItemSlotId())) {
+      if (cont.push(is, &slot, caller->getHeldItemSlotId())) {
         caller->resendItem(cont.getItem(slot));
-        out = std::format(L"Given {} of {}:{}", count, iid, damage);
+        out = std::format(L"\u00a7eGiven {} of {}:{}", is.stackSize, is.itemId, is.itemDamage);
       } else {
         out = L"\u00a7cFailed, no free space in your inventory";
       }
