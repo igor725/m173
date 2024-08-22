@@ -49,7 +49,7 @@ class World: public IWorld {
     std::unique_lock lock(m_accChunks);
 
     auto&& mapPlace = m_ldChunks.emplace(std::make_pair(pos, std::make_unique<Chunk>()));
-    auto&  chunk    = mapPlace.first->second;
+    auto   chunk    = ChunkUnique(mapPlace.first->second);
 
     auto& rm = accessRegionManager();
 
