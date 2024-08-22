@@ -261,7 +261,10 @@ class Player: public IPlayer {
             it->z - static_cast<int32_t>(std::round(m_position.z)),
         };
         const auto dist = std::sqrt((diff.x * diff.x) + (diff.z * diff.z));
-        if (dist < m_trackDistance * 1.5) continue;
+        if (dist < m_trackDistance * 1.5) {
+          ++it;
+          continue;
+        }
       }
 
       auto chunk = accessWorld().getChunk(*it);
