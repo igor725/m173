@@ -165,7 +165,7 @@ class Player: public IPlayer {
 
     setHealth(m_maxHealth);
     m_storage.clear();
-    m_loadedChunks.clear();
+    unloadDistantChunks();
     untrackAllEntities(); // Player can't hit anyone otherwise
     updateInventory();
     updateWorldChunks(true); // Player hangs on loading screen otherwise
@@ -253,6 +253,26 @@ class Player: public IPlayer {
     return false;
   }
 
+  void unloadDistantChunks(bool all = false) {
+    for (auto it = m_loadedChunks.begin(); it != m_loadedChunks.end();) {
+      if (all == false) {
+        const auto diff = IntVector2 {
+            it->x - static_cast<int32_t>(std::round(m_position.x)),
+            it->z - static_cast<int32_t>(std::round(m_position.z)),
+        };
+        const auto dist = std::sqrt((diff.x * diff.x) + (diff.z * diff.z));
+        if (dist < m_trackDistance * 1.5) continue;
+      }
+
+      auto chunk = accessWorld().getChunk(*it);
+      --chunk->m_uses;
+
+      Packet::ToClient::PreChunk wdata_uc(*it, false);
+      wdata_uc.sendTo(m_selfSock);
+      it = m_loadedChunks.erase(it);
+    }
+  }
+
   bool updateWorldChunks(bool force) final {
     std::unique_lock lock(m_lockChunks);
 
@@ -267,22 +287,7 @@ class Player: public IPlayer {
     });
 
     if (!force && (currchunk_pos.x == prevchunk_pos.x && currchunk_pos.z == prevchunk_pos.z)) return true;
-
-    for (auto it = m_loadedChunks.begin(); it != m_loadedChunks.end();) {
-      const auto diff = IntVector2 {it->x - currchunk_pos.x, it->z - currchunk_pos.z};
-      const auto dist = std::sqrt((diff.x * diff.x) + (diff.z * diff.z));
-      if (dist > m_trackDistance * 1.5) {
-        auto chunk = accessWorld().getChunk(*it);
-        --chunk->m_uses;
-
-        Packet::ToClient::PreChunk wdata_uc(*it, false);
-        wdata_uc.sendTo(m_selfSock);
-        it = m_loadedChunks.erase(it);
-        continue;
-      }
-
-      ++it;
-    }
+    unloadDistantChunks();
 
     auto& world = accessWorld();
 
