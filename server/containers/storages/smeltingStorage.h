@@ -8,12 +8,11 @@
 #include <array>
 #include <cstdint>
 
-template <int8_t X, int8_t Y>
-class CraftingStorage: public IStorage {
+class SmeltingStorage: public IStorage {
   public:
-  CraftingStorage(IContainer* handler): m_handler(handler) {}
+  SmeltingStorage(IContainer* handler): m_handler(handler) {}
 
-  ~CraftingStorage() {}
+  ~SmeltingStorage() {}
 
   ItemStack& getByOffset(SlotId slot) final { return m_items[slot]; }
 
@@ -26,6 +25,6 @@ class CraftingStorage: public IStorage {
   void clear() final { m_items.fill(ItemStack()); }
 
   private:
-  std::array<ItemStack, X * Y> m_items;
-  IContainer*                  m_handler;
+  std::array<ItemStack, 3> m_items;
+  IContainer*              m_handler;
 };

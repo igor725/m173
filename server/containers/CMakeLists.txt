@@ -3,6 +3,7 @@ add_library(containers OBJECT
   slots/_impl.cpp
   list/playerContainer.cpp
   list/workbenchContainer.cpp
+  list/furnaceContainer.cpp
   storages/playerStorage.cpp
 )
 
