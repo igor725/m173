@@ -11,9 +11,9 @@ class IRegionFile {
   IRegionFile()          = default;
   virtual ~IRegionFile() = default;
 
-  virtual bool readChunk(const IntVector2& pos, Chunk& chunk) = 0;
+  virtual bool readChunk(const IntVector2& pos, const ChunkUnique& chunk) = 0;
 
-  virtual bool writeChunk(const IntVector2& pos, Chunk& chunk) = 0;
+  virtual bool writeChunk(const IntVector2& pos, const ChunkUnique& chunk) = 0;
 
   virtual bool canBeUnloaded() = 0;
 };

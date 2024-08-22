@@ -272,6 +272,9 @@ class Player: public IPlayer {
       const auto diff = IntVector2 {it->x - currchunk_pos.x, it->z - currchunk_pos.z};
       const auto dist = std::sqrt((diff.x * diff.x) + (diff.z * diff.z));
       if (dist > m_trackDistance * 1.5) {
+        auto chunk = accessWorld().getChunk(*it);
+        --chunk->m_uses;
+
         Packet::ToClient::PreChunk wdata_uc(*it, false);
         wdata_uc.sendTo(m_selfSock);
         it = m_loadedChunks.erase(it);
@@ -326,7 +329,8 @@ class Player: public IPlayer {
         if (isHoldingChunk(chunkpos)) continue;
 
         m_loadedChunks.push_back(chunkpos);
-        auto& chunk = world.getChunk(chunkpos);
+        auto chunk = world.getChunk(chunkpos);
+        ++chunk->m_uses;
 
         Packet::ToClient::PreChunk wdata_pc(chunkpos, true);
         if (!wdata_pc.sendTo(m_selfSock)) return false;

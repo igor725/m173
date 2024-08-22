@@ -120,7 +120,7 @@ class RegionFile: public IRegionFile {
     return duration_cast<seconds>(system_clock::now() - m_lastAccess) > seconds(120);
   }
 
-  bool writeChunk(const IntVector2& pos, Chunk& chunk) final {
+  bool writeChunk(const IntVector2& pos, const ChunkUnique& chunk) final {
     spdlog::trace("RegionFile->writeChunk(Vec2({},{}), {})", pos.x, pos.z, (void*)&chunk);
     m_lastAccess = std::chrono::system_clock::now();
 
@@ -175,7 +175,7 @@ class RegionFile: public IRegionFile {
     return false;
   }
 
-  bool readChunk(const IntVector2& pos, Chunk& chunk) final {
+  bool readChunk(const IntVector2& pos, const ChunkUnique& chunk) final {
     m_lastAccess = std::chrono::system_clock::now();
     auto offset  = m_offsets[getIndex(pos)];
     if (offset == 0) return false;
@@ -188,7 +188,7 @@ class RegionFile: public IRegionFile {
     std::fill(it, it + length, value);
   }
 
-  int32_t compressChunk(Chunk& chunk) {
+  int32_t compressChunk(const ChunkUnique& chunk) {
     auto compacq = g_compr.acquire();
     auto worker  = compacq.get();
 
@@ -227,31 +227,31 @@ class RegionFile: public IRegionFile {
     return true;
   }
 
-  bool writeToSector(uint32_t snum, Chunk& chunk) { // uncompressed writing, do not use! Region files will be big af
+  bool writeToSector(uint32_t snum, const ChunkUnique& chunk) { // uncompressed writing, do not use! Region files will be big af
     moveWriteCursorToSector(snum);
     PayloadHeader hdr = {sizeof(Chunk), CompressionType::UncompressedChunk};
     m_file.write(reinterpret_cast<const char*>(&hdr), sizeof(PayloadHeader));
-    m_file.write(reinterpret_cast<const char*>(chunk.m_blocks.data()), chunk.m_blocks.size());
-    m_file.write(reinterpret_cast<const char*>(chunk.m_meta.data()), chunk.m_meta.size());
-    m_file.write(reinterpret_cast<const char*>(chunk.m_light.data()), chunk.m_light.size());
-    m_file.write(reinterpret_cast<const char*>(chunk.m_sky.data()), chunk.m_sky.size());
+    m_file.write(reinterpret_cast<const char*>(chunk->m_blocks.data()), chunk->m_blocks.size());
+    m_file.write(reinterpret_cast<const char*>(chunk->m_meta.data()), chunk->m_meta.size());
+    m_file.write(reinterpret_cast<const char*>(chunk->m_light.data()), chunk->m_light.size());
+    m_file.write(reinterpret_cast<const char*>(chunk->m_sky.data()), chunk->m_sky.size());
     m_file.flush();
     return true;
   }
 
   void moveWriteCursorToSector(uint32_t snum) { m_file.seekp(snum * SECTOR_SIZE, std::ios::beg); }
 
-  bool readFromSector(uint32_t snum, Chunk& chunk) {
+  bool readFromSector(uint32_t snum, const ChunkUnique& chunk) {
     spdlog::trace("RegionFile->readFromSector({}, {})", snum, (void*)&chunk);
     m_file.seekg(snum * SECTOR_SIZE, std::ios::beg);
     PayloadHeader hdr;
     m_file.read(reinterpret_cast<char*>(&hdr), sizeof(PayloadHeader));
     switch (hdr.compression) {
       case CompressionType::UncompressedChunk: {
-        m_file.read(reinterpret_cast<char*>(chunk.m_blocks.data()), chunk.m_blocks.size());
-        m_file.read(reinterpret_cast<char*>(chunk.m_meta.data()), chunk.m_meta.size());
-        m_file.read(reinterpret_cast<char*>(chunk.m_light.data()), chunk.m_light.size());
-        m_file.read(reinterpret_cast<char*>(chunk.m_sky.data()), chunk.m_sky.size());
+        m_file.read(reinterpret_cast<char*>(chunk->m_blocks.data()), chunk->m_blocks.size());
+        m_file.read(reinterpret_cast<char*>(chunk->m_meta.data()), chunk->m_meta.size());
+        m_file.read(reinterpret_cast<char*>(chunk->m_light.data()), chunk->m_light.size());
+        m_file.read(reinterpret_cast<char*>(chunk->m_sky.data()), chunk->m_sky.size());
       } break;
       case CompressionType::Zlib: {
         auto dacq   = g_decom.acquire();

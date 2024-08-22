@@ -8,9 +8,9 @@ class IMCRegion {
   IMCRegion()          = default;
   virtual ~IMCRegion() = default;
 
-  virtual bool loadChunk(const IntVector2& pos, Chunk& chunk) = 0;
+  virtual bool loadChunk(const IntVector2& pos, const ChunkUnique& chunk) = 0;
 
-  virtual bool saveChunk(const IntVector2& pos, Chunk& chunk) = 0;
+  virtual bool saveChunk(const IntVector2& pos, const ChunkUnique& chunk) = 0;
 };
 
 /**

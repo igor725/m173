@@ -9,7 +9,7 @@ class FlatGen: public IGenerator {
 
   void getSpawnPoint(IntVector3& pos) final;
 
-  void fillChunk(const IntVector2& pos, Chunk& chunk) final;
+  void fillChunk(const IntVector2& pos, const ChunkUnique& chunk) final;
 
   private:
   IntVector3 m_spawnPoint;

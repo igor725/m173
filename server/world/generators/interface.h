@@ -13,7 +13,7 @@ class IGenerator {
 
   virtual void getSpawnPoint(IntVector3& pos) = 0;
 
-  virtual void fillChunk(const IntVector2& pos, Chunk& chunk) = 0;
+  virtual void fillChunk(const IntVector2& pos, const ChunkUnique& chunk) = 0;
 
   protected:
   int64_t m_seed;

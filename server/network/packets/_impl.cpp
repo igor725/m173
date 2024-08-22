@@ -64,7 +64,7 @@ SignUpdate::SignUpdate(const IntVector3& pos, const std::wstring& data): PacketW
   if (m_lineCount > 4) throw TooMuchSignLinesException();
 }
 
-MapChunk::MapChunk(const IntVector3& pos, const ByteVector3& size, Chunk& chunk): PacketWriter(Packet::IDs::MapChunk, 512) {
+MapChunk::MapChunk(const IntVector3& pos, const ByteVector3& size, const ChunkUnique& chunk): PacketWriter(Packet::IDs::MapChunk, 512) {
   writeInteger<int32_t>(pos.x);
   writeInteger<int16_t>(pos.y);
   writeInteger<int32_t>(pos.z);

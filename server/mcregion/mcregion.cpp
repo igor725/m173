@@ -14,13 +14,13 @@ class MCRegion: public IMCRegion {
   static inline IntVector2 packRegionPos(const IntVector2& cpos) { return {cpos.x >> 5, cpos.z >> 5}; }
 
   public:
-  bool loadChunk(const IntVector2& pos, Chunk& chunk) final {
+  bool loadChunk(const IntVector2& pos, const ChunkUnique& chunk) final {
     spdlog::trace("MCRegion->loadChunk(Vec2({},{}), {})", pos.x, pos.z, (void*)&chunk);
     auto& rfile = getFile(packRegionPos(pos));
     return rfile.readChunk(pos, chunk);
   }
 
-  bool saveChunk(const IntVector2& pos, Chunk& chunk) final {
+  bool saveChunk(const IntVector2& pos, const ChunkUnique& chunk) final {
     spdlog::trace("MCRegion->saveChunk(Vec2({},{}), {})", pos.x, pos.z, (void*)&chunk);
     auto& rfile = getFile(packRegionPos(pos));
     return rfile.writeChunk(pos, chunk);

@@ -85,7 +85,7 @@ class Give: public Command {
 
   bool execute(IPlayer* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
     if (args.size() == 0) {
-      out = L"Usage /give <item id> [item count]";
+      out = L"Usage /give <item id>:[item damage] [item count]";
       return true;
     }
 
@@ -96,7 +96,7 @@ class Give: public Command {
     ss << args[0];
     ss >> is.itemId;
     if (auto item = Item::getById(is.itemId)) {
-      is.stackSize = 64;
+      is.stackSize = item->getStackLimit();
 
       if (ss.peek() == L':') {
         wchar_t t;
@@ -108,9 +108,8 @@ class Give: public Command {
         ss.clear();
         ss << args[1];
         ss >> is.stackSize;
+        is.stackSize = std::min(item->getStackLimit(), is.stackSize);
       }
-
-      is.stackSize = std::min(item->getStackLimit(), is.stackSize);
 
       // Container should be used there, since we operate with absolute SlotIDs (current selected hotbar item)
       auto& cont = caller->getInventoryContainer();

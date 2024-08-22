@@ -11,16 +11,13 @@ class IWorld {
   IWorld()          = default;
   virtual ~IWorld() = default;
 
-  virtual Chunk& getChunk(const IntVector2& pos)   = 0;
-  virtual Chunk& allocChunk(const IntVector2& pos) = 0;
+  virtual ChunkUnique getChunk(const IntVector2& pos) = 0;
 
   virtual bool setBlock(const IntVector3& pos, BlockId id, int8_t meta) = 0;
 
   virtual bool setBlockWithNotify(const IntVector3& pos, BlockId id, int8_t meta, IPlayer* placer) = 0;
 
   virtual BlockId getBlock(const IntVector3& pos, int8_t* meta = nullptr) = 0;
-
-  virtual void advanceTick(int64_t delta) = 0;
 
   virtual int64_t getSeed() const = 0;
 

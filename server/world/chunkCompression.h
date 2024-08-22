@@ -11,13 +11,13 @@ class ChunkZlib {
     Decompressor,
   };
 
-  ChunkZlib(IZLibPP* compr, Chunk& chunk, Type t);
+  ChunkZlib(IZLibPP* compr, const ChunkUnique& chunk, Type t);
 
   bool feed();
 
   private:
-  Chunk&     m_chunk;
-  uint32_t   m_state;
-  IZLibPP*   m_compr;
-  const Type m_type;
+  const ChunkUnique& m_chunk;
+  uint32_t           m_state;
+  IZLibPP*           m_compr;
+  const Type         m_type;
 };
