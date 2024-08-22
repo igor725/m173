@@ -164,6 +164,8 @@ IConfig& accessConfig() {
       {"bind.port", {25565u, 0u, 65535u}},
       {"bind.queue_size", {4u, 1u, 128u}},
       {"chunk.load_distance", {10u, 1u, 80u}},
+      {"chunk.unload_interval", {300u, 30u}},
+      {"world.save_interval", {300u, 30u}},
   });
   return inst;
 }

@@ -1,5 +1,6 @@
 #include "world.h"
 
+#include "config/config.h"
 #include "generators/glist.h"
 #include "items/item.h"
 #include "mcregion/mcregion.h"
@@ -41,6 +42,11 @@ class World: public IWorld {
     });
 
     m_generator->getSpawnPoint(m_spawnPoint);
+
+    auto& cfg = accessConfig();
+
+    m_unloadInterval = cfg.getItem("chunk.unload_interval").getValue<uint32_t>();
+    m_nextSave = m_saveInterval = cfg.getItem("world.save_interval").getValue<uint32_t>();
   }
 
   virtual ~World() = default;
@@ -48,14 +54,14 @@ class World: public IWorld {
   ChunkUnique openChunk(const IntVector2& pos) {
     std::unique_lock lock(m_accChunks);
 
-    auto&& mapPlace = m_ldChunks.emplace(std::make_pair(pos, std::make_unique<Chunk>()));
+    auto&& mapPlace = m_ldChunks.emplace(std::make_pair(pos, std::make_unique<Chunk>(m_unloadInterval)));
     auto   chunk    = ChunkUnique(mapPlace.first->second);
 
     auto& rm = accessRegionManager();
 
     if (!rm.loadChunk(pos, chunk)) {
       m_generator->fillChunk(pos, chunk);
-      rm.saveChunk(pos, chunk);
+      chunk->m_wasUpdated = !rm.saveChunk(pos, chunk);
     }
 
     return chunk;
@@ -80,6 +86,7 @@ class World: public IWorld {
     if (!canBlockBePlacedHere(pos, id)) return false;
     chunk->m_blocks[chunk->getBlockOffset(pos)] = id;
     chunk->m_meta.setNibble(chunk->getBlockOffset(chunk->toLocalChunkCoords(pos)), meta);
+    chunk->m_wasUpdated |= true;
     return true;
   }
 
@@ -104,10 +111,16 @@ class World: public IWorld {
     return chunk->m_blocks[chunk->getBlockOffset(pos)];
   }
 
-  void freeUnusedChunks(double_t delta) {
+  void tickChunks(double_t delta) {
     std::unique_lock lock(m_accChunks);
 
     auto& rm = accessRegionManager();
+
+    bool shouldSave = false;
+    if ((m_nextSave -= delta) <= 0.0) {
+      m_nextSave = m_saveInterval;
+      shouldSave = true;
+    }
 
     for (auto it = m_ldChunks.begin(); it != m_ldChunks.end();) {
       auto& pos   = it->first;
@@ -116,7 +129,7 @@ class World: public IWorld {
 
       if (chunk->m_uses <= 0) {
         chunk->m_uses = 0; // less than zero should not happen in practice, but just in case
-        if ((chunk->m_unloadTimer -= (delta * 1000)) <= 0) {
+        if ((chunk->m_unloadTimer -= delta) <= 0.0) {
           // No players in this chunk, so we can safely destroy it
           rm.saveChunk(pos, chunk);
           chunk->m_lock.unlock();
@@ -124,7 +137,10 @@ class World: public IWorld {
           continue;
         }
       } else {
-        chunk->m_unloadTimer = CHUNK_UNLOAD_TIMER_INIT;
+        chunk->m_unloadTimer = m_unloadInterval;
+        if (shouldSave && chunk->m_wasUpdated) {
+          chunk->m_wasUpdated = !rm.saveChunk(pos, chunk);
+        }
       }
 
       chunk->m_lock.unlock();
@@ -134,7 +150,7 @@ class World: public IWorld {
 
   void advanceTick(double_t delta) {
     if ((m_witime += delta) >= 1.0) {
-      freeUnusedChunks(m_witime); // todo should I move this to another thread?
+      tickChunks(m_witime); // todo should I move this to another thread?
       m_wtime += 20.0 * std::floor(m_witime);
       m_witime -= 1.0;
     }
@@ -166,6 +182,10 @@ class World: public IWorld {
   IntVector3 m_spawnPoint;
   int64_t    m_wtime  = 0;
   double_t   m_witime = 0;
+
+  double_t m_unloadInterval = 500;
+  double_t m_saveInterval   = 500;
+  double_t m_nextSave       = 500;
 };
 
 IWorld& accessWorld() {

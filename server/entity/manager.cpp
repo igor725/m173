@@ -36,7 +36,9 @@ class EntityManager: public IEntityManager {
     });
   }
 
-  ~EntityManager() { m_tickThread.join(); }
+  ~EntityManager() {
+    if (m_tickThread.joinable()) m_tickThread.join();
+  }
 
   EntityBase* AddEntity(std::unique_ptr<EntityBase>&& entity) final {
     std::unique_lock lock(m_lock);
