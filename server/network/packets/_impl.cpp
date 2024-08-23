@@ -131,7 +131,7 @@ class InvalidNameException: public std::exception {
         m_what = std::format("Your name is {} symbols long, 16 is maximum allowed!", add);
       } break;
       case ProhibitSymbols: {
-        m_what = std::format("Your name contains {} prohibited symbols!", add);
+        m_what = "Your name contains prohibited symbols!";
       } break;
     }
   }
@@ -166,9 +166,13 @@ void LoginRequest::testProtoVer(int32_t proto) {
 }
 
 void LoginRequest::testUserName(const std::wstring_view name) {
+  auto testSym = [](wchar_t sym) -> bool {
+    return (sym >= '0' && sym <= L'9') || (sym >= L'A' && sym <= L'Z') || (sym >= L'a' && sym <= L'z') || (sym == L'_');
+  };
+
   const auto nameLen = name.size();
   if (nameLen > 16) throw InvalidNameException(InvalidNameException::NameTooLong, nameLen);
-  // todo prohibited symbols test
+  if (std::find_if_not(name.begin(), name.end(), testSym) != name.end()) throw InvalidNameException(InvalidNameException::ProhibitSymbols, nameLen);
 }
 } // namespace Packet::FromClient
 
