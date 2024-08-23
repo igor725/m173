@@ -1,4 +1,4 @@
-#include "entity/player/player.h"
+#include "entity/creatures/player.h"
 #include "network/packets/World.h"
 #include "noteBlock.h"
 #include "uiwindow/list/workbench.h"

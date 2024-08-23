@@ -1,8 +1,8 @@
 #include "creaturebase.h"
 
+#include "creatures/player.h"
 #include "manager.h"
 #include "network/packets/Entity.h"
-#include "player/player.h"
 #include "world/chunk.h"
 
 IntVector2 CreatureBase::getCurrentChunk() {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "entity/player/player.h"
+#include "entity/creatures/player.h"
 
 #include <string>
 

@@ -1,8 +1,8 @@
 #pragma once
 
+#include "creatures/player.h"
 #include "entitybase.h"
 #include "helper.h"
-#include "player/player.h"
 
 #include <functional>
 #include <memory>

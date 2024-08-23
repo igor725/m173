@@ -2,7 +2,7 @@
 
 #include "../ids.h"
 #include "../packet.h"
-#include "entity/player/player.h"
+#include "entity/creatures/player.h"
 
 namespace Packet {
 #ifdef M173_ACTIVATE_READER_API

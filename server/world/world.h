@@ -1,7 +1,7 @@
 #pragma once
 
 #include "chunk.h"
-#include "entity/player/player.h"
+#include "entity/creatures/player.h"
 #include "helper.h"
 
 #include <cstdint>
