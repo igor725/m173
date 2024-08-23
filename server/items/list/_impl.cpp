@@ -188,3 +188,12 @@ bool ItemSnowball::onItemRightClick(ItemStack& is, EntityBase* clicker, const In
 }
 
 #pragma endregion()
+
+#pragma region("map.h")
+
+bool ItemMap::onEquipedByEntity(ItemStack& is, EntityBase* equiper) {
+  // todo send map
+  return true;
+}
+
+#pragma endregion()

@@ -103,6 +103,6 @@ Item           cake(98);
 Item           bed(99);
 Item           redstoneRepeater(100);
 Item           cookie(101);
-Item           map(102);
+ItemMap        map(102);
 Item           shears(103);
 } // namespace ItemDB

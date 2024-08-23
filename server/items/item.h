@@ -32,6 +32,8 @@ class Item {
 
   virtual bool onBlockDestroyed(ItemStack& is, const IntVector3& pos, BlockId id, EntityBase* destroyer) { return true; }
 
+  virtual bool onEquipedByEntity(ItemStack& is, EntityBase* equiper) { return true; }
+
   virtual bool onUseItemOnBlock(ItemStack& is, EntityBase* user, const IntVector3& pos, int8_t direction) { return false; }
 
   virtual bool hitEntity(ItemStack& is, EntityBase* attacker, EntityBase* victim) { return false; }

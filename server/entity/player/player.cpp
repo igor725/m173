@@ -565,7 +565,9 @@ class Player: public IPlayer {
     m_heldSlot = slot;
 
     updateEquipedItem(Equipment::HeldItem);
-    return true;
+    auto& item = getHeldItem();
+
+    return Item::getById(item.itemId)->onEquipedByEntity(item, this);
   }
 
   bool isLocal() const final { return m_selfSock.isLocal(); }

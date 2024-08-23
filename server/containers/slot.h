@@ -4,6 +4,7 @@
 #include "items/itemstack.h"
 #include "storage.h"
 
+#include <algorithm>
 #include <cstdint>
 
 class ISlot {
@@ -29,7 +30,10 @@ class ISlot {
 
   virtual bool isItemValid(const ItemStack& is) const = 0;
 
-  int16_t getAvailableRoom() { return getSlotStackLimit() - getHeldItem().stackSize; }
+  int16_t getAvailableRoom() {
+    auto& is = getHeldItem();
+    return std::min(getSlotStackLimit(), is.availStackRoom());
+  }
 
   SlotId getAbsoluteSlotId() const { return m_slotIndex; }
 

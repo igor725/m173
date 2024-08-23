@@ -6,6 +6,7 @@
 #include "list/bow.h"
 #include "list/fishingRod.h"
 #include "list/lighter.h"
+#include "list/map.h"
 #include "list/sign.h"
 #include "list/snowBall.h"
 
@@ -112,6 +113,6 @@ extern Item           cake;
 extern Item           bed;
 extern Item           redstoneRepeater;
 extern Item           cookie;
-extern Item           map;
+extern ItemMap        map;
 extern Item           shears;
 }; // namespace ItemDB
