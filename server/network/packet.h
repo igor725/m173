@@ -218,7 +218,7 @@ class MetaDataStream {
   }
 
   void putVector(int valueid, const IntVector3& vec) {
-    putHeader(5, valueid);
+    putHeader(6, valueid);
     m_writer.writeIVector(vec);
   }
 
