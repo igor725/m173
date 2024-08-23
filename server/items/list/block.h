@@ -8,6 +8,8 @@ class ItemBlock: public Item {
 
   bool onUseItemOnBlock(ItemStack& is, EntityBase* user, const IntVector3& pos, int8_t direction) override;
 
+  bool onBlockDestroyed(ItemStack& is, const IntVector3& pos, BlockId id, EntityBase* destroyer) override;
+
   private:
   BlockId m_blockId;
 };

@@ -110,6 +110,13 @@ class EntityManager: public IEntityManager {
         ent->tick(delta);
 
         if (ent->isMarkedForDestruction()) {
+          if (ent->getType() != EntityBase::Player) {
+            IterPlayers([ent](IPlayer* ply) -> bool {
+              ply->removeTrackedEntity(ent);
+              return true;
+            });
+          }
+
           it = m_loadedents.erase(it);
           continue;
         }

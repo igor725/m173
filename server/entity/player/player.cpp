@@ -412,6 +412,9 @@ class Player: public IPlayer {
           auto ply = dynamic_cast<IPlayer*>(ent);
           ply->removeTrackedEntity(this);
         } break;
+        case EntityBase::Object: {
+          // Don't think we have to do something there actually
+        } break;
 
         default: {
           spdlog::warn("Unhandled entity type: {}!", (int8_t)t);

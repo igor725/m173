@@ -9,6 +9,7 @@
 #include "fishingRod.h"
 #include "items/database.h"
 #include "lighter.h"
+#include "network/packets/SoundEffect.h"
 #include "sign.h"
 #include "snowBall.h"
 #include "world/world.h"
@@ -19,10 +20,11 @@ bool ItemBlock::onUseItemOnBlock(ItemStack& is, EntityBase* user, const IntVecto
   auto  ply  = dynamic_cast<IPlayer*>(user);
   auto& ppos = ply->getPosition();
 
-  auto& world = accessWorld();
-  auto  npos  = pos;
+  auto& world  = accessWorld();
+  auto  pblock = world.getBlock(pos);
+  auto  npos   = pos;
 
-  if (world.getBlock(pos) == BlockDB::snow.getId()) {
+  if (pblock == BlockDB::snow.getId()) {
     direction = 0;
   } else {
     switch (direction) {
@@ -42,6 +44,9 @@ bool ItemBlock::onUseItemOnBlock(ItemStack& is, EntityBase* user, const IntVecto
       ply->resendItem(ply->getHeldItem());
 
       if (world.setBlockWithNotify(npos, m_blockId, getMetadata(dmg), ply)) {
+        using namespace Packet::ToClient;
+        SoundEffect wdata_snd(SoundEffect::BlockBreak, pos, m_blockId);
+        ply->sendToTrackedPlayers(wdata_snd);
         return true;
       } else { // Uh oh
         is.incrementBy(1);
@@ -52,6 +57,14 @@ bool ItemBlock::onUseItemOnBlock(ItemStack& is, EntityBase* user, const IntVecto
   }
 
   return false;
+}
+
+bool ItemBlock::onBlockDestroyed(ItemStack& is, const IntVector3& pos, BlockId id, EntityBase* destroyer) {
+  auto ply = dynamic_cast<IPlayer*>(destroyer);
+  using namespace Packet::ToClient;
+  SoundEffect wdata_snd(SoundEffect::BlockBreak, pos, id);
+  ply->sendToTrackedPlayers(wdata_snd);
+  return true;
 }
 
 #pragma endregion()
@@ -71,6 +84,9 @@ bool ItemBow::onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVect
       auto apos = ply->getPosition();
       apos.y += ply->getEyeHeight();
       accessEntityManager().AddEntity(createArrow(apos, ply->getEntityId(), ply->getForwardVector()));
+      using namespace Packet::ToClient;
+      SoundEffect wdata_snd(SoundEffect::BowFire, pos, 0);
+      ply->sendToTrackedPlayers(wdata_snd);
     }
   }
 
