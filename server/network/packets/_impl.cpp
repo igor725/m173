@@ -48,6 +48,25 @@ class TooMuchSignLinesException: public std::exception {
   const char* what() const noexcept override { return "Your sign has too much lines!"; }
 };
 
+namespace Packet::FromClient {
+SignCreate::SignCreate(SafeSocket& sock): PacketReader(sock) {
+  m_lines.reserve(64);
+
+  m_pos.x = readInteger<int32_t>();
+  m_pos.y = readInteger<int16_t>();
+  m_pos.z = readInteger<int32_t>();
+
+  for (int32_t i = 0; i < 4; ++i) {
+    std::wstring temp;
+    temp.reserve(15);
+
+    readString(temp);
+    m_lines += temp;
+    if (i != 3) m_lines.push_back(L'\n');
+  }
+}
+} // namespace Packet::FromClient
+
 namespace Packet::ToClient {
 SignUpdate::SignUpdate(const IntVector3& pos, const std::wstring& data): PacketWriter(Packet::IDs::SignUpdate, 10 + data.size()) {
   writeInteger<int32_t>(pos.x);
@@ -125,7 +144,7 @@ class InvalidNameException: public std::exception {
     ProhibitSymbols,
   };
 
-  InvalidNameException(Reason r, uint32_t add) {
+  InvalidNameException(Reason r, uint32_t add = 0) {
     switch (r) {
       case NameTooLong: {
         m_what = std::format("Your name is {} symbols long, 16 is maximum allowed!", add);
@@ -143,23 +162,6 @@ class InvalidNameException: public std::exception {
 };
 
 namespace Packet::FromClient {
-SignCreate::SignCreate(SafeSocket& sock): PacketReader(sock) {
-  m_lines.reserve(64);
-
-  m_pos.x = readInteger<int32_t>();
-  m_pos.y = readInteger<int16_t>();
-  m_pos.z = readInteger<int32_t>();
-
-  for (int32_t i = 0; i < 4; ++i) {
-    std::wstring temp;
-    temp.reserve(15);
-
-    readString(temp);
-    m_lines += temp;
-    if (i != 3) m_lines.push_back(L'\n');
-  }
-}
-
 void LoginRequest::testProtoVer(int32_t proto) {
   constexpr int32_t SV_PROTO_VER = 14;
   if (proto != SV_PROTO_VER) throw InvalidProtoException(proto, SV_PROTO_VER);
@@ -172,7 +174,7 @@ void LoginRequest::testUserName(const std::wstring_view name) {
 
   const auto nameLen = name.size();
   if (nameLen > 16) throw InvalidNameException(InvalidNameException::NameTooLong, nameLen);
-  if (std::find_if_not(name.begin(), name.end(), testSym) != name.end()) throw InvalidNameException(InvalidNameException::ProhibitSymbols, nameLen);
+  if (std::find_if_not(name.begin(), name.end(), testSym) != name.end()) throw InvalidNameException(InvalidNameException::ProhibitSymbols);
 }
 } // namespace Packet::FromClient
 
