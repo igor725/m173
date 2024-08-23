@@ -28,8 +28,6 @@ class EntityBase {
 
   virtual float_t getEyeHeight() const { return 1.6; }
 
-  virtual void updateGroundState(bool state) {}
-
   virtual void setPosition(const DoubleVector3& pos) {
     m_prevPosition = m_position;
     m_position     = pos;
