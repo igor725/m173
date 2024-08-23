@@ -1,6 +1,5 @@
 #pragma once
 
-#include "entity/manager.h"
 #include "entitybase.h"
 #include "helper.h"
 
@@ -33,13 +32,6 @@ class ObjectBase: public EntityBase {
   EntityId getOwner() const { return m_owner; }
 
   const DoubleVector3& getStartMotion() const { return m_motion; }
-
-  void broadcastToTrackers(PacketWriter& pw) {
-    accessEntityManager().IterPlayers([this, &pw](IPlayer* ply) -> bool {
-      if (ply->isTrackingEntity(getEntityId())) pw.sendTo(ply->getSocket());
-      return true;
-    });
-  }
 
   private:
   Type                m_objtype;

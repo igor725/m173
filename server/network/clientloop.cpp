@@ -367,8 +367,6 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
 
       if (linkedPlayer) {
         if (posUpdated) {
-          if (linkedPlayer->updateWorldChunks()) linkedPlayer->updateTrackedEntities();
-
           /**
            * @brief The original server sents teleport packet to the clients every
            * 400 movement packets, just to sync the thing. We will keep it that way too.

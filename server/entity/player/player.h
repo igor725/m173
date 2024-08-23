@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../entitybase.h"
+#include "../creaturebase.h"
 #include "containers/list/playerContainer.h"
 #include "containers/storages/playerStorage.h"
 #include "items/itemstack.h"
@@ -11,7 +11,7 @@
 #include <memory>
 #include <string>
 
-class IPlayer: public EntityBase {
+class IPlayer: public CreatureBase {
   public:
   enum Equipment {
     None,
@@ -22,7 +22,7 @@ class IPlayer: public EntityBase {
     HeldItem = 1 << 4,
   };
 
-  IPlayer(): EntityBase(EntityBase::Type::Player) { m_maxHealth = 20; }
+  IPlayer(): CreatureBase(EntityBase::Type::Player) {}
 
   virtual ~IPlayer() = default;
 
@@ -38,17 +38,15 @@ class IPlayer: public EntityBase {
 
   /* Health control functions */
 
-  virtual bool setHealth(int16_t health) = 0;
-  virtual bool respawn()                 = 0;
+  virtual bool respawn() = 0;
 
   /* Environment control */
   virtual bool setTime(int16_t time) = 0;
 
   /* Ingame world/entity manipualtions */
 
-  virtual void updateEquipedItem(Equipment flags)    = 0;
-  virtual bool updateWorldChunks(bool force = false) = 0;
-  virtual bool canHitEntity()                        = 0;
+  virtual void updateEquipedItem(Equipment flags) = 0;
+  virtual bool canHitEntity()                     = 0;
 
   /* Inventory manipulations */
 
@@ -68,8 +66,6 @@ class IPlayer: public EntityBase {
   virtual bool      closeWindow(WinId id)                         = 0;
 
   /* Movement control */
-  virtual bool addVelocity(const DoubleVector3& motion) = 0;
-
   virtual bool setSpawnPos(const IntVector3& pos) = 0;
 
   virtual void setPosition(const DoubleVector3& pos) = 0;
@@ -83,8 +79,6 @@ class IPlayer: public EntityBase {
   virtual bool teleportPlayer(const DoubleVector3& pos) = 0;
 
   virtual bool teleportPlayer(const IntVector3& pos) = 0;
-
-  virtual void updateGroundState(bool ground) = 0;
 
   /* Network things / Authentication */
   virtual const std::wstring& getName() const                          = 0;

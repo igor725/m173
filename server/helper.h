@@ -76,6 +76,8 @@ struct DoubleVector3 {
 
   DoubleVector3 operator+(const DoubleVector3& b) const { return DoubleVector3(x + b.x, y + b.y, z + b.z); }
 
+  DoubleVector3 operator-(const DoubleVector3& b) const { return DoubleVector3(x - b.x, y - b.y, z - b.z); }
+
   DoubleVector3 operator*(const DoubleVector3& b) const { return DoubleVector3(x * b.x, y * b.y, z * b.z); }
 
   DoubleVector3 operator*(double_t b) const { return DoubleVector3(x * b, y * b, z * b); }

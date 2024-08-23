@@ -85,9 +85,8 @@ class Player: public IPlayer {
     auto& spawn = world.getSpawnPoint();
     setSpawnPos(spawn);
     teleportPlayer(spawn);
-    m_lastGround = m_position.y;
     setTime(world.getTime());
-    updateWorldChunks(true);
+    updateWorldChunks(getCurrentChunk(), getCurrentChunk());
     updateInventory();
     m_bLoggedIn = true;
     return true;
@@ -168,7 +167,7 @@ class Player: public IPlayer {
     unloadDistantChunks();
     untrackAllEntities(); // Player can't hit anyone otherwise
     updateInventory();
-    updateWorldChunks(true); // Player hangs on loading screen otherwise
+    updateWorldChunks(getCurrentChunk(), getCurrentChunk()); // Player hangs on loading screen otherwise
 
     // Mojang... Just why...
     EntityDestroy wdata_es(getEntityId());
@@ -182,32 +181,6 @@ class Player: public IPlayer {
     if (!wdata.sendTo(m_selfSock)) return false;
 
     return teleportPlayer(accessWorld().getSpawnPoint());
-  }
-
-  bool setHealth(int16_t health) final {
-    using namespace Packet::ToClient;
-    auto prevHealth = m_health;
-
-    PlayerHealth wdata_ph(m_health = std::max(int16_t(0), std::min(health, m_maxHealth)));
-    if (m_health >= prevHealth) {
-      return wdata_ph.sendTo(m_selfSock);
-    } else if (prevHealth == m_health) {
-      return true;
-    }
-
-    EntityStatus wdata_es(getEntityId(), m_health > 0 ? EntityStatus::Hurted : EntityStatus::Dead);
-
-    if (m_health == 0) { // Prevent client-side loot dropping from players
-      EntityEquipment wdata_eq(getEntityId(), 0, {-1});
-      sendToTrackedPlayers(wdata_eq, false);
-    }
-
-    if (wdata_ph.sendTo(m_selfSock)) {
-      sendToTrackedPlayers(wdata_es, true);
-      return true;
-    }
-
-    return false;
   }
 
   bool teleportPlayer(const DoubleVector3& pos) final {
@@ -224,21 +197,8 @@ class Player: public IPlayer {
     return updPlayerPos();
   }
 
-  void updateGroundState(bool ground) final {
-    if (m_isOnGround != ground) {
-      if ((m_isOnGround = ground) == true) {
-        auto fallDist = m_lastGround - m_position.y;
-        if (fallDist > 2.0) {
-          setHealth(m_health - std::max(0.0, std::ceil(fallDist - 3.0)));
-        }
-      } else {
-        m_lastGround = m_position.y;
-      }
-    }
-  }
-
   void setPosition(const DoubleVector3& pos) final {
-    EntityBase::setPosition(pos);
+    CreatureBase::setPosition(pos);
     m_stance = pos.y;
   }
 
@@ -276,27 +236,15 @@ class Player: public IPlayer {
     }
   }
 
-  bool updateWorldChunks(bool force) final {
+  bool updateWorldChunks(const IntVector2& prev, const IntVector2& curr) {
     std::unique_lock lock(m_lockChunks);
-
-    const auto prevchunk_pos = Chunk::toChunkCoords(IntVector2 {
-        static_cast<int32_t>(std::round(m_prevPosition.x)),
-        static_cast<int32_t>(std::round(m_prevPosition.z)),
-    });
-
-    const auto currchunk_pos = Chunk::toChunkCoords(IntVector2 {
-        static_cast<int32_t>(std::round(m_position.x)),
-        static_cast<int32_t>(std::round(m_position.z)),
-    });
-
-    if (!force && (currchunk_pos.x == prevchunk_pos.x && currchunk_pos.z == prevchunk_pos.z)) return true;
     unloadDistantChunks();
 
     auto& world = accessWorld();
 
     const auto movedir = IntVector2 {
-        .x = currchunk_pos.x - prevchunk_pos.x,
-        .z = currchunk_pos.z - prevchunk_pos.z,
+        .x = curr.x - prev.x,
+        .z = curr.z - prev.z,
     };
 
     auto omod = IntVector2 {};
@@ -322,13 +270,13 @@ class Player: public IPlayer {
     auto dist = static_cast<int32_t>(m_trackDistance);
 
     const IntVector2 opos = {
-        .x = currchunk_pos.x + omod.x * dist,
-        .z = currchunk_pos.z + omod.z * dist,
+        .x = curr.x + omod.x * dist,
+        .z = curr.z + omod.z * dist,
     };
 
     const IntVector2 dpos = {
-        .x = currchunk_pos.x + dmod.x * dist,
-        .z = currchunk_pos.z + dmod.z * dist,
+        .x = curr.x + dmod.x * dist,
+        .z = curr.z + dmod.z * dist,
     };
 
     for (int32_t cx = opos.x; cx <= dpos.x; ++cx) {
@@ -349,6 +297,33 @@ class Player: public IPlayer {
     }
 
     return updateTrackedEntities();
+  }
+
+  void onChunkChanged(const IntVector2& prev, const IntVector2& curr) final {
+    std::unique_lock lock(m_lockChunks);
+    updateWorldChunks(prev, curr);
+  }
+
+  void onHealthChanged(int16_t diff, bool dead) final {
+    using namespace Packet::ToClient;
+    PlayerHealth wdata_ph(getHealth());
+    if (diff > 0) {
+      wdata_ph.sendTo(m_selfSock);
+      return;
+    } else if (diff == 0) {
+      return;
+    }
+
+    EntityStatus wdata_es(getEntityId(), dead ? EntityStatus::Dead : EntityStatus::Hurted);
+
+    if (dead == true) { // Prevent client-side loot dropping from players
+      EntityEquipment wdata_eq(getEntityId(), 0, {-1});
+      sendToTrackedPlayers(wdata_eq, false);
+    }
+
+    if (wdata_ph.sendTo(m_selfSock)) {
+      sendToTrackedPlayers(wdata_es, true);
+    }
   }
 
   bool isTrackingEntity(EntityId eid) final {
@@ -602,10 +577,9 @@ class Player: public IPlayer {
   std::atomic<bool>       m_bLoggedIn = false;
   SlotId                  m_heldSlot  = 0;
   SafeSocket&             m_selfSock;
-  int64_t                 m_nextHit       = 0;
-  double_t                m_stance        = 0.0;
-  double_t                m_trackDistance = 0.0;
-  double_t                m_lastGround;
+  int64_t                 m_nextHit        = 0;
+  double_t                m_stance         = 0.0;
+  double_t                m_trackDistance  = 0.0;
   EntityBase*             m_attachedEntity = nullptr;
   std::wstring            m_name;
   std::vector<IntVector2> m_loadedChunks;
