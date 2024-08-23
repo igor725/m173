@@ -415,6 +415,9 @@ class Player: public IPlayer {
         case EntityBase::Object: {
           // Don't think we have to do something there actually
         } break;
+        case EntityBase::Thunderbolt: {
+          // Same as above I think
+        } break;
 
         default: {
           spdlog::warn("Unhandled entity type: {}!", (int8_t)t);
