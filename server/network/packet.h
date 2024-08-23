@@ -56,14 +56,17 @@ private:
 
   template <typename T>
   void readString(T& dst) {
-    auto strSize = readInteger<int16_t>();
+    using charType      = typename T::value_type;
+    const auto charSize = sizeof(charType);
+    auto       strSize  = readInteger<int16_t>();
+    if ((strSize / charSize) > 256) throw ReadException();
     dst.clear();
     dst.reserve(strSize);
 
     while (strSize--) {
-      typename T::value_type sym;
+      charType sym;
 
-      switch (sizeof(typename T::value_type)) {
+      switch (charSize) {
         case 1: {
           sym = readInteger<int8_t>();
         } break;
