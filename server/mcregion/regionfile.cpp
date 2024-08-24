@@ -17,11 +17,11 @@ namespace {
 const uint32_t REGOFF_SIZE_BITS = 8;
 
 union RegOff {
-  uint32_t raw;
+  uint32_t _raw;
 
   struct {
     uint32_t size: REGOFF_SIZE_BITS;
-    uint32_t position: ((sizeof(raw) * 8) - REGOFF_SIZE_BITS);
+    uint32_t position: ((sizeof(_raw) * 8) - REGOFF_SIZE_BITS);
   };
 
   RegOff(): size(0), position(0) {}
@@ -29,7 +29,7 @@ union RegOff {
   RegOff(uint8_t _s, uint32_t _p): size(_s), position(_p) {}
 };
 
-static_assert(sizeof(RegOff) == sizeof(RegOff::raw) && "Oh no!");
+static_assert(sizeof(RegOff) == sizeof(RegOff::_raw) && "Oh no!");
 
 constexpr uint32_t SECTOR_SIZE            = 4096;
 constexpr uint32_t OFFSET_TAB_SZ          = (SECTOR_SIZE / sizeof(RegOff));
@@ -307,7 +307,7 @@ class RegionFile: public IRegionFile {
 
   void updateOffset(RegOff& offset) {
     auto idx = std::distance(m_offsets.data(), &offset);
-    spdlog::trace("RegionFile->updateOffset({}, {})", idx, offset.raw);
+    spdlog::trace("RegionFile->updateOffset({}, {})", idx, offset._raw);
     if (idx < 0 || idx > m_offsets.size()) {
       spdlog::error("Invalid offset passed o updateOffset");
       return;
