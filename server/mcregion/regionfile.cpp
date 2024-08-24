@@ -14,12 +14,27 @@
 #include <vector>
 
 namespace {
-typedef uint32_t RegOff;
+const uint32_t REGOFF_SIZE_BITS = 8;
+
+union RegOff {
+  uint32_t raw;
+
+  struct {
+    uint32_t size: REGOFF_SIZE_BITS;
+    uint32_t position: ((sizeof(raw) * 8) - REGOFF_SIZE_BITS);
+  };
+
+  RegOff(): size(0), position(0) {}
+
+  RegOff(uint8_t _s, uint32_t _p): size(_s), position(_p) {}
+};
+
+static_assert(sizeof(RegOff) == sizeof(RegOff::raw) && "Oh no!");
 
 constexpr uint32_t SECTOR_SIZE            = 4096;
 constexpr uint32_t OFFSET_TAB_SZ          = (SECTOR_SIZE / sizeof(RegOff));
 constexpr uint32_t START_COMP_BUF_SZ      = 512;
-constexpr uint32_t MAX_SECTORS_PER_OFFSET = 0xff;
+constexpr uint32_t MAX_SECTORS_PER_OFFSET = (1 << REGOFF_SIZE_BITS) - 1;
 
 enum CompressionType : uint8_t {
   Unspecified,
@@ -63,7 +78,7 @@ class RegionFile: public IRegionFile {
   std::array<char, SECTOR_SIZE> m_emptySector = {'\0'};
 
   public:
-  RegionFile(const std::string& fname): m_lastAccess(), m_offsets({0}) {
+  RegionFile(const std::string& fname): m_lastAccess(), m_offsets({}) {
     if (!std::filesystem::exists(fname)) {
       spdlog::trace("No RegionFile({}) found, creating an empty one...", fname);
       std::filesystem::path fpath(fname);
@@ -103,11 +118,8 @@ class RegionFile: public IRegionFile {
 
     uint32_t sec_count = 1;
     for (auto it = m_offsets.begin(); it != m_offsets.end(); ++it) {
-      auto offset     = (*it);
-      auto secNum     = offset >> 8;
-      auto secAlloced = offset & MAX_SECTORS_PER_OFFSET;
-
-      if (offset > 0 && (secNum + secAlloced) <= m_sectorFree.size()) changeFree(secNum, secAlloced, false);
+      auto offset = (*it);
+      if (offset.size > 0 && (offset.position + offset.size) <= m_sectorFree.size()) changeFree(offset.position, offset.size, false);
     }
 
     m_lastAccess = std::chrono::system_clock::now();
@@ -124,19 +136,16 @@ class RegionFile: public IRegionFile {
     spdlog::trace("RegionFile->writeChunk(Vec2({},{}), {})", pos.x, pos.z, (void*)&chunk);
     m_lastAccess = std::chrono::system_clock::now();
 
-    auto     offset       = m_offsets[getIndex(pos)];
-    uint32_t sectorNum    = offset >> 8;
-    uint32_t sectorsAlloc = offset & MAX_SECTORS_PER_OFFSET;
-    uint32_t comprSize    = compressChunk(chunk);
-    uint32_t sectorsNeed  = comprSize / SECTOR_SIZE + 1;
+    auto&    offset      = m_offsets[getIndex(pos)];
+    uint32_t comprSize   = compressChunk(chunk);
+    uint32_t sectorsNeed = comprSize / SECTOR_SIZE + 1;
 
     if (sectorsNeed > MAX_SECTORS_PER_OFFSET) return false;
 
-    if (sectorNum != 0 && sectorsAlloc == sectorsNeed) {
-      return writeComprDataToSector(sectorNum, comprSize);
+    if (offset.position > 0 && offset.size == sectorsNeed) {
+      return writeComprDataToSector(offset.position, comprSize);
     } else {
-      // Free now unused sectors
-      changeFree(sectorNum, sectorsAlloc, true);
+      if (offset.position > 0) changeFree(offset.position, offset.size, true); // Free now unused sectors
 
       uint32_t freeSectorStart = 0;
       uint32_t freeSectorsNum  = 0;
@@ -153,22 +162,25 @@ class RegionFile: public IRegionFile {
         if (freeSectorsNum >= sectorsNeed) break;
       }
 
-      if (freeSectorsNum >= sectorsNeed) {
-        sectorNum = freeSectorStart;
+      offset.size = sectorsNeed;
+
+      if (freeSectorsNum >= sectorsNeed) { // Using existing empty space
+        offset.position = freeSectorStart;
         changeFree(freeSectorStart, sectorsNeed, false);
-      } else {
-        m_file.flush();
-        sectorNum = m_sectorFree.size();
-        m_sectorFree.resize(sectorNum + sectorsNeed);
+      } else { // Creating new one
+        offset.position = m_sectorFree.size();
+        m_sectorFree.resize(offset.position + sectorsNeed);
 
         m_file.seekp(0, std::ios::end);
         for (int i = 0; i < sectorsNeed; ++i) {
           m_file.write(m_emptySector.data(), m_emptySector.size());
         }
+
+        m_file.flush();
       }
 
-      if (!writeComprDataToSector(sectorNum, comprSize)) return false;
-      setOffset(pos, (sectorNum << 8) | sectorsNeed);
+      if (!writeComprDataToSector(offset.position, comprSize)) return false;
+      updateOffset(offset);
       return true;
     }
 
@@ -178,8 +190,8 @@ class RegionFile: public IRegionFile {
   bool readChunk(const IntVector2& pos, const ChunkUnique& chunk) final {
     m_lastAccess = std::chrono::system_clock::now();
     auto offset  = m_offsets[getIndex(pos)];
-    if (offset == 0) return false;
-    return readFromSector(offset >> 8, chunk);
+    if (offset.size == 0) return false;
+    return readFromSector(offset.position, chunk);
   }
 
   private:
@@ -293,11 +305,15 @@ class RegionFile: public IRegionFile {
 
   static uint32_t getIndex(const IntVector2& pos) { return (pos.x & 31) + (pos.z & 31) * 32; }
 
-  void setOffset(const IntVector2& pos, RegOff offset) {
-    spdlog::trace("RegionFile->setOffset(Vec2({}, {}), {})", pos.x, pos.z, offset);
-    auto idx = getIndex(pos);
+  void updateOffset(RegOff& offset) {
+    auto idx = std::distance(m_offsets.data(), &offset);
+    spdlog::trace("RegionFile->updateOffset({}, {})", idx, offset.raw);
+    if (idx < 0 || idx > m_offsets.size()) {
+      spdlog::error("Invalid offset passed o updateOffset");
+      return;
+    }
     m_file.seekp(idx * sizeof(RegOff), std::ios::beg);
-    m_file.write((char*)&(m_offsets[idx] = offset), sizeof(RegOff));
+    m_file.write((char*)&offset, sizeof(RegOff));
     m_file.flush();
   }
 
