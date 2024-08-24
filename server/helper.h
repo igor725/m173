@@ -24,6 +24,8 @@ struct IntVector2 {
 
   bool operator==(const IntVector2& other) const { return x == other.x && z == other.z; }
 
+  float_t distanceTo(const IntVector2& other) const { return std::sqrtf((other.x - x) * (other.x - x) + (other.z - z) * (other.z - z)); }
+
   struct HashFunction {
     union UPack {
       size_t hash;

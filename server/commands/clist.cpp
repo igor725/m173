@@ -164,6 +164,33 @@ class Thor: public Command {
   }
 };
 
+class TP: public Command {
+  public:
+  TP(): Command(L"tp", L"Teleports you to specified coordinates", true) {}
+
+  bool execute(IPlayer* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
+    if (args.size() < 3) {
+      out = L"Usage: /tp <x> <y> <z>";
+      return true;
+    }
+
+    std::wstringstream ss;
+    DoubleVector3      npos;
+
+    ss << args[0];
+    ss >> npos.x;
+    ss.clear();
+    ss << args[1];
+    ss >> npos.y;
+    ss.clear();
+    ss << args[2];
+    ss >> npos.z;
+
+    caller->teleportPlayer(npos);
+    return true;
+  }
+};
+
 static Help   help_reg;
 static Stop   stop_reg;
 static Killme killme_reg;
@@ -173,3 +200,4 @@ static Give   give_reg;
 static WInfo  winfo_reg;
 static Craft  craft_reg;
 static Thor   thor_reg;
+static TP     tp_reg;

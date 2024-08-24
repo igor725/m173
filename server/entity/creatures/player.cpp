@@ -216,11 +216,7 @@ class Player: public IPlayer {
   void unloadDistantChunks(bool all = false) {
     for (auto it = m_loadedChunks.begin(); it != m_loadedChunks.end();) {
       if (all == false) {
-        const auto diff = Chunk::toChunkCoords(IntVector2 {
-            it->x - static_cast<int32_t>(std::round(m_position.x)),
-            it->z - static_cast<int32_t>(std::round(m_position.z)),
-        });
-        const auto dist = std::sqrt((diff.x * diff.x) + (diff.z * diff.z));
+        const auto dist = it->distanceTo(getCurrentChunk());
         if (dist < m_trackDistance * 1.5) {
           ++it;
           continue;
