@@ -122,16 +122,3 @@ enum ArmorType : int8_t {
   Pants,
   Boots,
 };
-
-template <typename T>
-T bswap(T val) {
-  T     retVal;
-  char* pVal    = (char*)&val;
-  char* pRetVal = (char*)&retVal;
-  int   size    = sizeof(T);
-  for (int i = 0; i < size; i++) {
-    pRetVal[size - 1 - i] = pVal[i];
-  }
-
-  return retVal;
-}
