@@ -7,3 +7,6 @@
 [submodule "3rd/zlib"]
 	path = 3rd/zlib
 	url = https://github.com/madler/zlib.git
+[submodule "3rd/lua"]
+	path = 3rd/lua
+	url = https://github.com/lua/lua

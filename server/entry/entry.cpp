@@ -5,6 +5,7 @@
 #include "platform/platform.h"
 #include "recipes/crafting/recipe.h"
 #include "runmanager/runmanager.h"
+#include "script/script.h"
 #include "world/world.h"
 
 #include <filesystem>
@@ -14,7 +15,7 @@
 #include <spdlog/spdlog.h>
 
 namespace {
-constexpr const char* LOCKFILE = "server.lock";
+constexpr const char* LOCKFILE = "./server.lock";
 }
 
 int main(int argc, char* argv[]) {
@@ -46,6 +47,9 @@ int main(int argc, char* argv[]) {
     spdlog::error("Failed to open {} file!", LOCKFILE);
     return 2;
   }
+
+  spdlog::info("Initializing scripting engine...");
+  accessScript().loadScriptsFrom("./scripts/");
 
   spdlog::info("Initializing libraries...");
   sockpp::initialize();

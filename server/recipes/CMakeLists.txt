@@ -5,4 +5,3 @@ add_library(recipes OBJECT
 )
 
 target_link_libraries(recipes PRIVATE spdlog::spdlog)
-

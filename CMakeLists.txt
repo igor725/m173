@@ -58,7 +58,7 @@ else()
   set(platform_libs z.a)
 endif()
 
-target_link_libraries(m173_server PRIVATE Sockpp::sockpp-static spdlog::spdlog ${platform_libs})
+target_link_libraries(m173_server PRIVATE Sockpp::sockpp-static spdlog::spdlog scriptvm ${platform_libs})
 
 install(
   TARGETS m173_server
