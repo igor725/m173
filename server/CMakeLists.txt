@@ -13,3 +13,19 @@ add_subdirectory(zlibpp)
 add_subdirectory(platform)
 add_subdirectory(runmanager)
 add_subdirectory(script)
+
+add_library(server STATIC
+  $<TARGET_OBJECTS:config>
+  $<TARGET_OBJECTS:commands>
+  $<TARGET_OBJECTS:network>
+  $<TARGET_OBJECTS:blocks>
+  $<TARGET_OBJECTS:items>
+  $<TARGET_OBJECTS:recipes>
+  $<TARGET_OBJECTS:entity>
+  $<TARGET_OBJECTS:containers>
+  $<TARGET_OBJECTS:mcregion>
+  $<TARGET_OBJECTS:world>
+  $<TARGET_OBJECTS:zlibpp>
+  $<TARGET_OBJECTS:platform>
+  $<TARGET_OBJECTS:runmanager>
+)
