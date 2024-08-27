@@ -8,6 +8,8 @@
 #include <spdlog/spdlog.h>
 #include <vector>
 
+void registerMetaTables(lua_State* L);
+
 class ScriptVM: public IScriptVM {
   public:
   ScriptVM() {
@@ -39,10 +41,27 @@ class ScriptVM: public IScriptVM {
     lua_setglobal(m_mainState, LUA_UTF8LIBNAME);
 
     lua_pushcfunction(m_mainState, [](lua_State* L) -> int {
-      spdlog::info("Lua[{}]: {}", (const void*)L, lua_tostring(L, 1));
+      int count = lua_gettop(L);
+      if (count > 0) {
+        lua_getglobal(L, "tostring");
+        lua_pushliteral(L, "");
+
+        for (int i = 1; i <= count; ++i) {
+          lua_pushliteral(L, " ");
+          lua_pushvalue(L, -3);
+          lua_pushvalue(L, i);
+          lua_call(L, 1, 1);
+          lua_concat(L, 3);
+        }
+
+        spdlog::info("Lua[{}]: {}", (const void*)L, lua_tostring(L, -1));
+      }
+
       return 0;
     });
     lua_setglobal(m_mainState, "print");
+
+    registerMetaTables(m_mainState);
   }
 
   ~ScriptVM() {
@@ -87,6 +106,7 @@ class ScriptVM: public IScriptVM {
       switch ((*it)->getStatus()) {
         case IScriptThread::Alive: {
           (*it)->postEvent(ev);
+          ++it;
         } break;
         case IScriptThread::Dead: {
           ++it;

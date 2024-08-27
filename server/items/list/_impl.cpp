@@ -10,6 +10,8 @@
 #include "items/database.h"
 #include "lighter.h"
 #include "network/packets/SoundEffect.h"
+#include "network/packets/World.h"
+#include "script/script.h"
 #include "sign.h"
 #include "snowBall.h"
 #include "world/world.h"
@@ -35,6 +37,19 @@ bool ItemBlock::onUseItemOnBlock(ItemStack& is, EntityBase* user, const IntVecto
       case 4: npos.x -= 1; break;
       case 5: npos.x += 1; break;
     }
+  }
+
+  auto       arg = preBlockPlaceArgumentEvent {false, is, m_blockId, user, pos, direction};
+  const auto ev  = ScriptEvent {ScriptEvent::preBlockPlace, &arg};
+  accessScript().postEvent(ev);
+  if (arg.cancelled) {
+    int8_t meta = 0;
+    auto   id   = world.getBlock(npos, &meta);
+
+    Packet::ToClient::BlockChange wdata_bc(npos, id, meta);
+    wdata_bc.sendTo(ply->getSocket());
+    ply->resendItem(ply->getHeldItem());
+    return false;
   }
 
   // Should be retrieved before being eaten by ItemStack::decrementBy()
@@ -64,6 +79,11 @@ bool ItemBlock::onBlockDestroyed(ItemStack& is, const IntVector3& pos, BlockId i
   using namespace Packet::ToClient;
   SoundEffect wdata_snd(SoundEffect::BlockBreak, pos, id);
   ply->sendToTrackedPlayers(wdata_snd);
+
+  auto       arg = onBlockDestroyedEvent {is, destroyer, pos, id};
+  const auto ev  = ScriptEvent {ScriptEvent::onBlockDestroyed, &arg};
+  accessScript().postEvent(ev);
+
   return true;
 }
 

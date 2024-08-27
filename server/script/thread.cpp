@@ -61,6 +61,18 @@ class ScriptThread: public IScriptThread {
         lua_pushliteral(m_self, "onStop");
         return 1;
       } break;
+      case ScriptEvent::preBlockPlace: {
+        lua_pushliteral(m_self, "preBlockPlace");
+        *(void**)lua_newuserdata(m_self, sizeof(void*)) = ev.args;
+        luaL_setmetatable(m_self, "preBlockPlaceEvent");
+        return 2;
+      } break;
+      case ScriptEvent::onBlockDestroyed: {
+        lua_pushliteral(m_self, "onBlockDestroyed");
+        *(void**)lua_newuserdata(m_self, sizeof(void*)) = ev.args;
+        // luaL_setmetatable(m_self, "onBlockDestroyedEvent");
+        return 2;
+      } break;
     }
 
     spdlog::error("Just pushed empty event to thread {}!", (const void*)m_self);

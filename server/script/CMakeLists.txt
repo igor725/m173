@@ -7,6 +7,7 @@ add_library(scriptvm STATIC
 
   main.cpp
   thread.cpp
+  event.cpp
 )
 
 target_include_directories(scriptvm PRIVATE ${LUA_DIR})
