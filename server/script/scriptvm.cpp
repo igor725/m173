@@ -7,6 +7,7 @@
 #include <mutex>
 #include <new>
 #include <spdlog/spdlog.h>
+#include <string>
 #include <vector>
 
 void registerMetaTables(lua_State* L);
@@ -108,6 +109,16 @@ class ScriptVM: public IScriptVM {
     return nullptr;
   }
 
+  IScriptThread* getByState(lua_State* L) {
+    std::unique_lock lock(m_stateLock);
+
+    for (auto it = m_threads.begin(); it != m_threads.end(); ++it) {
+      if ((*it)->getState() == L) return it->get();
+    }
+
+    return nullptr;
+  }
+
   void loadScriptsFrom(const std::filesystem::path& path) final {
     std::unique_lock lock(m_stateLock);
 
@@ -155,8 +166,7 @@ class ScriptVM: public IScriptVM {
     std::unique_lock lock(m_stateLock);
 
     if (auto script = getByName(name)) {
-      auto scname = name.filename().replace_extension(".lua");
-      out         = std::format(L"**** {} ****\nScript status: {}\n**** {} ****", scname.c_str(), script->getStatusStr(), scname.c_str());
+      script->getStatusStr(out);
       return;
     }
 

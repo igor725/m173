@@ -2,6 +2,7 @@
 
 #include "luaobject.h"
 
+#include <array>
 #include <spdlog/spdlog.h>
 
 class ScriptThread: public IScriptThread {
@@ -25,11 +26,44 @@ class ScriptThread: public IScriptThread {
       return;
     }
 
+    lua_newtable(m_self);
+    lua_pushliteral(m_self, "Script Name");
+    lua_setfield(m_self, -2, "name");
+    lua_pushliteral(m_self, "Script Description");
+    lua_setfield(m_self, -2, "description");
+    lua_pushliteral(m_self, "1.0.0");
+    lua_setfield(m_self, -2, "version");
+    lua_pushvalue(m_self, -1);
+    int inforef = luaL_ref(m_self, LUA_REGISTRYINDEX);
+
     int nres;
-    switch (lua_resume(m_self, nullptr, 0, &nres)) {
+    switch (lua_resume(m_self, nullptr, 1, &nres)) {
       case LUA_ERRMEM: throw std::bad_alloc();
       case LUA_YIELD: {
+        std::array<std::string_view, 3> params = {};
+
         m_status = Alive;
+        lua_rawgeti(m_self, LUA_REGISTRYINDEX, inforef);
+        lua_getfield(m_self, -1, "name");
+        params[0] = std::string_view(luaL_optstring(m_self, -1, "N/A"));
+        lua_getfield(m_self, -2, "description");
+        params[1] = std::string_view(luaL_optstring(m_self, -1, "N/A"));
+        lua_getfield(m_self, -3, "version");
+        params[2] = std::string_view(luaL_optstring(m_self, -1, "N/A"));
+
+        std::mbtowc(nullptr, nullptr, 0);
+        for (auto i = 0; i < params.size(); ++i) {
+          m_info[i].clear();
+          m_info[i].reserve(params[i].length());
+
+          for (auto it = params[i].begin(); it != params[i].end(); ++it) {
+            wchar_t dst;
+            if (std::mbtowc(&dst, &(*it), 1) > 0) m_info[i].push_back(dst);
+          }
+        }
+
+        luaL_unref(m_self, LUA_REGISTRYINDEX, inforef);
+        lua_pop(m_self, 4);
       } break;
       case LUA_OK: {
         spdlog::warn("Script {} does not contain coroutine loop, closing...", strpath.c_str());
@@ -47,9 +81,16 @@ class ScriptThread: public IScriptThread {
 
   Status getStatus() const final { return m_status; }
 
-  const std::wstring& getStatusStr() const final {
+  lua_State* getState() const final { return m_self; }
+
+  void getStatusStr(std::wstring& out) const final {
     static const std::wstring statuses[] = {L"Alive", L"Dead", L"Closed"};
-    return statuses[m_status];
+
+    out = std::format(L"**** {} v{} ****\nStatus: {}\nDescription: {}\n", m_info[0], m_info[2], statuses[m_status], m_info[1], m_info[0]);
+
+    auto firstLineLength = 12 + m_info[0].length() + m_info[2].length();
+    for (int i = 0; i < firstLineLength; ++i)
+      out.push_back(L'~');
   }
 
   int getId() const final { return m_selfId; }
@@ -125,6 +166,8 @@ class ScriptThread: public IScriptThread {
   Status     m_status;
   lua_State* m_self;
   int        m_selfId;
+
+  std::array<std::wstring, 3> m_info;
 
   std::filesystem::path m_path;
 };

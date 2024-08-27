@@ -5,7 +5,7 @@ add_subdirectory(vm)
 add_library(scriptvm STATIC
   $<TARGET_OBJECTS:lua_vm>
 
-  main.cpp
+  scriptvm.cpp
   thread.cpp
   event.cpp
   luaobject.cpp

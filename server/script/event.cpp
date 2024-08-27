@@ -156,6 +156,7 @@ static void regMessage(lua_State* L) {
          auto arg  = *lobj->get<onMessage*>();
 
          arg->finalMessage.clear();
+         std::mbtowc(nullptr, nullptr, 0);
          for (auto it = fin.begin(); it != fin.end(); ++it) {
            wchar_t dst;
            if (std::mbtowc(&dst, &(*it), 1) > 0) arg->finalMessage.push_back(dst);

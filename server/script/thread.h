@@ -21,7 +21,9 @@ class IScriptThread {
 
   virtual Status getStatus() const = 0;
 
-  virtual const std::wstring& getStatusStr() const = 0;
+  virtual lua_State* getState() const = 0;
+
+  virtual void getStatusStr(std::wstring& out) const = 0;
 
   virtual int getId() const = 0;
 

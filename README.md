@@ -1,6 +1,27 @@
 # m173
 
-m173 is a Minecraft Beta 1.7.3 server written in C++.
+m173 it's a hackable Minecraft Beta 1.7.3 server written in C++.
+
+## Planned features
+
+* Forward more events to Lua scripts
+* Sleeping
+* Weather changing
+* Sitting on mobs
+* Statistics
+* Actually working map item
+* Smelting
+* Redstone
+* Mobs
+* Boats
+* Minecarts
+* Physics
+* Fishing
+* PvP with long range weapons
+* AI for mobs
+* Multiple worlds
+* Pickuping up/Dropping items
+* TNT/Explosions
 
 TODO: More description
 
@@ -15,6 +36,7 @@ TODO: More description
 1. [zlib](https://github.com/madler/zlib)
 2. [sockpp](https://github.com/fpagliughi/sockpp)
 3. [spdlog](https://github.com/gabime/spdlog)
+4. [lua](https://github.com/lua/lua)
 
 ## Building thirdparty
 
