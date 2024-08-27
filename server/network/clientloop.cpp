@@ -18,6 +18,8 @@
 #include "platform/platform.h"
 #include "runmanager/runmanager.h"
 #include "safesock.h"
+#include "script/event.h"
+#include "script/script.h"
 #include "world/world.h"
 #include "zlibpp/zlibpp.h"
 
@@ -128,6 +130,18 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
 
       spdlog::trace("Received packet {:02x} from {}", id, addr.to_string());
 
+      if (linkedPlayer == nullptr) {
+        switch (id) {
+          case Packet::IDs::Login:
+          case Packet::IDs::Handshake: {
+          } break;
+
+          default: {
+            throw GenericKickException("You should authorize first!");
+          } break;
+        }
+      }
+
       switch (id) {
         case Packet::IDs::Login: {
           Packet::FromClient::LoginRequest data(ss);
@@ -173,12 +187,18 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
               ++it;
             }
 
-            Packet::ToClient::ChatMessage wdata(std::format(L"<{}>: {}", linkedPlayer->getName(), message));
+            std::wstring fin = std::format(L"<{}>: {}", linkedPlayer->getName(), message);
+            onMessage    arg = {false, linkedPlayer, message, fin};
 
-            accessEntityManager().IterPlayers([&wdata](IPlayer* player) -> bool {
-              wdata.sendTo(player->getSocket());
-              return true;
-            });
+            accessScript().postEvent({ScriptEvent::onMessage, &arg});
+            if (!arg.cancelled) {
+              Packet::ToClient::ChatMessage wdata(arg.finalMessage);
+
+              accessEntityManager().IterPlayers([&wdata](IPlayer* player) -> bool {
+                wdata.sendTo(player->getSocket());
+                return true;
+              });
+            }
           }
         } break;
         case Packet::IDs::EntityUse: {

@@ -122,15 +122,16 @@ int main(int argc, char* argv[]) {
 
       for (auto it = out.begin(); it != out.end();) {
         if (*it == L'\u00a7') {
-          it = out.erase(it, it + std::min(ptrdiff_t(2), std::distance(it, out.end())));
+          it += std::min(ptrdiff_t(2), std::distance(it, out.end()));
           continue;
         }
 
+        std::wcout << *it;
         ++it;
       }
 
       // Sadly, there's no multiplatform way to print wide chars with spdlog
-      if (!out.empty()) std::wcout << out << std::endl;
+      if (!out.empty()) std::wcout << std::endl;
     }
   });
   console.detach();

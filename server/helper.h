@@ -11,6 +11,9 @@
   name(name&&) noexcept            = delete;                                                                                                                   \
   name& operator=(name&&) noexcept = delete
 
+#define _WIDELITERAL(_s) L##_s
+#define WIDELITERAL(_s)  _WIDELITERAL(_s)
+
 typedef uint32_t EntityId;
 typedef uint8_t  BlockId;
 typedef int16_t  ItemId;

@@ -97,6 +97,17 @@ class ScriptVM: public IScriptVM {
     lua_settop(m_mainState, preCall);
   }
 
+  IScriptThread* getByName(const std::filesystem::path& path) {
+    std::unique_lock lock(m_stateLock);
+
+    auto luaFile = path.filename().replace_extension(".lua");
+    for (auto it = m_threads.begin(); it != m_threads.end(); ++it) {
+      if ((*it)->isNamesEqual(luaFile)) return it->get();
+    }
+
+    return nullptr;
+  }
+
   void loadScriptsFrom(const std::filesystem::path& path) final {
     std::unique_lock lock(m_stateLock);
 
@@ -106,6 +117,50 @@ class ScriptVM: public IScriptVM {
         openScript(entry.path());
       }
     }
+  }
+
+  void reloadAll() final {
+    std::unique_lock lock(m_stateLock);
+
+    for (auto it = m_threads.begin(); it != m_threads.end(); ++it) {
+      (*it)->reload();
+    }
+  }
+
+  bool reload(const std::filesystem::path& name) {
+    std::unique_lock lock(m_stateLock);
+
+    if (auto script = getByName(name)) {
+      script->reload();
+      return true;
+    }
+
+    return false;
+  }
+
+  void getStatus(std::wstring& out) final {
+    std::unique_lock lock(m_stateLock);
+
+    uint32_t deadScripts = 0;
+
+    for (auto it = m_threads.begin(); it != m_threads.end(); ++it) {
+      if ((*it)->getStatus() != IScriptThread::Alive) ++deadScripts;
+    }
+
+    out = std::format(L"Compiled with: {}\nLoaded scripts: \u00a7a{}\u00a7f ({} \u00a7cdead\u00a7f)\nMemory usage: \u00a7a{}kB\u00a7f",
+                      WIDELITERAL(LUA_VERSION), m_threads.size(), deadScripts, lua_gc(m_mainState, LUA_GCCOUNT));
+  }
+
+  void getStatus(std::wstring& out, const std::filesystem::path& name) final {
+    std::unique_lock lock(m_stateLock);
+
+    if (auto script = getByName(name)) {
+      auto scname = name.filename().replace_extension(".lua");
+      out         = std::format(L"**** {} ****\nScript status: {}\n**** {} ****", scname.c_str(), script->getStatusStr(), scname.c_str());
+      return;
+    }
+
+    out = L"\u00a7cCan't find specified script!";
   }
 
   void postEvent(const ScriptEvent& ev) final {

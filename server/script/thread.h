@@ -17,7 +17,11 @@ class IScriptThread {
   IScriptThread()          = default;
   virtual ~IScriptThread() = default;
 
+  virtual bool isNamesEqual(const std::filesystem::path& name) const = 0;
+
   virtual Status getStatus() const = 0;
+
+  virtual const std::wstring& getStatusStr() const = 0;
 
   virtual int getId() const = 0;
 

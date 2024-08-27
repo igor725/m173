@@ -3,6 +3,8 @@
 #include "entity/entitybase.h"
 #include "items/itemstack.h"
 
+#include <string>
+
 struct preBlockPlaceArgumentEvent {
   bool              cancelled;
   ItemStack&        is;
@@ -19,12 +21,20 @@ struct onBlockDestroyedEvent {
   BlockId           id;
 };
 
+struct onMessage {
+  bool                cancelled;
+  EntityBase*         sender;
+  const std::wstring& message;
+  std::wstring&       finalMessage;
+};
+
 struct ScriptEvent {
   enum Type {
     onStart,
     onStop,
     preBlockPlace,
     onBlockDestroyed,
+    onMessage,
   };
 
   Type  type;

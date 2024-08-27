@@ -3,6 +3,7 @@
 #include "libraries/itemstack.h"
 #include "vm/lua.hpp"
 
+#include <cstdlib>
 #include <format>
 
 static void createEventArg(lua_State* L, const char* name, const luaL_Reg* reg) {
@@ -42,27 +43,27 @@ static void regBlockEvents(lua_State* L) {
          lua_pushboolean(L, arg->cancelled);
          return 1;
        }},
-      {"getPosition",
+      {"position",
        [](lua_State* L) -> int {
          auto lobj = LuaObject::fromstack(L, 1);
          auto arg  = *lobj->get<preBlockPlaceArgumentEvent*>();
          return pushVector(L, arg->pos);
        }},
-      {"getDirection",
+      {"direction",
        [](lua_State* L) -> int {
          auto lobj = LuaObject::fromstack(L, 1);
          auto arg  = *lobj->get<preBlockPlaceArgumentEvent*>();
          lua_pushinteger(L, arg->direction);
          return 1;
        }},
-      {"getPlacer",
+      {"placer",
        [](lua_State* L) -> int {
          auto lobj = LuaObject::fromstack(L, 1);
          auto arg  = *lobj->get<preBlockPlaceArgumentEvent*>();
          lua_pushlightuserdata(L, arg->user);
          return 1;
        }},
-      {"getItemStack",
+      {"itemStack",
        [](lua_State* L) -> int {
          auto lobj    = LuaObject::fromstack(L, 1);
          auto arg     = *lobj->get<preBlockPlaceArgumentEvent*>();
@@ -76,20 +77,20 @@ static void regBlockEvents(lua_State* L) {
   createEventArg(L, "preBlockPlaceEvent", reg_place);
 
   static luaL_Reg reg_destroy[] = {
-      {"getPosition",
+      {"position",
        [](lua_State* L) -> int {
          auto lobj = LuaObject::fromstack(L, 1);
          auto arg  = *lobj->get<onBlockDestroyedEvent*>();
          return pushVector(L, arg->pos);
        }},
-      {"getDestroyer",
+      {"destroyer",
        [](lua_State* L) -> int {
          auto lobj = LuaObject::fromstack(L, 1);
          auto arg  = *lobj->get<onBlockDestroyedEvent*>();
          lua_pushlightuserdata(L, arg->user);
          return 1;
        }},
-      {"getItemStack",
+      {"itemStack",
        [](lua_State* L) -> int {
          auto lobj    = LuaObject::fromstack(L, 1);
          auto arg     = *lobj->get<onBlockDestroyedEvent*>();
@@ -103,6 +104,72 @@ static void regBlockEvents(lua_State* L) {
   createEventArg(L, "onBlockDestroyedEvent", reg_destroy);
 }
 
+static void regMessage(lua_State* L) {
+  static luaL_Reg reg_msg[] = {
+      // todo create LuaObject for strings maybe?
+      {"cancel",
+       [](lua_State* L) -> int {
+         auto lobj      = LuaObject::fromstack(L, 1);
+         auto arg       = *lobj->get<onMessage*>();
+         arg->cancelled = true;
+         return 0;
+       }},
+      {"isCancelled",
+       [](lua_State* L) -> int {
+         auto lobj = LuaObject::fromstack(L, 1);
+         auto arg  = *lobj->get<onMessage*>();
+         lua_pushboolean(L, arg->cancelled);
+         return 1;
+       }},
+      {"message",
+       [](lua_State* L) -> int {
+         auto lobj = LuaObject::fromstack(L, 1);
+         auto arg  = *lobj->get<onMessage*>();
+
+         std::string mb;
+         mb.reserve(arg->message.length());
+
+         std::wctomb(nullptr, 0);
+         for (auto it = arg->message.begin(); it != arg->message.end(); ++it) {
+           char dst;
+           if (std::wctomb(&dst, (*it)) > 0) mb.push_back(dst);
+         }
+
+         if (lua_pushstring(L, mb.c_str()) != nullptr) {
+           mb.clear();
+           return 1;
+         }
+
+         return 0;
+       }},
+      {"user",
+       [](lua_State* L) -> int {
+         auto lobj = LuaObject::fromstack(L, 1);
+         auto arg  = *lobj->get<onMessage*>();
+         lua_pushlightuserdata(L, arg->sender);
+         return 1;
+       }},
+      {"finalMessage",
+       [](lua_State* L) -> int {
+         auto fin  = std::string_view(luaL_checkstring(L, 2));
+         auto lobj = LuaObject::fromstack(L, 1);
+         auto arg  = *lobj->get<onMessage*>();
+
+         arg->finalMessage.clear();
+         for (auto it = fin.begin(); it != fin.end(); ++it) {
+           wchar_t dst;
+           if (std::mbtowc(&dst, &(*it), 1) > 0) arg->finalMessage.push_back(dst);
+         }
+
+         return 0;
+       }},
+
+      {nullptr, nullptr},
+  };
+  createEventArg(L, "onMessageEvent", reg_msg);
+}
+
 void registerMetaTables(lua_State* L) {
   regBlockEvents(L);
+  regMessage(L);
 }

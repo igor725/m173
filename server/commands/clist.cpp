@@ -3,6 +3,7 @@
 #include "handler.h"
 #include "items/item.h"
 #include "runmanager/runmanager.h"
+#include "script/script.h"
 #include "uiwindow/list/workbench.h"
 #include "world/world.h"
 
@@ -191,6 +192,35 @@ class TP: public Command {
   }
 };
 
+class Lua: public Command {
+  public:
+  Lua(): Command(L"lua", L"Manage Lua VM") {}
+
+  bool execute(IPlayer* executor, std::vector<std::wstring_view>& args, std::wstring& out) {
+    if (args.size() < 1) {
+      out = L"Usage: /lua <reload/reloadall/load>";
+      return true;
+    }
+
+    if (args[0] == L"reload") {
+      out = accessScript().reload(args[1]) ? L"\u00a7aScript reloaded successfully" : L"\u00a7cScript not found!";
+    } else if (args[0] == L"reloadall") {
+      accessScript().reloadAll();
+      out = L"All scripts reloaded!";
+    } else if (args[0] == L"status") {
+      if (args.size() > 1) {
+        accessScript().getStatus(out, args[1]);
+      } else {
+        accessScript().getStatus(out);
+      }
+    } else if (args[0] == L"load") {
+      out = L"Work in progress";
+    }
+
+    return true;
+  }
+};
+
 static Help   help_reg;
 static Stop   stop_reg;
 static Killme killme_reg;
@@ -201,3 +231,4 @@ static WInfo  winfo_reg;
 static Craft  craft_reg;
 static Thor   thor_reg;
 static TP     tp_reg;
+static Lua    lua_reg;
