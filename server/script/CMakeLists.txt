@@ -8,6 +8,9 @@ add_library(scriptvm STATIC
   main.cpp
   thread.cpp
   event.cpp
+  luaobject.cpp
+
+  libraries/itemstack.cpp
 )
 
 target_include_directories(scriptvm PRIVATE ${LUA_DIR})

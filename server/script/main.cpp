@@ -1,4 +1,5 @@
 #include "event.h"
+#include "libraries/itemstack.h"
 #include "script.h"
 #include "thread.h"
 #include "vm/lua.hpp"
@@ -27,18 +28,26 @@ class ScriptVM: public IScriptVM {
       return 0;
     });
 
-    luaopen_base(m_mainState);
-    lua_setglobal(m_mainState, LUA_GNAME);
-    luaopen_coroutine(m_mainState);
-    lua_setglobal(m_mainState, LUA_COLIBNAME);
-    luaopen_math(m_mainState);
-    lua_setglobal(m_mainState, LUA_MATHLIBNAME);
-    luaopen_string(m_mainState);
-    lua_setglobal(m_mainState, LUA_STRLIBNAME);
-    luaopen_table(m_mainState);
-    lua_setglobal(m_mainState, LUA_TABLIBNAME);
-    luaopen_utf8(m_mainState);
-    lua_setglobal(m_mainState, LUA_UTF8LIBNAME);
+    static const luaL_Reg libs[] = {
+        // std libraries
+        {LUA_GNAME, luaopen_base},
+        {LUA_COLIBNAME, luaopen_coroutine},
+        {LUA_MATHLIBNAME, luaopen_math},
+        {LUA_STRLIBNAME, luaopen_string},
+        {LUA_TABLIBNAME, luaopen_table},
+        {LUA_UTF8LIBNAME, luaopen_utf8},
+
+        // server libraries
+        {"itemstack", luaopen_itemstack},
+
+        {nullptr, nullptr},
+    };
+
+    const luaL_Reg* lib;
+    for (lib = libs; lib->func; lib++) {
+      luaL_requiref(m_mainState, lib->name, lib->func, 1);
+      lua_pop(m_mainState, 1);
+    }
 
     lua_pushcfunction(m_mainState, [](lua_State* L) -> int {
       int count = lua_gettop(L);

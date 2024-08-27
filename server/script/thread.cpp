@@ -1,5 +1,7 @@
 #include "thread.h"
 
+#include "luaobject.h"
+
 #include <spdlog/spdlog.h>
 
 class ScriptThread: public IScriptThread {
@@ -8,7 +10,8 @@ class ScriptThread: public IScriptThread {
 
   ~ScriptThread() {}
 
-  void reload() {
+  void reload() final {
+    lua_settop(m_self, 0); // Clearing the thread stack just in case
     m_status = Dead;
 
     if (auto err = luaL_loadfile(m_self, m_path.c_str())) {
@@ -17,10 +20,18 @@ class ScriptThread: public IScriptThread {
     }
 
     int nres;
-    if (lua_resume(m_self, nullptr, 0, &nres) != LUA_YIELD) {
-      spdlog::error("Failed to enter {} coroutine loop: {}", m_path, lua_tostring(m_self, -1));
-    } else {
-      m_status = Alive;
+    switch (lua_resume(m_self, nullptr, 0, &nres)) {
+      case LUA_ERRMEM: throw std::bad_alloc();
+      case LUA_YIELD: {
+        m_status = Alive;
+      } break;
+      case LUA_OK: {
+        spdlog::warn("Script {} does not contain coroutine loop, closing...", m_path);
+        m_status = Closed;
+      } break;
+      case LUA_ERRERR: {
+        spdlog::error("Script {} got runtime error: {}", m_path, lua_tostring(m_self, -1));
+      } break;
     }
 
     lua_pop(m_self, nres);
@@ -32,7 +43,10 @@ class ScriptThread: public IScriptThread {
 
   void postEvent(const ScriptEvent& ev) final {
     int nres = 0;
-    int acnt = createEventArguments(ev);
+
+    LuaObject* root = nullptr;
+
+    int acnt = createEventArguments(ev, &root);
     switch (lua_resume(m_self, nullptr, acnt, &nres)) {
       case LUA_ERRMEM: throw std::bad_alloc();
       case LUA_YIELD: {
@@ -47,11 +61,14 @@ class ScriptThread: public IScriptThread {
       } break;
     }
 
+    if (root) root->invalidate();
     lua_pop(m_self, nres);
   }
 
   private:
-  int createEventArguments(const ScriptEvent& ev) {
+  int createEventArguments(const ScriptEvent& ev, LuaObject** obj) {
+    *obj = nullptr;
+
     switch (ev.type) {
       case ScriptEvent::onStart: {
         lua_pushliteral(m_self, "onStart");
@@ -63,14 +80,18 @@ class ScriptThread: public IScriptThread {
       } break;
       case ScriptEvent::preBlockPlace: {
         lua_pushliteral(m_self, "preBlockPlace");
-        *(void**)lua_newuserdata(m_self, sizeof(void*)) = ev.args;
+        *obj = LuaObject::create(m_self, sizeof(void*));
+
+        *(*obj)->get<void*>() = ev.args;
         luaL_setmetatable(m_self, "preBlockPlaceEvent");
         return 2;
       } break;
       case ScriptEvent::onBlockDestroyed: {
         lua_pushliteral(m_self, "onBlockDestroyed");
-        *(void**)lua_newuserdata(m_self, sizeof(void*)) = ev.args;
-        // luaL_setmetatable(m_self, "onBlockDestroyedEvent");
+        *obj = LuaObject::create(m_self, sizeof(void*));
+
+        *(*obj)->get<void*>() = ev.args;
+        luaL_setmetatable(m_self, "onBlockDestroyedEvent");
         return 2;
       } break;
     }

@@ -21,6 +21,8 @@ class IScriptThread {
 
   virtual int getId() const = 0;
 
+  virtual void reload() = 0;
+
   virtual void postEvent(const ScriptEvent& ev) = 0;
 };
 
