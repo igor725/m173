@@ -5,6 +5,7 @@
 
 #include <exception>
 #include <mutex>
+#include <stack>
 #include <thread>
 #include <unordered_map>
 
@@ -43,12 +44,20 @@ class EntityManager: public IEntityManager {
   EntityBase* AddEntity(std::unique_ptr<EntityBase>&& entity) final {
     std::unique_lock lock(m_lock);
 
-    static EntityId entcounter = 0;
-    if (entcounter == UINT_MAX) throw EntityCounterOverflowException();
+    EntityId freeId = -1;
 
-    auto p    = m_loadedents.emplace(std::make_pair(++entcounter, std::move(entity)));
+    if (m_freeIds.size() > 0) {
+      freeId = m_freeIds.top();
+      m_freeIds.pop();
+    } else {
+      static EntityId entcounter = 0;
+      if (entcounter == UINT_MAX) throw EntityCounterOverflowException();
+      freeId = ++entcounter;
+    }
+
+    auto p    = m_loadedents.emplace(std::make_pair(freeId, std::move(entity)));
     auto eptr = p.first->second.get();
-    eptr->_setEntId(entcounter);
+    eptr->_setEntId(freeId);
 
     if (eptr->getType() != EntityBase::Player) {
       IterPlayers([eptr](IPlayer* ply) -> bool {
@@ -75,6 +84,7 @@ class EntityManager: public IEntityManager {
 
     auto it = m_loadedents.find(id);
     if (it == m_loadedents.end()) return false;
+    m_freeIds.push(it->second->getEntityId());
     m_loadedents.erase(it);
     return true;
   }
@@ -183,8 +193,10 @@ class EntityManager: public IEntityManager {
   std::recursive_mutex m_lock;
 
   std::unordered_map<EntityId, std::unique_ptr<EntityBase>> m_loadedents;
-  std::recursive_mutex                                      m_ptLock;
-  std::unordered_map<uint64_t, PlayerThread>                m_playerThreads;
+  std::stack<EntityId>                                      m_freeIds;
+
+  std::recursive_mutex                       m_ptLock;
+  std::unordered_map<uint64_t, PlayerThread> m_playerThreads;
 };
 
 IEntityManager& accessEntityManager() {
