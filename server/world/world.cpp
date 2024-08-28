@@ -54,7 +54,7 @@ class World: public IWorld {
   ChunkUnique openChunk(const IntVector2& pos) {
     std::unique_lock lock(m_accChunks);
 
-    auto&& mapPlace = m_ldChunks.emplace(std::make_pair(pos, std::make_unique<Chunk>(m_unloadInterval)));
+    auto&& mapPlace = m_ldChunks.emplace(std::make_pair(pos, std::make_unique<Chunk>(m_unloadInterval, pos)));
     auto   chunk    = ChunkUnique(mapPlace.first->second);
 
     auto& rm = accessRegionManager();

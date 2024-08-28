@@ -55,6 +55,8 @@ class PreChunk: public PacketWriter {
 class MapChunk: public PacketWriter {
   public:
   MapChunk(const IntVector3& pos, const ByteVector3& size, const ChunkUnique& chunk);
+
+  MapChunk(const ChunkUnique& chunk): MapChunk(chunk->getStartBlock(), CHUNK_DIMS, chunk) {}
 };
 
 class NoteBlockPlay: public PacketWriter {

@@ -285,7 +285,7 @@ class Player: public IPlayer {
         Packet::ToClient::PreChunk wdata_pc(chunkpos, true);
         if (!wdata_pc.sendTo(m_selfSock)) return false;
 
-        Packet::ToClient::MapChunk wdata_mc({cx << 4, 0, cz << 4}, CHUNK_DIMS, chunk);
+        Packet::ToClient::MapChunk wdata_mc(chunk);
         if (!wdata_mc.sendTo(m_selfSock)) return false;
       }
     }

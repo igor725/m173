@@ -21,12 +21,15 @@ struct Chunk {
   int32_t              m_uses;
   double_t             m_unloadTimer;
   bool                 m_wasUpdated;
+  IntVector2           m_position;
 
-  Chunk(double_t utimerInit): m_unloadTimer(utimerInit), m_wasUpdated(false), m_uses(0) {}
+  Chunk(double_t utimerInit, const IntVector2& pos): m_unloadTimer(utimerInit), m_wasUpdated(false), m_uses(0), m_position(pos) {}
 
   static inline int32_t getBlockOffset(const IntVector3& pos) {
     return pos.y + ((pos.z & CHUNK_DIMS.z) * (CHUNK_DIMS.y + 1)) + ((pos.x & CHUNK_DIMS.x) * (CHUNK_DIMS.y + 1) * (CHUNK_DIMS.z + 1));
   }
+
+  inline IntVector3 getStartBlock() const { return {m_position.x << 4, 0, m_position.z << 4}; }
 
   static inline IntVector2 toChunkCoords(const IntVector2& pos) { return {pos.x >> 4, pos.z >> 4}; }
 
