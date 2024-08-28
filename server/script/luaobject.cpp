@@ -1,5 +1,7 @@
 #include "luaobject.h"
 
+#include <algorithm>
+
 void LuaObject::invalidate() {
   m_invalidated = true;
   for (auto it = m_linkedObjs.begin(); it != m_linkedObjs.end(); ++it) {
