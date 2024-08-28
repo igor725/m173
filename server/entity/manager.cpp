@@ -2,6 +2,7 @@
 
 #include "platform/platform.h"
 #include "runmanager/runmanager.h"
+#include "script/script.h"
 
 #include <exception>
 #include <mutex>
@@ -84,6 +85,7 @@ class EntityManager: public IEntityManager {
 
     auto it = m_loadedents.find(id);
     if (it == m_loadedents.end()) return false;
+    accessScript().postEvent({ScriptEvent::onEntityDestroyed, it->second.get()});
     m_freeIds.push(it->second->getEntityId());
     m_loadedents.erase(it);
     return true;

@@ -81,10 +81,10 @@ class IPlayer: public CreatureBase {
   virtual bool teleportPlayer(const IntVector3& pos) = 0;
 
   /* Network things / Authentication */
-  virtual const std::wstring& getName() const                          = 0;
-  virtual bool                doLoginProcess(const std::wstring& name) = 0;
-  virtual SafeSocket&         getSocket() const                        = 0;
-  virtual bool                isLocal() const                          = 0;
+  virtual const std::wstring& getName() const   = 0;
+  virtual bool                doLoginProcess()  = 0;
+  virtual SafeSocket&         getSocket() const = 0;
+  virtual bool                isLocal() const   = 0;
 };
 
-std::unique_ptr<IPlayer> createPlayer(SafeSocket& sock);
+std::unique_ptr<IPlayer> createPlayer(SafeSocket& sock, const std::wstring& name);

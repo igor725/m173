@@ -1,7 +1,9 @@
 #include "thread.h"
 
+#include "libraries/entity.h"
 #include "luaobject.h"
 
+#include <algorithm>
 #include <array>
 #include <spdlog/spdlog.h>
 
@@ -88,7 +90,7 @@ class ScriptThread: public IScriptThread {
 
     out = std::format(L"**** {} v{} ****\nStatus: {}\nDescription: {}\n", m_info[0], m_info[2], statuses[m_status], m_info[1], m_info[0]);
 
-    auto firstLineLength = 12 + m_info[0].length() + m_info[2].length();
+    auto firstLineLength = std::distance(out.begin(), std::find(out.begin(), out.end(), L'\n'));
     for (int i = 0; i < firstLineLength; ++i)
       out.push_back(L'~');
   }
@@ -154,6 +156,20 @@ class ScriptThread: public IScriptThread {
 
         *(*obj)->get<void*>() = ev.args;
         luaL_setmetatable(m_self, "onMessageEvent");
+        return 2;
+      } break;
+      case ScriptEvent::onPlayerConnected: {
+        lua_pushliteral(m_self, "onPlayerConnected");
+        *obj = LuaObject::create(m_self, sizeof(void*));
+
+        *(*obj)->get<void*>() = ev.args;
+        luaL_setmetatable(m_self, "onPlayerConnectedEvent");
+        return 2;
+      } break;
+      case ScriptEvent::onEntityDestroyed: {
+        lua_pushliteral(m_self, "onEntityDestroyed");
+        lua_pushentity(m_self, (EntityBase*)ev.args);
+        lua_unlinkentity(m_self, ev.args); // This call only removes entity from internal table and does not affect pushed object above in any way
         return 2;
       } break;
     }

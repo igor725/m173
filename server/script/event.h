@@ -21,11 +21,17 @@ struct onBlockDestroyedEvent {
   BlockId           id;
 };
 
-struct onMessage {
+struct onMessageEvent {
   bool                cancelled;
   EntityBase*         sender;
   const std::wstring& message;
   std::wstring&       finalMessage;
+};
+
+struct onPlayerConnectedEvent {
+  bool        cancelled;
+  std::string reason;
+  EntityBase* ent;
 };
 
 struct ScriptEvent {
@@ -35,6 +41,8 @@ struct ScriptEvent {
     preBlockPlace,
     onBlockDestroyed,
     onMessage,
+    onPlayerConnected,
+    onEntityDestroyed,
   };
 
   Type  type;

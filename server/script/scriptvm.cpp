@@ -1,4 +1,5 @@
 #include "event.h"
+#include "libraries/entity.h"
 #include "libraries/itemstack.h"
 #include "script.h"
 #include "thread.h"
@@ -40,6 +41,7 @@ class ScriptVM: public IScriptVM {
 
         // server libraries
         {"itemstack", luaopen_itemstack},
+        {"entity", luaopen_entity},
 
         {nullptr, nullptr},
     };

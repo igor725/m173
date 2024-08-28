@@ -81,7 +81,7 @@ class InvalidEntityIndexException: public std::exception {
 
 class GenericKickException: public std::exception {
   public:
-  GenericKickException(const std::string& reason) { m_what = std::format("Kicked: {}", reason); }
+  GenericKickException(const std::string& reason) { m_what = reason; }
 
   const char* what() const noexcept override { return m_what.c_str(); }
 
@@ -152,12 +152,19 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
           bname.resize(uname.length());
           std::wcstombs(bname.data(), uname.c_str(), bname.size() - 1);
 
-          linkedPlayer = dynamic_cast<IPlayer*>(accessEntityManager().AddEntity(createPlayer(ss)));
+          linkedPlayer = dynamic_cast<IPlayer*>(accessEntityManager().AddEntity(createPlayer(ss, uname)));
 
-          linkedPlayer->doLoginProcess(uname);
+          auto arg = onPlayerConnectedEvent {false, "", linkedPlayer};
+          accessScript().postEvent({ScriptEvent::onPlayerConnected, &arg});
 
-          BroadcastManager::chatToClients(std::format(L"{} joined the game", uname));
-          spdlog::info("Player {} ({}) just spawned!", bname, addr.to_string());
+          if (arg.cancelled) {
+            throw GenericKickException(arg.reason);
+          } else {
+            linkedPlayer->doLoginProcess();
+
+            BroadcastManager::chatToClients(std::format(L"{} joined the game", uname));
+            spdlog::info("Player {} ({}) just spawned!", bname, addr.to_string());
+          }
         } break;
         case Packet::IDs::Handshake: {
           Packet::FromClient::Handshake data(ss);
@@ -187,8 +194,8 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
               ++it;
             }
 
-            std::wstring fin = std::format(L"<{}>: {}", linkedPlayer->getName(), message);
-            onMessage    arg = {false, linkedPlayer, message, fin};
+            std::wstring   fin = std::format(L"<{}>: {}", linkedPlayer->getName(), message);
+            onMessageEvent arg = {false, linkedPlayer, message, fin};
 
             accessScript().postEvent({ScriptEvent::onMessage, &arg});
             if (!arg.cancelled) {
@@ -423,6 +430,13 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
         throw UngracefulClosingException();
       }
     }
+  } catch (GenericKickException& kex) {
+    std::string_view exwhat(kex.what());
+    std::wstring     reason(exwhat.begin(), exwhat.end());
+
+    Packet::ToClient::PlayerKick wdata(std::format(L"\u00a7cKicked\u00a7f: {}", reason));
+    wdata.sendTo(ss);
+    ss.pushQueue();
   } catch (std::exception& ex) {
     std::string_view exwhat(ex.what());
     std::wstring     reason(exwhat.begin(), exwhat.end());

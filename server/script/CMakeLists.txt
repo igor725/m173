@@ -11,6 +11,7 @@ add_library(scriptvm STATIC
   luaobject.cpp
 
   libraries/itemstack.cpp
+  libraries/entity.cpp
 )
 
 target_include_directories(scriptvm PRIVATE ${LUA_DIR})

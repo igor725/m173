@@ -21,7 +21,7 @@
 
 class Player: public IPlayer {
   public:
-  Player(SafeSocket& sock): m_selfSock(sock), m_container(&m_storage) {
+  Player(SafeSocket& sock, const std::wstring& name): m_selfSock(sock), m_container(&m_storage), m_name(name) {
     auto& dist = accessConfig().getItem("chunk.load_distance");
 
     m_trackDistance = dist.getValue<uint32_t>();
@@ -72,10 +72,8 @@ class Player: public IPlayer {
     return wdata_cm.sendTo(getSocket());
   }
 
-  bool doLoginProcess(const std::wstring& name) final {
+  bool doLoginProcess() final {
     auto& world = accessWorld();
-
-    m_name = name;
 
     {
       Packet::ToClient::LoginRequest wdata_lr(this->getEntityId(), L"Yuck fou", world.getSeed(), this->getDimension());
@@ -588,6 +586,6 @@ class Player: public IPlayer {
   std::stack<std::unique_ptr<UiWindow>> m_windows;
 };
 
-std::unique_ptr<IPlayer> createPlayer(SafeSocket& sock) {
-  return std::make_unique<Player>(sock);
+std::unique_ptr<IPlayer> createPlayer(SafeSocket& sock, const std::wstring& name) {
+  return std::make_unique<Player>(sock, name);
 }
