@@ -139,6 +139,8 @@ int main(int argc, char* argv[]) {
   });
   console.detach();
 
+  spdlog::info("Type \"stop\" or press Ctrl-C to stop the server");
+
   // We don't really need main thread to do something, so just waiting til acceptor finishes to destroy the rest
   acceptThread.join();
   spdlog::info("Finishing the World routines...");
