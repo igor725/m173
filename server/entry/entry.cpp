@@ -8,6 +8,7 @@
 #include "script/script.h"
 #include "world/world.h"
 
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -109,6 +110,8 @@ int main(int argc, char* argv[]) {
   });
 
   std::thread console([]() {
+    Platform::SetCurrentThreadName("Console reader");
+
     while (RunManager::isRunning()) {
       if (!std::cin) break;
 
@@ -122,7 +125,7 @@ int main(int argc, char* argv[]) {
 
       for (auto it = out.begin(); it != out.end();) {
         if (*it == L'\u00a7') {
-          it += std::min(ptrdiff_t(2), std::distance(it, out.end()));
+          it += std::min(std::ptrdiff_t(2), std::distance(it, out.end()));
           continue;
         }
 

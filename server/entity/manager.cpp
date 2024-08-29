@@ -181,7 +181,9 @@ class EntityManager: public IEntityManager {
     }
   }
 
-  void finish() final { m_tickThread.join(); }
+  void finish() final {
+    if (m_tickThread.joinable()) m_tickThread.join();
+  }
 
   private:
   struct PlayerThread {
