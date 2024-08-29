@@ -3,6 +3,7 @@
 #include "basicBlock.h"
 #include "list/noteBlock.h"
 #include "list/saplingBlock.h"
+#include "list/torchBlock.h"
 #include "list/woolBlock.h"
 #include "list/workbenchBlock.h"
 
@@ -57,7 +58,7 @@ extern BasicBlock     tnt;
 extern BasicBlock     bookshelf;
 extern BasicBlock     mossyStone;
 extern BasicBlock     obsidian;
-extern BasicBlock     torch;
+extern TorchBlock     torch;
 extern BasicBlock     fire;
 extern BasicBlock     spawner;
 extern BasicBlock     stairs;

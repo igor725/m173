@@ -51,7 +51,7 @@ BasicBlock     tnt(46, 0.0f);
 BasicBlock     bookshelf(47);
 BasicBlock     mossyStone(48);
 BasicBlock     obsidian(49);
-BasicBlock     torch(50, 0.0f);
+TorchBlock     torch(50);
 BasicBlock     fire(51);
 BasicBlock     spawner(52);
 BasicBlock     stairs(53);

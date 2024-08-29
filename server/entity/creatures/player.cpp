@@ -82,10 +82,11 @@ class Player: public PlayerBase {
 
     auto& spawn = world.getSpawnPoint();
     setSpawnPos(spawn);
-    teleportPlayer(spawn);
-    setTime(world.getTime());
     updateWorldChunks(getCurrentChunk(), getCurrentChunk());
+    setTime(world.getTime());
     updateInventory();
+    teleportPlayer(spawn);
+    updateGroundState(false);
     m_bLoggedIn = true;
     return true;
   }

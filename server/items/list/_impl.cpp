@@ -14,9 +14,22 @@
 #include "script/script.h"
 #include "sign.h"
 #include "snowBall.h"
+#include "torch.h"
 #include "world/world.h"
 
 #pragma region("block.h")
+
+bool ItemBlock::place(EntityBase* user, const IntVector3& npos, int8_t direction, int8_t meta) {
+  auto ply = dynamic_cast<PlayerBase*>(user);
+  if (accessWorld().setBlockWithNotify(npos, m_blockId, meta, ply)) {
+    using namespace Packet::ToClient;
+    SoundEffect wdata_snd(SoundEffect::BlockBreak, npos, m_blockId);
+    ply->sendToTrackedPlayers(wdata_snd);
+    return true;
+  }
+
+  return false;
+}
 
 bool ItemBlock::onUseItemOnBlock(ItemStack& is, EntityBase* user, const IntVector3& pos, int8_t direction) {
   auto  ply  = dynamic_cast<PlayerBase*>(user);
@@ -52,23 +65,17 @@ bool ItemBlock::onUseItemOnBlock(ItemStack& is, EntityBase* user, const IntVecto
     return false;
   }
 
-  // Should be retrieved before being eaten by ItemStack::decrementBy()
-  auto dmg = is.itemDamage;
   if (DoubleVector3(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5).distanceTo(ppos) < 8.0) {
+    // Should be retrieved before being eaten by ItemStack::decrementBy()
+    int8_t meta = getMetadata(is.itemDamage);
     if (is.decrementBy(1)) {
       ply->resendItem(ply->getHeldItem());
-
-      if (world.setBlockWithNotify(npos, m_blockId, getMetadata(dmg), ply)) {
-        using namespace Packet::ToClient;
-        SoundEffect wdata_snd(SoundEffect::BlockBreak, pos, m_blockId);
-        ply->sendToTrackedPlayers(wdata_snd);
-        return true;
-      } else { // Uh oh
-        is.incrementBy(1);
-      }
-
-      ply->resendItem(ply->getHeldItem());
+      if (place(user, npos, direction, meta)) return true;
     }
+
+    is.incrementBy(1);
+    ply->resendItem(ply->getHeldItem());
+    return false;
   }
 
   return false;
@@ -85,6 +92,40 @@ bool ItemBlock::onBlockDestroyed(ItemStack& is, const IntVector3& pos, BlockId i
   accessScript().postEvent(ev);
 
   return true;
+}
+
+#pragma endregion()
+
+#pragma region("torch.h")
+
+bool ItemTorch::place(EntityBase* user, const IntVector3& npos, int8_t direction, int8_t meta) {
+  switch (direction) { // Todo check block
+    case 1: {
+      meta = 5;
+    } break;
+    case 2: {
+      meta = 4;
+    } break;
+    case 3: {
+      meta = 3;
+    } break;
+    case 4: {
+      meta = 2;
+    } break;
+    case 5: {
+      meta = 1;
+    } break;
+  }
+
+  auto ply = dynamic_cast<PlayerBase*>(user);
+  if (accessWorld().setBlockWithNotify(npos, m_blockId, meta, ply)) {
+    using namespace Packet::ToClient;
+    SoundEffect wdata_snd(SoundEffect::BlockBreak, npos, m_blockId);
+    ply->sendToTrackedPlayers(wdata_snd);
+    return true;
+  }
+
+  return false;
 }
 
 #pragma endregion()
