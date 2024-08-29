@@ -163,6 +163,13 @@ int luaopen_entity(lua_State* L) {
          return 0;
        }},
 
+      {"isLocal",
+       [](lua_State* L) -> int {
+         auto ply = dynamic_cast<IPlayer*>(lua_checkcreature(L, 1, CreatureBase::Player));
+         lua_pushboolean(L, ply->isLocal());
+         return 1;
+       }},
+
       {nullptr, nullptr},
   };
   luaL_newmetatable(L, "EntityPlayer");

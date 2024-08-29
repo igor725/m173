@@ -15,6 +15,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_INSTALL_MESSAGE LAZY)
 set(CMAKE_PREFIX_PATH ${CMAKE_SOURCE_DIR}/3rd/install/lib/cmake)
 
+option(M173_COPY_SCRIPTS "This option enables copying of default Lua scripts to installation directory" ON)
+
 include_directories(BEFORE
   ${CMAKE_SOURCE_DIR}/3rd/install/include
   ${CMAKE_SOURCE_DIR}/server
@@ -70,4 +72,11 @@ if(WIN32)
     FILES $<TARGET_PDB_FILE:m173_server>
     DESTINATION ${CMAKE_INSTALL_PREFIX} OPTIONAL
   )
+endif()
+
+if(M173_COPY_SCRIPTS)
+install(
+  DIRECTORY ${CMAKE_SOURCE_DIR}/scripts
+  DESTINATION ${CMAKE_INSTALL_PREFIX}
+)
 endif()
