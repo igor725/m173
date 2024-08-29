@@ -34,7 +34,7 @@ class Player: public IPlayer {
     std::unique_lock lock(m_lockEntities);
     for (auto it = m_trackedEntities.begin(); it != m_trackedEntities.end(); ++it) {
       auto ent = em.GetEntity(*it);
-      if (ent != nullptr && ent->getType() == EntityBase::Player) {
+      if (ent != nullptr && ent->isPlayer()) {
         auto ply = dynamic_cast<IPlayer*>(ent);
         ply->removeTrackedEntity(this);
       }
@@ -343,12 +343,14 @@ class Player: public IPlayer {
     }
 
     switch (auto t = ent->getType()) {
-      case EntityBase::Player: {
-        auto ply = dynamic_cast<IPlayer*>(ent);
-        ply->addTrackedEntity(this);
+      case EntityBase::Creature: {
+        if (ent->isPlayer()) {
+          auto ply = dynamic_cast<IPlayer*>(ent);
+          ply->addTrackedEntity(this);
 
-        Packet::ToClient::PlayerSpawn wdata_spawn(ply);
-        wdata_spawn.sendTo(m_selfSock);
+          Packet::ToClient::PlayerSpawn wdata_spawn(ply);
+          wdata_spawn.sendTo(m_selfSock);
+        }
       } break;
       case EntityBase::Object: {
         Packet::ToClient::ObjectSpawn wdata_osp(dynamic_cast<ObjectBase*>(ent));
@@ -377,9 +379,11 @@ class Player: public IPlayer {
 
     if (auto ent = accessEntityManager().GetEntity(eid)) {
       switch (auto t = ent->getType()) {
-        case EntityBase::Player: {
-          auto ply = dynamic_cast<IPlayer*>(ent);
-          ply->removeTrackedEntity(this);
+        case EntityBase::Creature: {
+          if (ent->isPlayer()) {
+            auto ply = dynamic_cast<IPlayer*>(ent);
+            ply->removeTrackedEntity(this);
+          }
         } break;
         case EntityBase::Object: {
           // Don't think we have to do something there actually
@@ -428,9 +432,7 @@ class Player: public IPlayer {
         continue;
       }
 
-      if (ent->getType() == EntityBase::Player) {
-        pw.sendTo(dynamic_cast<IPlayer*>(ent)->getSocket());
-      }
+      if (ent->isPlayer()) pw.sendTo(dynamic_cast<IPlayer*>(ent)->getSocket());
 
       ++it;
     }

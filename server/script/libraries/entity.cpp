@@ -32,8 +32,17 @@ class EntityScript {
     auto lobj = LuaObject::create(L, sizeof(EntityScript));
 
     switch (auto t = ent->getType()) {
-      case EntityBase::Player: {
-        luaL_setmetatable(L, "EntityPlayer");
+      case EntityBase::Creature: {
+        switch (auto ct = dynamic_cast<CreatureBase*>(ent)->getCreatureType()) {
+          case CreatureBase::Player: {
+            luaL_setmetatable(L, "EntityPlayer");
+
+          } break;
+
+          default: {
+            luaL_error(L, "Unknown creature type: %d", ct);
+          } break;
+        }
       } break;
 
       default: {
@@ -80,6 +89,33 @@ void lua_unlinkentity(lua_State* L, void* ptr) {
   EntityScript::unlink(L, ptr);
 }
 
+EntityBase* lua_checkentity(lua_State* L, int idx, EntityBase::Type type) {
+  auto lobj = LuaObject::fromstack(L, 1);
+  auto sent = lobj->get<EntityScript>()->entity();
+
+  if (sent->getType() != type) {
+    luaL_error(L, "Invalid entity type (%d expected, got %d)", type, sent->getType());
+    return nullptr;
+  }
+
+  return sent;
+}
+
+CreatureBase* lua_checkcreature(lua_State* L, int idx) {
+  auto ent = lua_checkentity(L, idx, EntityBase::Creature);
+  return dynamic_cast<CreatureBase*>(ent);
+}
+
+CreatureBase* lua_checkcreature(lua_State* L, int idx, CreatureBase::Type type) {
+  auto creat = lua_checkcreature(L, idx);
+  if (creat->getCreatureType() != type) {
+    luaL_error(L, "Invalid creature type (%d expected, got %d)", type, creat->getCreatureType());
+    return nullptr;
+  }
+
+  return creat;
+}
+
 int luaopen_entity(lua_State* L) {
   const luaL_Reg entitybase_reg[] = {
       {nullptr, nullptr},
@@ -89,17 +125,31 @@ int luaopen_entity(lua_State* L) {
   lua_setfield(L, -2, "__index");
   luaL_setfuncs(L, entitybase_reg, 0);
 
+  const luaL_Reg creaturebase_reg[] = {
+      {"health",
+       [](lua_State* L) -> int {
+         auto creat = lua_checkcreature(L, 1);
+
+         if (lua_isinteger(L, 2)) {
+           creat->setHealth(lua_tointeger(L, 2));
+         }
+
+         lua_pushinteger(L, creat->getHealth());
+         return 1;
+       }},
+
+      {nullptr, nullptr},
+  };
+  luaL_newmetatable(L, "CreatureBase");
+  lua_pushvalue(L, -1);
+  lua_setfield(L, -2, "__index");
+  luaL_setfuncs(L, creaturebase_reg, 0);
+
   const luaL_Reg entityplayer_reg[] = {
       {"chat",
        [](lua_State* L) -> int {
-         auto msg  = std::string_view(luaL_checkstring(L, 2));
-         auto lobj = LuaObject::fromstack(L, 1);
-         auto sent = lobj->get<EntityScript>()->entity();
-
-         if (sent->getType() != EntityBase::Player) {
-           luaL_error(L, ":chat() called on non-player? Huh??");
-           return 0;
-         }
+         auto msg = std::string_view(luaL_checkstring(L, 2));
+         auto ent = lua_checkcreature(L, 1, CreatureBase::Player);
 
          std::wstring wtext;
          std::mbtowc(nullptr, nullptr, 0);
@@ -108,7 +158,7 @@ int luaopen_entity(lua_State* L) {
            if (std::mbtowc(&ch, &(*it), 1) > 0) wtext.push_back(ch);
          }
 
-         dynamic_cast<IPlayer*>(sent)->sendChat(std::wstring_view(wtext.begin(), wtext.end()));
+         dynamic_cast<IPlayer*>(ent)->sendChat(std::wstring_view(wtext.begin(), wtext.end()));
 
          return 0;
        }},
@@ -118,7 +168,7 @@ int luaopen_entity(lua_State* L) {
   luaL_newmetatable(L, "EntityPlayer");
   lua_pushvalue(L, -1);
   lua_setfield(L, -2, "__index");
-  luaL_setmetatable(L, "EntityBase");
+  luaL_setmetatable(L, "CreatureBase");
   luaL_setfuncs(L, entityplayer_reg, 0);
 
   lua_pop(L, 2);

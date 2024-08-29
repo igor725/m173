@@ -8,6 +8,8 @@ class IThunderbolt: public EntityBase {
   public:
   IThunderbolt(): EntityBase(Type::Thunderbolt) {}
 
+  bool isPlayer() const final { return false; }
+
   ~IThunderbolt() {}
 };
 

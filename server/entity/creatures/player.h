@@ -22,9 +22,11 @@ class IPlayer: public CreatureBase {
     HeldItem = 1 << 4,
   };
 
-  IPlayer(): CreatureBase(EntityBase::Type::Player) {}
+  IPlayer(): CreatureBase(CreatureBase::Type::Player) {}
 
   virtual ~IPlayer() = default;
+
+  bool isPlayer() const final { return true; }
 
   virtual bool sendChat(const std::wstring_view message) = 0;
 

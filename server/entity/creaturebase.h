@@ -7,12 +7,21 @@
 
 class CreatureBase: public EntityBase {
   public:
-  CreatureBase(EntityBase::Type t): EntityBase(t) { m_maxHealth = 20; }
+  enum Type {
+    Player,
+    Mob,
+  };
+
+  CreatureBase(Type t): EntityBase(EntityBase::Creature), m_type(t) { m_maxHealth = 20; }
 
   ~CreatureBase() {}
 
   IntVector2 getCurrentChunk();
   IntVector2 getPreviousChunk();
+
+  bool isPlayer() const override { return false; }
+
+  Type getCreatureType() const { return m_type; }
 
   virtual void onMove(const DoubleVector3& dir) {}
 
@@ -33,5 +42,6 @@ class CreatureBase: public EntityBase {
   void setHealth(int16_t health);
 
   private:
+  Type     m_type;
   double_t m_lastGround = -1.0;
 };

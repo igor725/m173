@@ -25,6 +25,8 @@ class ObjectBase: public EntityBase {
 
   ObjectBase(Type type, EntityId owner, const DoubleVector3& motion): EntityBase(EntityBase::Object), m_objtype(type), m_owner(owner), m_motion(motion) {}
 
+  bool isPlayer() const final { return false; }
+
   virtual ~ObjectBase() = default;
 
   Type getObjectType() const { return m_objtype; }

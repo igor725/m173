@@ -218,20 +218,20 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
             if (!linkedPlayer->canHitEntity()) break;
 
             switch (target->getType()) {
-              case EntityBase::Player: {
-                auto ply_target = dynamic_cast<IPlayer*>(target);
+              case EntityBase::Creature: {
+                auto creat_target = dynamic_cast<CreatureBase*>(target);
 
                 VsDamageInfo dmg;
 
                 auto& his = linkedPlayer->getHeldItem();
-                his.getDamageVsEntity(target, dmg);
+                his.getDamageVsEntity(creat_target, dmg);
 
-                his.hitEntity(linkedPlayer, target);
+                his.hitEntity(linkedPlayer, creat_target);
 
-                ply_target->setHealth(ply_target->getHealth() - dmg.damage);
+                creat_target->setHealth(creat_target->getHealth() - dmg.damage);
 
                 auto& kicker_pos   = linkedPlayer->getPosition();
-                auto& receiver_pos = ply_target->getPosition();
+                auto& receiver_pos = creat_target->getPosition();
 
                 const DoubleVector3 knockback = {
                     (receiver_pos.x - kicker_pos.x) * dmg.kbackStrength,
@@ -239,7 +239,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
                     (receiver_pos.z - kicker_pos.z) * dmg.kbackStrength,
                 };
 
-                ply_target->addVelocity(knockback);
+                creat_target->addVelocity(knockback);
               } break;
 
               default: {

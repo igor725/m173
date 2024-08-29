@@ -5,11 +5,12 @@
 #include <cstdint>
 
 class EntityBase {
+  friend class EntityManager;
+
   public:
   enum Type : int8_t {
     Unspecified,
-    Mob,
-    Player,
+    Creature,
     Object,
     Thunderbolt,
   };
@@ -36,6 +37,8 @@ class EntityBase {
   virtual void setRotation(const FloatAngle& rot);
 
   virtual void setCrouching(bool value);
+
+  virtual bool isPlayer() const = 0;
 
   Type getType() const { return m_type; }
 

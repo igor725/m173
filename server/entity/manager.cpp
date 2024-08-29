@@ -60,7 +60,7 @@ class EntityManager: public IEntityManager {
     auto eptr = p.first->second.get();
     eptr->_setEntId(freeId);
 
-    if (eptr->getType() != EntityBase::Player) {
+    if (!eptr->isPlayer()) {
       IterPlayers([eptr](IPlayer* ply) -> bool {
         ply->addTrackedEntity(eptr);
         return true;
@@ -85,9 +85,7 @@ class EntityManager: public IEntityManager {
 
     auto it = m_loadedents.find(id);
     if (it == m_loadedents.end()) return false;
-    accessScript().postEvent({ScriptEvent::onEntityDestroyed, it->second.get()});
-    m_freeIds.push(it->second->getEntityId());
-    m_loadedents.erase(it);
+    it->second->m_shouldBeDestroyed = true;
     return true;
   }
 
@@ -96,7 +94,7 @@ class EntityManager: public IEntityManager {
 
     for (auto it = m_loadedents.begin(); it != m_loadedents.end(); ++it) {
       if (auto entity = it->second.get()) {
-        if (entity->getType() == EntityBase::Type::Player && !cb(dynamic_cast<IPlayer*>(entity))) return false;
+        if (entity->isPlayer() && !cb(dynamic_cast<IPlayer*>(entity))) return false;
       }
     }
 
@@ -134,13 +132,15 @@ class EntityManager: public IEntityManager {
         ent->tick(delta);
 
         if (ent->isMarkedForDestruction()) {
-          if (ent->getType() != EntityBase::Player) {
+          if (ent->isPlayer()) {
             IterPlayers([ent](IPlayer* ply) -> bool {
               ply->removeTrackedEntity(ent);
               return true;
             });
           }
 
+          accessScript().postEvent({ScriptEvent::onEntityDestroyed, it->second.get()});
+          m_freeIds.push(it->second->getEntityId());
           it = m_loadedents.erase(it);
           continue;
         }
