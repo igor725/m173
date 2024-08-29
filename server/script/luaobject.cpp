@@ -21,8 +21,15 @@ LuaObject* LuaObject::create(lua_State* L, size_t sz) {
 }
 
 LuaObject* LuaObject::fromstack(lua_State* L, int idx) {
+  if (lua_getmetatable(L, idx) == 0) {
+    luaL_error(L, "No metatable detected on passed userdata!");
+    return nullptr;
+  } else {
+    lua_pop(L, 1);
+  }
+
   auto lobj = (LuaObject*)lua_touserdata(L, idx);
-  if (lobj->m_fingerprint != 0xDEADBEEF) {
+  if (lobj == nullptr || lobj->m_fingerprint != FINGERPRINT) { // Not the safest way actually, but it should not crash in normal contitions
     luaL_error(L, "An attempt to cast %s to LuaObject was made", luaL_typename(L, idx));
     return nullptr;
   }

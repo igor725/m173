@@ -89,8 +89,6 @@ class ScriptVM: public IScriptVM {
   void openScript(const std::filesystem::path& scr) {
     std::unique_lock lock(m_stateLock);
 
-    auto preCall = lua_gettop(m_mainState);
-
     auto thstate = lua_newthread(m_mainState);
     if (thstate == nullptr) throw std::bad_alloc();
 
@@ -98,7 +96,7 @@ class ScriptVM: public IScriptVM {
     lua_pushvalue(m_mainState, -2);
     auto& thread = m_threads.emplace_back(createThread(thstate, scr, luaL_ref(m_mainState, -2)));
     thread->postEvent({ScriptEvent::onStart});
-    lua_settop(m_mainState, preCall);
+    lua_pop(m_mainState, 2);
   }
 
   IScriptThread* getByName(const std::filesystem::path& path) {

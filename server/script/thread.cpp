@@ -98,6 +98,7 @@ class ScriptThread: public IScriptThread {
   int getId() const final { return m_selfId; }
 
   void postEvent(const ScriptEvent& ev) final {
+    lua_stackprot_start(m_self);
     int nres = 0;
 
     LuaObject* root = nullptr;
@@ -119,6 +120,7 @@ class ScriptThread: public IScriptThread {
 
     if (root) root->invalidate();
     lua_pop(m_self, nres);
+    lua_stackprot_end(m_self);
   }
 
   private:

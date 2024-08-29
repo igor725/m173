@@ -6,6 +6,8 @@
 #include <vector>
 
 class LuaObject {
+  static const uint64_t FINGERPRINT = 0xB00B1EC0DE501337;
+
   public:
   LuaObject(lua_State* L): m_state(L), m_invalidated(false) {}
 
@@ -28,7 +30,7 @@ class LuaObject {
   static LuaObject* fromstack(lua_State* L, int idx);
 
   private:
-  uint32_t                m_fingerprint = 0xDEADBEEF;
+  uint64_t                m_fingerprint = FINGERPRINT;
   bool                    m_invalidated;
   lua_State*              m_state;
   std::vector<LuaObject*> m_linkedObjs;
