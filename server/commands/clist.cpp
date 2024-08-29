@@ -14,7 +14,7 @@ class Help: public Command {
   public:
   Help(): Command(L"help", L"Shows this message") {}
 
-  bool execute(IPlayer*, std::vector<std::wstring_view>& args, std::wstring& out) final {
+  bool execute(PlayerBase*, std::vector<std::wstring_view>& args, std::wstring& out) final {
     int32_t page = 0;
 
     if (args.size() > 0) {
@@ -33,7 +33,7 @@ class Stop: public Command {
   public:
   Stop(): Command(L"stop", L"Stops the server") {}
 
-  bool execute(IPlayer*, std::vector<std::wstring_view>&, std::wstring& out) final {
+  bool execute(PlayerBase*, std::vector<std::wstring_view>&, std::wstring& out) final {
     RunManager::stop();
     return true;
   }
@@ -43,7 +43,7 @@ class Killme: public Command {
   public:
   Killme(): Command(L"killme", L"Kills you", true) {}
 
-  bool execute(IPlayer* caller, std::vector<std::wstring_view>&, std::wstring&) final {
+  bool execute(PlayerBase* caller, std::vector<std::wstring_view>&, std::wstring&) final {
     caller->setHealth(0);
     return true;
   }
@@ -53,7 +53,7 @@ class Hurtme: public Command {
   public:
   Hurtme(): Command(L"hurtme", L"Hurts you", true) {}
 
-  bool execute(IPlayer* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
+  bool execute(PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
     if (args.size() < 1) {
       out = L"Usage: /hurtme <amount>";
       return true;
@@ -74,7 +74,7 @@ class Hat: public Command {
   public:
   Hat(): Command(L"hat", L"Set held item as hat", true) {}
 
-  bool execute(IPlayer* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
+  bool execute(PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
     auto& heldItem = caller->getHeldItem();
     auto& storage  = caller->getStorage();
     if (heldItem.validate()) {
@@ -92,7 +92,7 @@ class Give: public Command {
   public:
   Give(): Command(L"give", L"Give some item", true) {}
 
-  bool execute(IPlayer* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
+  bool execute(PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
     if (args.size() == 0) {
       out = L"Usage /give <item id>:[item damage] [item count]";
       return true;
@@ -142,7 +142,7 @@ class WInfo: public Command {
   public:
   WInfo(): Command(L"winfo", L"Information abot the loaded world", true) {}
 
-  bool execute(IPlayer* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
+  bool execute(PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
     auto& world = accessWorld();
 
     out = std::format(L"Current world time: {}\nLoaded chunks: {}", world.getTime(), world.getChunksCount());
@@ -154,7 +154,7 @@ class Craft: public Command {
   public:
   Craft(): Command(L"craft", L"Opens the crafting window", true) {}
 
-  bool execute(IPlayer* caller, std::vector<std::wstring_view>&, std::wstring&) final {
+  bool execute(PlayerBase* caller, std::vector<std::wstring_view>&, std::wstring&) final {
     caller->createWindow(std::make_unique<WorkbenchWindow>(&caller->getStorage()));
     return true;
   }
@@ -164,7 +164,7 @@ class Thor: public Command {
   public:
   Thor(): Command(L"thor", L"Summons some lightning strike around", true) {}
 
-  bool execute(IPlayer* caller, std::vector<std::wstring_view>&, std::wstring&) final {
+  bool execute(PlayerBase* caller, std::vector<std::wstring_view>&, std::wstring&) final {
     accessEntityManager().AddEntity(createThunderbolt(caller->getPosition()));
     return true;
   }
@@ -174,7 +174,7 @@ class TP: public Command {
   public:
   TP(): Command(L"tp", L"Teleports you to specified coordinates", true) {}
 
-  bool execute(IPlayer* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
+  bool execute(PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
     if (args.size() < 3) {
       out = L"Usage: /tp <x> <y> <z>";
       return true;
@@ -201,7 +201,7 @@ class Lua: public Command {
   public:
   Lua(): Command(L"lua", L"Manage Lua VM") {}
 
-  bool execute(IPlayer* executor, std::vector<std::wstring_view>& args, std::wstring& out) {
+  bool execute(PlayerBase* executor, std::vector<std::wstring_view>& args, std::wstring& out) {
     if (args.size() < 1) {
       out = L"Usage: /lua <reload/reloadall/status/load> [script file name]";
       return true;

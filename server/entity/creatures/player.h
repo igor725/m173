@@ -11,7 +11,7 @@
 #include <memory>
 #include <string>
 
-class IPlayer: public CreatureBase {
+class PlayerBase: public CreatureBase {
   public:
   enum Equipment {
     None,
@@ -22,9 +22,9 @@ class IPlayer: public CreatureBase {
     HeldItem = 1 << 4,
   };
 
-  IPlayer(): CreatureBase(CreatureBase::Type::Player) {}
+  PlayerBase(): CreatureBase(CreatureBase::Type::Player) {}
 
-  virtual ~IPlayer() = default;
+  virtual ~PlayerBase() = default;
 
   bool isPlayer() const final { return true; }
 
@@ -89,4 +89,4 @@ class IPlayer: public CreatureBase {
   virtual bool                isLocal() const   = 0;
 };
 
-std::unique_ptr<IPlayer> createPlayer(SafeSocket& sock, const std::wstring& name);
+std::unique_ptr<PlayerBase> createPlayer(SafeSocket& sock, const std::wstring& name);

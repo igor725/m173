@@ -158,14 +158,14 @@ int luaopen_entity(lua_State* L) {
            if (std::mbtowc(&ch, &(*it), 1) > 0) wtext.push_back(ch);
          }
 
-         dynamic_cast<IPlayer*>(ent)->sendChat(std::wstring_view(wtext.begin(), wtext.end()));
+         dynamic_cast<PlayerBase*>(ent)->sendChat(std::wstring_view(wtext.begin(), wtext.end()));
 
          return 0;
        }},
 
       {"isLocal",
        [](lua_State* L) -> int {
-         auto ply = dynamic_cast<IPlayer*>(lua_checkcreature(L, 1, CreatureBase::Player));
+         auto ply = dynamic_cast<PlayerBase*>(lua_checkcreature(L, 1, CreatureBase::Player));
          lua_pushboolean(L, ply->isLocal());
          return 1;
        }},

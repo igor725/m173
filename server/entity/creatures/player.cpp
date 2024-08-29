@@ -19,7 +19,7 @@
 #include <spdlog/spdlog.h>
 #include <stack>
 
-class Player: public IPlayer {
+class Player: public PlayerBase {
   public:
   Player(SafeSocket& sock, const std::wstring& name): m_selfSock(sock), m_container(&m_storage), m_name(name) {
     auto& dist = accessConfig().getItem("chunk.load_distance");
@@ -35,7 +35,7 @@ class Player: public IPlayer {
     for (auto it = m_trackedEntities.begin(); it != m_trackedEntities.end(); ++it) {
       auto ent = em.GetEntity(*it);
       if (ent != nullptr && ent->isPlayer()) {
-        auto ply = dynamic_cast<IPlayer*>(ent);
+        auto ply = dynamic_cast<PlayerBase*>(ent);
         ply->removeTrackedEntity(this);
       }
     }
@@ -345,7 +345,7 @@ class Player: public IPlayer {
     switch (auto t = ent->getType()) {
       case EntityBase::Creature: {
         if (ent->isPlayer()) {
-          auto ply = dynamic_cast<IPlayer*>(ent);
+          auto ply = dynamic_cast<PlayerBase*>(ent);
           ply->addTrackedEntity(this);
 
           Packet::ToClient::PlayerSpawn wdata_spawn(ply);
@@ -381,7 +381,7 @@ class Player: public IPlayer {
       switch (auto t = ent->getType()) {
         case EntityBase::Creature: {
           if (ent->isPlayer()) {
-            auto ply = dynamic_cast<IPlayer*>(ent);
+            auto ply = dynamic_cast<PlayerBase*>(ent);
             ply->removeTrackedEntity(this);
           }
         } break;
@@ -432,7 +432,7 @@ class Player: public IPlayer {
         continue;
       }
 
-      if (ent->isPlayer()) pw.sendTo(dynamic_cast<IPlayer*>(ent)->getSocket());
+      if (ent->isPlayer()) pw.sendTo(dynamic_cast<PlayerBase*>(ent)->getSocket());
 
       ++it;
     }
@@ -588,6 +588,6 @@ class Player: public IPlayer {
   std::stack<std::unique_ptr<UiWindow>> m_windows;
 };
 
-std::unique_ptr<IPlayer> createPlayer(SafeSocket& sock, const std::wstring& name) {
+std::unique_ptr<PlayerBase> createPlayer(SafeSocket& sock, const std::wstring& name) {
   return std::make_unique<Player>(sock, name);
 }

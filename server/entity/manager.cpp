@@ -61,7 +61,7 @@ class EntityManager: public IEntityManager {
     eptr->_setEntId(freeId);
 
     if (!eptr->isPlayer()) {
-      IterPlayers([eptr](IPlayer* ply) -> bool {
+      IterPlayers([eptr](PlayerBase* ply) -> bool {
         ply->addTrackedEntity(eptr);
         return true;
       });
@@ -94,17 +94,17 @@ class EntityManager: public IEntityManager {
 
     for (auto it = m_loadedents.begin(); it != m_loadedents.end(); ++it) {
       if (auto entity = it->second.get()) {
-        if (entity->isPlayer() && !cb(dynamic_cast<IPlayer*>(entity))) return false;
+        if (entity->isPlayer() && !cb(dynamic_cast<PlayerBase*>(entity))) return false;
       }
     }
 
     return true;
   }
 
-  IPlayer* getPlayerByName(const std::wstring& name) {
-    IPlayer* target;
+  PlayerBase* getPlayerByName(const std::wstring& name) {
+    PlayerBase* target;
 
-    if (IterPlayers([&target, &name](IPlayer* ply) -> bool {
+    if (IterPlayers([&target, &name](PlayerBase* ply) -> bool {
           target = ply;
           return !Helper::stricmp(ply->getName(), name);
         }) == false)
@@ -133,7 +133,7 @@ class EntityManager: public IEntityManager {
 
         if (ent->isMarkedForDestruction()) {
           if (ent->isPlayer()) {
-            IterPlayers([ent](IPlayer* ply) -> bool {
+            IterPlayers([ent](PlayerBase* ply) -> bool {
               ply->removeTrackedEntity(ent);
               return true;
             });

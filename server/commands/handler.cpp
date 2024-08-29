@@ -27,7 +27,7 @@ class CommandHandler: public ICommandHandler {
     return false;
   }
 
-  bool execute(IPlayer* caller, std::wstring command, std::wstring& out) final {
+  bool execute(PlayerBase* caller, std::wstring command, std::wstring& out) final {
     if (caller != nullptr && !caller->isLocal()) {
       out = L"Only local players can call commands at the moment!";
       return true;

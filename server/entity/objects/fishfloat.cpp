@@ -9,13 +9,13 @@ class FishFloat: public IFishFloat {
   }
 
   ~FishFloat() {
-    if (auto owner = dynamic_cast<IPlayer*>(accessEntityManager().GetEntity(m_owner))) {
+    if (auto owner = dynamic_cast<PlayerBase*>(accessEntityManager().GetEntity(m_owner))) {
       owner->setAttachedEntity(this, true); // Destroying link to the player
     }
   }
 
   void tick(double_t delta) {
-    if (auto owner = dynamic_cast<IPlayer*>(accessEntityManager().GetEntity(m_owner))) {
+    if (auto owner = dynamic_cast<PlayerBase*>(accessEntityManager().GetEntity(m_owner))) {
       if (owner->setAttachedEntity(this)) {
 
         return;

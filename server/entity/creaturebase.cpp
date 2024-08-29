@@ -47,7 +47,7 @@ bool CreatureBase::addVelocity(const DoubleVector3& motion) {
 
 // todo move it somewhere?
 void CreatureBase::broadcastToTrackers(PacketWriter& pw) {
-  accessEntityManager().IterPlayers([this, &pw](IPlayer* ply) -> bool {
+  accessEntityManager().IterPlayers([this, &pw](PlayerBase* ply) -> bool {
     if (ply->isTrackingEntity(getEntityId())) pw.sendTo(ply->getSocket());
     return true;
   });

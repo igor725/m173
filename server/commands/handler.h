@@ -14,7 +14,7 @@ class ICommandHandler {
   virtual bool registerCommand(Command* cmd)   = 0;
   virtual bool unregisterCommand(Command* cmd) = 0;
 
-  virtual bool execute(IPlayer* caller, std::wstring command, std::wstring& out) = 0;
+  virtual bool execute(PlayerBase* caller, std::wstring command, std::wstring& out) = 0;
 
   virtual void genHelp(int32_t page, int32_t perpage, std::wstring& out) = 0;
 };
@@ -29,7 +29,7 @@ class Command {
 
   ~Command() { accessCommandHandler().unregisterCommand(this); }
 
-  virtual bool execute(IPlayer* caller, std::vector<std::wstring_view>& args, std::wstring& out) = 0;
+  virtual bool execute(PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) = 0;
 
   const std::wstring& getName() const { return m_commandName; }
 

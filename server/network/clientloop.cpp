@@ -112,7 +112,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
 
   SafeSocket ss(std::move(sock), std::move(addr));
 
-  IPlayer* linkedPlayer = nullptr;
+  PlayerBase* linkedPlayer = nullptr;
 
   const auto joinTime = std::chrono::system_clock::now();
   const auto pingFreq = std::chrono::seconds(1);
@@ -152,7 +152,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
           bname.resize(uname.length());
           std::wcstombs(bname.data(), uname.c_str(), bname.size() - 1);
 
-          linkedPlayer = dynamic_cast<IPlayer*>(accessEntityManager().AddEntity(createPlayer(ss, uname)));
+          linkedPlayer = dynamic_cast<PlayerBase*>(accessEntityManager().AddEntity(createPlayer(ss, uname)));
 
           auto arg = onPlayerConnectedEvent {false, "", linkedPlayer};
           accessScript().postEvent({ScriptEvent::onPlayerConnected, &arg});
@@ -201,7 +201,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
             if (!arg.cancelled) {
               Packet::ToClient::ChatMessage wdata(arg.finalMessage);
 
-              accessEntityManager().IterPlayers([&wdata](IPlayer* player) -> bool {
+              accessEntityManager().IterPlayers([&wdata](PlayerBase* player) -> bool {
                 wdata.sendTo(player->getSocket());
                 return true;
               });

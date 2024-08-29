@@ -19,7 +19,7 @@
 #pragma region("block.h")
 
 bool ItemBlock::onUseItemOnBlock(ItemStack& is, EntityBase* user, const IntVector3& pos, int8_t direction) {
-  auto  ply  = dynamic_cast<IPlayer*>(user);
+  auto  ply  = dynamic_cast<PlayerBase*>(user);
   auto& ppos = ply->getPosition();
 
   auto& world  = accessWorld();
@@ -75,7 +75,7 @@ bool ItemBlock::onUseItemOnBlock(ItemStack& is, EntityBase* user, const IntVecto
 }
 
 bool ItemBlock::onBlockDestroyed(ItemStack& is, const IntVector3& pos, BlockId id, EntityBase* destroyer) {
-  auto ply = dynamic_cast<IPlayer*>(destroyer);
+  auto ply = dynamic_cast<PlayerBase*>(destroyer);
   using namespace Packet::ToClient;
   SoundEffect wdata_snd(SoundEffect::BlockBreak, pos, id);
   ply->sendToTrackedPlayers(wdata_snd);
@@ -92,7 +92,7 @@ bool ItemBlock::onBlockDestroyed(ItemStack& is, const IntVector3& pos, BlockId i
 #pragma region("bow.h")
 
 bool ItemBow::onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) {
-  auto  ply  = dynamic_cast<IPlayer*>(clicker);
+  auto  ply  = dynamic_cast<PlayerBase*>(clicker);
   auto& stor = ply->getStorage();
 
   auto sid = stor.findItemSlotId(ItemDB::arrow.getId());
@@ -118,7 +118,7 @@ bool ItemBow::onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVect
 #pragma region("fishingRod.h")
 
 bool ItemFishingRod::onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) {
-  auto ply = dynamic_cast<IPlayer*>(clicker);
+  auto ply = dynamic_cast<PlayerBase*>(clicker);
 
   if (auto attEnt = ply->getAttachedEntity()) {
     if (auto fishfloat = dynamic_cast<IFishFloat*>(attEnt)) {
@@ -151,7 +151,7 @@ bool ItemLighter::onUseItemOnBlock(ItemStack& is, EntityBase* clicker, const Int
     case 5: firepos.x += 1; break;
   }
 
-  if (accessWorld().setBlockWithNotify(firepos, BlockDB::fire.getId(), 0, dynamic_cast<IPlayer*>(clicker))) {
+  if (accessWorld().setBlockWithNotify(firepos, BlockDB::fire.getId(), 0, dynamic_cast<PlayerBase*>(clicker))) {
     is.damageItem(1, clicker);
   }
 
@@ -183,7 +183,7 @@ bool ItemSign::onUseItemOnBlock(ItemStack& is, EntityBase* clicker, const IntVec
       signMeta   = static_cast<int8_t>(std::roundf(((prot.yaw + 180.0f) * 16.0f / 360.0f) + 0.5f));
     }
 
-    return accessWorld().setBlockWithNotify(placepos, BlockDB::sign.getId(), signMeta, dynamic_cast<IPlayer*>(clicker));
+    return accessWorld().setBlockWithNotify(placepos, BlockDB::sign.getId(), signMeta, dynamic_cast<PlayerBase*>(clicker));
   }
 
   return false;
@@ -194,9 +194,9 @@ bool ItemSign::onUseItemOnBlock(ItemStack& is, EntityBase* clicker, const IntVec
 #pragma region("snowball.h")
 
 bool ItemSnowball::onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) {
-  auto ply = dynamic_cast<IPlayer*>(clicker);
+  auto ply = dynamic_cast<PlayerBase*>(clicker);
   if (!is.decrementBy(1)) {
-    ply->updateEquipedItem(IPlayer::HeldItem);
+    ply->updateEquipedItem(PlayerBase::HeldItem);
     return true;
   }
 

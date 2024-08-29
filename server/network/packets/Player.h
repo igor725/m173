@@ -220,7 +220,7 @@ class PlayerAnim: public PacketWriter {
 
 class PlayerPosAndLook: public PacketWriter {
   public:
-  PlayerPosAndLook(IPlayer* player): PacketWriter(Packet::IDs::PlayerPnL, 41) {
+  PlayerPosAndLook(PlayerBase* player): PacketWriter(Packet::IDs::PlayerPnL, 41) {
     auto& position = player->getPosition();
     auto& rotation = player->getRotation();
 
@@ -241,7 +241,7 @@ class PlayerPosAndLook: public PacketWriter {
 
 class PlayerSpawn: public PacketWriter {
   public:
-  PlayerSpawn(IPlayer* player): PacketWriter(Packet::IDs::PlayerSpawn, 22 + player->getName().size()) {
+  PlayerSpawn(PlayerBase* player): PacketWriter(Packet::IDs::PlayerSpawn, 22 + player->getName().size()) {
     auto& position = player->getPosition();
     auto& rotation = player->getRotation();
 

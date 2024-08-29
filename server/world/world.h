@@ -15,7 +15,7 @@ class IWorld {
 
   virtual bool setBlock(const IntVector3& pos, BlockId id, int8_t meta) = 0;
 
-  virtual bool setBlockWithNotify(const IntVector3& pos, BlockId id, int8_t meta, IPlayer* placer) = 0;
+  virtual bool setBlockWithNotify(const IntVector3& pos, BlockId id, int8_t meta, PlayerBase* placer) = 0;
 
   virtual BlockId getBlock(const IntVector3& pos, int8_t* meta = nullptr) = 0;
 
