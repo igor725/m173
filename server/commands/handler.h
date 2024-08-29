@@ -37,7 +37,7 @@ class Command {
 
   bool isPlayerOnly() const { return m_playerOnly; }
 
-  inline bool isNamesEqual(Command* cmd) const { return cmd == this || cmd->getName() == getName(); }
+  inline bool isNamesEqual(Command* cmd) const { return cmd == this || Helper::stricmp(cmd->getName(), getName()); }
 
   private:
   const std::wstring m_commandName;

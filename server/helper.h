@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstdint>
 
@@ -125,3 +127,9 @@ enum ArmorType : int8_t {
   Pants,
   Boots,
 };
+
+namespace Helper {
+bool stricmp(const auto& a, const auto& b) {
+  return std::ranges::equal(a, b, [](auto a, auto b) { return std::tolower(a) == std::tolower(b); });
+}
+} // namespace Helper

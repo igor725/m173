@@ -1,5 +1,6 @@
 #include "handler.h"
 
+#include <algorithm>
 #include <cstddef>
 
 class CommandHandler: public ICommandHandler {
@@ -39,7 +40,7 @@ class CommandHandler: public ICommandHandler {
     std::wstring_view cmdname(command.c_str(), command.c_str() + start_of_args);
 
     for (auto it = m_commands.begin(); it != m_commands.end(); ++it) {
-      if ((*it)->getName() == cmdname) {
+      if (Helper::stricmp((*it)->getName(), cmdname)) {
         if ((*it)->isPlayerOnly() && caller == nullptr) {
           out = L"\u00a7cThis command cannot be executed by the console!";
           return false;

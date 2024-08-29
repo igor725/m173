@@ -54,8 +54,13 @@ class Hurtme: public Command {
   Hurtme(): Command(L"hurtme", L"Hurts you", true) {}
 
   bool execute(IPlayer* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
+    if (args.size() < 1) {
+      out = L"Usage: /hurtme <amount>";
+      return true;
+    }
+
     std::wstringstream ss;
-    ss << args[0].data();
+    ss << args[0];
     int16_t hcnt;
     ss >> hcnt;
 
@@ -198,7 +203,7 @@ class Lua: public Command {
 
   bool execute(IPlayer* executor, std::vector<std::wstring_view>& args, std::wstring& out) {
     if (args.size() < 1) {
-      out = L"Usage: /lua <reload/reloadall/load>";
+      out = L"Usage: /lua <reload/reloadall/status/load> [script file name]";
       return true;
     }
 

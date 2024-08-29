@@ -16,8 +16,9 @@ class IEntityManager {
   typedef std::function<bool(IPlayer* player)> PlayerIterCallback;
   typedef std::function<bool(EntityBase* ent)> EntityIterCallback;
 
-  virtual bool IterPlayers(PlayerIterCallback cb)  = 0;
-  virtual bool IterEntities(EntityIterCallback cb) = 0;
+  virtual bool     IterPlayers(PlayerIterCallback cb)        = 0;
+  virtual bool     IterEntities(EntityIterCallback cb)       = 0;
+  virtual IPlayer* getPlayerByName(const std::wstring& name) = 0;
 
   virtual void     AddPlayerThread(std::thread&& thread, uint64_t ref) = 0;
   virtual void     RemovePlayerThread(uint64_t ref)                    = 0;

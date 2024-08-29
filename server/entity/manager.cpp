@@ -103,6 +103,18 @@ class EntityManager: public IEntityManager {
     return true;
   }
 
+  IPlayer* getPlayerByName(const std::wstring& name) {
+    IPlayer* target;
+
+    if (IterPlayers([&target, &name](IPlayer* ply) -> bool {
+          target = ply;
+          return !Helper::stricmp(ply->getName(), name);
+        }) == false)
+      return target;
+
+    return nullptr;
+  }
+
   bool IterEntities(EntityIterCallback cb) final {
     std::unique_lock lock(m_lock);
 

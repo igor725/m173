@@ -143,7 +143,7 @@ static void regMessage(lua_State* L) {
 
          return 0;
        }},
-      {"user",
+      {"sender",
        [](lua_State* L) -> int {
          auto lobj = LuaObject::fromstack(L, 1);
          auto arg  = *lobj->get<onMessageEvent*>();
