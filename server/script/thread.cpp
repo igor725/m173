@@ -169,7 +169,6 @@ class ScriptThread: public IScriptThread {
       case ScriptEvent::onEntityDestroyed: {
         lua_pushliteral(m_self, "onEntityDestroyed");
         lua_pushentity(m_self, (EntityBase*)ev.args);
-        lua_unlinkentity(m_self, ev.args); // This call only removes entity from internal table and does not affect pushed object above in any way
         return 2;
       } break;
     }

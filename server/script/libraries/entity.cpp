@@ -64,9 +64,14 @@ class EntityScript {
   static void unlink(lua_State* L, void* ptr) {
     lua_rawgeti(L, LUA_REGISTRYINDEX, m_entTabRef);
     lua_pushlightuserdata(L, ptr);
-    lua_pushnil(L);
-    lua_rawset(L, -3);
-    lua_pop(L, 1);
+    lua_rawget(L, -2);
+    if (auto ent = LuaObject::fromstack(L, -1)) {
+      ent->invalidate();
+      lua_pushlightuserdata(L, ptr);
+      lua_pushnil(L);
+      lua_rawset(L, -4);
+    }
+    lua_pop(L, 2);
   }
 
   private:
@@ -162,7 +167,6 @@ int luaopen_entity(lua_State* L) {
 
          return 0;
        }},
-
       {"isLocal",
        [](lua_State* L) -> int {
          auto ply = dynamic_cast<PlayerBase*>(lua_checkcreature(L, 1, CreatureBase::Player));

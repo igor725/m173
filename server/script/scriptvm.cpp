@@ -74,6 +74,7 @@ class ScriptVM: public IScriptVM {
     lua_setglobal(m_mainState, "print");
 
     registerMetaTables(m_mainState);
+    lua_settop(m_mainState, 0); // We don't need any of these in stack
   }
 
   ~ScriptVM() {
@@ -194,6 +195,10 @@ class ScriptVM: public IScriptVM {
           it = m_threads.erase(it);
         } break;
       }
+    }
+
+    if (ev.type == ScriptEvent::onEntityDestroyed) {
+      lua_unlinkentity(m_mainState, ev.args);
     }
   }
 
