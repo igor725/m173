@@ -16,11 +16,8 @@ bool PlayerStorage::push(const ItemStack& is, SlotId* sid, SlotId prioritySlot) 
 
   if (prioritySlot > -1 && prioritySlot < m_items.size()) {
     auto& pslot = m_items[prioritySlot];
-    if (pslot.isEmpty()) {
+    if (pslot.isEmpty() || (pslot.isSimilarTo(is) && pslot.incrementBy(is.stackSize))) {
       pslot = is;
-      if (sid != nullptr) *sid = prioritySlot;
-      return true;
-    } else if (pslot.isSimilarTo(is) && pslot.incrementBy(is.stackSize)) {
       if (sid != nullptr) *sid = prioritySlot;
       return true;
     }

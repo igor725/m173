@@ -56,13 +56,34 @@ class Player: public PlayerBase {
       return true;
     }
 
-    static const size_t MAX_MESSAGE_LENGTH = 119;
-    if (message.length() > MAX_MESSAGE_LENGTH) {
-      for (int32_t i = 0; i <= message.length() / MAX_MESSAGE_LENGTH; ++i) {
-        auto startpos = i * MAX_MESSAGE_LENGTH;
-        if (startpos >= message.length()) return true;
-        auto str = std::wstring_view(message.begin() + startpos, message.begin() + std::min(startpos + MAX_MESSAGE_LENGTH, message.length()));
-        if (!sendChat(str)) return false;
+    static const size_t MAX_MESSAGE_LINE = 60;
+
+    wchar_t  lastcolor = L'f';
+    uint32_t startpos  = 0;
+
+    if (message.length() > MAX_MESSAGE_LINE) {
+      while (startpos < message.length()) {
+        {
+          auto cpos = message.find(L'\u00a7', startpos);
+          if (cpos != std::wstring_view::npos && (cpos + 1) < message.length()) {
+            lastcolor = message.at(cpos + 1);
+          }
+        }
+
+        auto partend = std::min(startpos + MAX_MESSAGE_LINE, message.length());
+
+        if (lastcolor == 'f') {
+          auto str = std::wstring_view(message.begin() + startpos, message.begin() + partend);
+          startpos += str.length();
+          if (!sendChat(str)) return false;
+        } else {
+          if ((partend - startpos) >= (MAX_MESSAGE_LINE - 2)) partend -= 2;
+          std::wstring str = {L'\u00a7', lastcolor};
+          const auto   ncl = std::wstring_view(message.begin() + startpos, message.begin() + partend);
+          str.append(ncl);
+          startpos += ncl.length();
+          if (!sendChat(str)) return false;
+        }
       }
 
       return true;
@@ -547,6 +568,8 @@ class Player: public PlayerBase {
 
   bool isLocal() const final { return m_selfSock.isLocal(); }
 
+  bool isOperator() const final { return m_bIsOperator; }
+
   void setStance(double_t stance) final { m_stance = stance; }
 
   double_t getStance() const final { return m_stance; }
@@ -556,6 +579,8 @@ class Player: public PlayerBase {
   const std::wstring& getName() const final { return m_name; }
 
   EntityBase* getAttachedEntity() const final { return m_attachedEntity; }
+
+  void setOperator(bool state) final { m_bIsOperator = state; }
 
   bool setAttachedEntity(EntityBase* ent, bool reset) final {
     if (!reset && m_attachedEntity == nullptr) {
@@ -571,8 +596,9 @@ class Player: public PlayerBase {
   }
 
   private:
-  std::atomic<bool>       m_bLoggedIn = false;
-  SlotId                  m_heldSlot  = 0;
+  std::atomic<bool>       m_bLoggedIn   = false;
+  std::atomic<bool>       m_bIsOperator = false;
+  SlotId                  m_heldSlot    = 0;
   SafeSocket&             m_selfSock;
   int64_t                 m_nextHit        = 0;
   double_t                m_stance         = 0.0;

@@ -132,4 +132,8 @@ namespace Helper {
 bool stricmp(const auto& a, const auto& b) {
   return std::ranges::equal(a, b, [](auto a, auto b) { return std::tolower(a) == std::tolower(b); });
 }
+
+bool strcmp(const auto& a, const auto& b) {
+  return std::ranges::equal(a, b);
+}
 } // namespace Helper

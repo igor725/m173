@@ -87,6 +87,9 @@ class PlayerBase: public CreatureBase {
   virtual bool                doLoginProcess()  = 0;
   virtual SafeSocket&         getSocket() const = 0;
   virtual bool                isLocal() const   = 0;
+
+  virtual void setOperator(bool state) = 0;
+  virtual bool isOperator() const      = 0;
 };
 
 std::unique_ptr<PlayerBase> createPlayer(SafeSocket& sock, const std::wstring& name);

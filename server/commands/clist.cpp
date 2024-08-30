@@ -1,3 +1,4 @@
+#include "config/config.h"
 #include "entity/manager.h"
 #include "entity/objects/thunderbolt.h"
 #include "handler.h"
@@ -31,7 +32,7 @@ class Help: public Command {
 
 class Stop: public Command {
   public:
-  Stop(): Command(L"stop", L"Stops the server") {}
+  Stop(): Command(L"stop", L"Stops the server", OperatorOnly) {}
 
   bool execute(PlayerBase*, std::vector<std::wstring_view>&, std::wstring& out) final {
     RunManager::stop();
@@ -39,40 +40,9 @@ class Stop: public Command {
   }
 };
 
-class Killme: public Command {
-  public:
-  Killme(): Command(L"killme", L"Kills you", true) {}
-
-  bool execute(PlayerBase* caller, std::vector<std::wstring_view>&, std::wstring&) final {
-    caller->setHealth(0);
-    return true;
-  }
-};
-
-class Hurtme: public Command {
-  public:
-  Hurtme(): Command(L"hurtme", L"Hurts you", true) {}
-
-  bool execute(PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
-    if (args.size() < 1) {
-      out = L"Usage: /hurtme <amount>";
-      return true;
-    }
-
-    std::wstringstream ss;
-    ss << args[0];
-    int16_t hcnt;
-    ss >> hcnt;
-
-    caller->setHealth(caller->getHealth() - hcnt);
-    out = std::format(L"Your current health level: {}", caller->getHealth());
-    return true;
-  }
-};
-
 class Hat: public Command {
   public:
-  Hat(): Command(L"hat", L"Set held item as hat", true) {}
+  Hat(): Command(L"hat", L"Set held item as hat", PlayerOnly) {}
 
   bool execute(PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
     auto& heldItem = caller->getHeldItem();
@@ -90,7 +60,7 @@ class Hat: public Command {
 
 class Give: public Command {
   public:
-  Give(): Command(L"give", L"Give some item", true) {}
+  Give(): Command(L"give", L"Give some item", OperatorOnly | PlayerOnly) {}
 
   bool execute(PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
     if (args.size() == 0) {
@@ -140,7 +110,7 @@ class Give: public Command {
 
 class WInfo: public Command {
   public:
-  WInfo(): Command(L"winfo", L"Information abot the loaded world", true) {}
+  WInfo(): Command(L"winfo", L"Information abot the loaded world") {}
 
   bool execute(PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
     auto& world = accessWorld();
@@ -152,7 +122,7 @@ class WInfo: public Command {
 
 class Craft: public Command {
   public:
-  Craft(): Command(L"craft", L"Opens the crafting window", true) {}
+  Craft(): Command(L"craft", L"Opens the crafting window", PlayerOnly) {}
 
   bool execute(PlayerBase* caller, std::vector<std::wstring_view>&, std::wstring&) final {
     caller->createWindow(std::make_unique<WorkbenchWindow>(&caller->getStorage()));
@@ -162,7 +132,7 @@ class Craft: public Command {
 
 class Thor: public Command {
   public:
-  Thor(): Command(L"thor", L"Summons some lightning strike around", true) {}
+  Thor(): Command(L"thor", L"Summons some lightning strike around", OperatorOnly | PlayerOnly) {}
 
   bool execute(PlayerBase* caller, std::vector<std::wstring_view>&, std::wstring&) final {
     accessEntityManager().AddEntity(createThunderbolt(caller->getPosition()));
@@ -172,7 +142,7 @@ class Thor: public Command {
 
 class TP: public Command {
   public:
-  TP(): Command(L"tp", L"Teleports you to specified coordinates", true) {}
+  TP(): Command(L"tp", L"Teleports you to specified coordinates", OperatorOnly) {}
 
   bool execute(PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
     if (args.size() < 3) {
@@ -199,7 +169,7 @@ class TP: public Command {
 
 class Lua: public Command {
   public:
-  Lua(): Command(L"lua", L"Manage Lua VM") {}
+  Lua(): Command(L"lua", L"Manage Lua VM", OperatorOnly) {}
 
   bool execute(PlayerBase* executor, std::vector<std::wstring_view>& args, std::wstring& out) {
     if (args.size() < 1) {
@@ -237,14 +207,40 @@ class Lua: public Command {
   }
 };
 
-static Help   help_reg;
-static Stop   stop_reg;
-static Killme killme_reg;
-static Hurtme hurtme_reg;
-static Hat    hat_reg;
-static Give   give_reg;
-static WInfo  winfo_reg;
-static Craft  craft_reg;
-static Thor   thor_reg;
-static TP     tp_reg;
-static Lua    lua_reg;
+class Pwd: public Command {
+  public:
+  Pwd(): Command(L"pwd", L"Authorize as server's operator", PlayerOnly) {}
+
+  bool execute(PlayerBase* executor, std::vector<std::wstring_view>& args, std::wstring& out) {
+    if (args.size() < 1) {
+      out = L"Usage: /pwd <password>";
+      return true;
+    }
+
+    if (executor->isOperator()) {
+      out = L"\u00a7aYou're already an operator!";
+      return true;
+    }
+
+    auto pwd = std::string_view(accessConfig().getItem("perms.password").getValue<const char*>());
+    if (Helper::strcmp(pwd, args[0])) {
+      out = L"\u00a7aYou're operator now!";
+      executor->setOperator(true);
+    } else {
+      out = L"\u00a7cIncorrect password!";
+    }
+
+    return true;
+  }
+};
+
+static Help  help_reg;
+static Stop  stop_reg;
+static Hat   hat_reg;
+static Give  give_reg;
+static WInfo winfo_reg;
+static Craft craft_reg;
+static Thor  thor_reg;
+static TP    tp_reg;
+static Lua   lua_reg;
+static Pwd   pwd_reg;

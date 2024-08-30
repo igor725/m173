@@ -162,6 +162,9 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
           } else {
             linkedPlayer->doLoginProcess();
 
+            static bool localOp = accessConfig().getItem("perms.local_op").getValue<bool>();
+            if (localOp && linkedPlayer->isLocal()) linkedPlayer->setOperator(true);
+
             BroadcastManager::chatToClients(std::format(L"{} joined the game", uname));
             spdlog::info("Player {} ({}) just spawned!", bname, addr.to_string());
           }

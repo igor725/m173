@@ -23,7 +23,13 @@ ICommandHandler& accessCommandHandler();
 
 class Command {
   public:
-  Command(const wchar_t* name, const wchar_t* help, bool playerOnly = false): m_commandName(name), m_helpMessage(help), m_playerOnly(playerOnly) {
+  enum Flags : uint32_t {
+    None         = 0,
+    PlayerOnly   = 1 << 0,
+    OperatorOnly = 1 << 1,
+  };
+
+  Command(const wchar_t* name, const wchar_t* help, uint32_t flags = 0): m_commandName(name), m_helpMessage(help), m_flags(Flags(flags)) {
     accessCommandHandler().registerCommand(this);
   }
 
@@ -35,12 +41,14 @@ class Command {
 
   const std::wstring& getHelp() const { return m_helpMessage; }
 
-  bool isPlayerOnly() const { return m_playerOnly; }
+  bool isPlayerOnly() const { return m_flags & Flags::PlayerOnly; }
+
+  bool isOperatorOnly() const { return m_flags & Flags::OperatorOnly; }
 
   inline bool isNamesEqual(Command* cmd) const { return cmd == this || Helper::stricmp(cmd->getName(), getName()); }
 
   private:
   const std::wstring m_commandName;
   const std::wstring m_helpMessage;
-  const bool         m_playerOnly;
+  const Flags        m_flags;
 };

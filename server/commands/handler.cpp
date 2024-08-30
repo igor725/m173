@@ -28,11 +28,6 @@ class CommandHandler: public ICommandHandler {
   }
 
   bool execute(PlayerBase* caller, std::wstring command, std::wstring& out) final {
-    if (caller != nullptr && !caller->isLocal()) {
-      out = L"Only local players can call commands at the moment!";
-      return true;
-    }
-
     if (command.at(0) == L'/') command.erase(0, 1);
     auto start_of_args = command.find_first_of(L' ');
     if (start_of_args == std::wstring::npos) start_of_args = command.size();
@@ -42,9 +37,14 @@ class CommandHandler: public ICommandHandler {
     for (auto it = m_commands.begin(); it != m_commands.end(); ++it) {
       if (Helper::stricmp((*it)->getName(), cmdname)) {
         if ((*it)->isPlayerOnly() && caller == nullptr) {
-          out = L"\u00a7cThis command cannot be executed by the console!";
+          out = L"\u00a7cPlayer-only command!";
           return false;
         }
+        if ((*it)->isOperatorOnly() && caller != nullptr && !caller->isOperator()) {
+          out = L"\u00a7cPermission denied!";
+          return false;
+        }
+
         std::vector<std::wstring_view> args;
 
         size_t start = 0, end = start_of_args;
