@@ -140,7 +140,7 @@ class ScriptThread: public IScriptThread {
         lua_pushliteral(m_self, "preBlockPlace");
         *obj = LuaObject::create(m_self, sizeof(void*));
 
-        *(*obj)->get<void*>() = ev.args;
+        *(*obj)->get<void*>(m_self) = ev.args;
         luaL_setmetatable(m_self, "preBlockPlaceEvent");
         return 2;
       } break;
@@ -148,7 +148,7 @@ class ScriptThread: public IScriptThread {
         lua_pushliteral(m_self, "onBlockDestroyed");
         *obj = LuaObject::create(m_self, sizeof(void*));
 
-        *(*obj)->get<void*>() = ev.args;
+        *(*obj)->get<void*>(m_self) = ev.args;
         luaL_setmetatable(m_self, "onBlockDestroyedEvent");
         return 2;
       } break;
@@ -156,7 +156,7 @@ class ScriptThread: public IScriptThread {
         lua_pushliteral(m_self, "onMessage");
         *obj = LuaObject::create(m_self, sizeof(void*));
 
-        *(*obj)->get<void*>() = ev.args;
+        *(*obj)->get<void*>(m_self) = ev.args;
         luaL_setmetatable(m_self, "onMessageEvent");
         return 2;
       } break;
@@ -164,7 +164,7 @@ class ScriptThread: public IScriptThread {
         lua_pushliteral(m_self, "onPlayerConnected");
         *obj = LuaObject::create(m_self, sizeof(void*));
 
-        *(*obj)->get<void*>() = ev.args;
+        *(*obj)->get<void*>(m_self) = ev.args;
         luaL_setmetatable(m_self, "onPlayerConnectedEvent");
         return 2;
       } break;

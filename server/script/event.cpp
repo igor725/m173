@@ -33,41 +33,41 @@ static void regBlockEvents(lua_State* L) {
       {"cancel",
        [](lua_State* L) -> int {
          auto lobj      = LuaObject::fromstack(L, 1);
-         auto arg       = *lobj->get<preBlockPlaceArgumentEvent*>();
+         auto arg       = *lobj->get<preBlockPlaceArgumentEvent*>(L);
          arg->cancelled = true;
          return 0;
        }},
       {"isCancelled",
        [](lua_State* L) -> int {
          auto lobj = LuaObject::fromstack(L, 1);
-         auto arg  = *lobj->get<preBlockPlaceArgumentEvent*>();
+         auto arg  = *lobj->get<preBlockPlaceArgumentEvent*>(L);
          lua_pushboolean(L, arg->cancelled);
          return 1;
        }},
       {"position",
        [](lua_State* L) -> int {
          auto lobj = LuaObject::fromstack(L, 1);
-         auto arg  = *lobj->get<preBlockPlaceArgumentEvent*>();
+         auto arg  = *lobj->get<preBlockPlaceArgumentEvent*>(L);
          return pushVector(L, arg->pos);
        }},
       {"direction",
        [](lua_State* L) -> int {
          auto lobj = LuaObject::fromstack(L, 1);
-         auto arg  = *lobj->get<preBlockPlaceArgumentEvent*>();
+         auto arg  = *lobj->get<preBlockPlaceArgumentEvent*>(L);
          lua_pushinteger(L, arg->direction);
          return 1;
        }},
       {"placer",
        [](lua_State* L) -> int {
          auto lobj = LuaObject::fromstack(L, 1);
-         auto arg  = *lobj->get<preBlockPlaceArgumentEvent*>();
+         auto arg  = *lobj->get<preBlockPlaceArgumentEvent*>(L);
          lua_pushentity(L, arg->user);
          return 1;
        }},
       {"itemStack",
        [](lua_State* L) -> int {
          auto lobj    = LuaObject::fromstack(L, 1);
-         auto arg     = *lobj->get<preBlockPlaceArgumentEvent*>();
+         auto arg     = *lobj->get<preBlockPlaceArgumentEvent*>(L);
          auto is_lobj = lua_pushitemstack(L, &arg->is);
          lobj->link(is_lobj);
          return 1;
@@ -81,20 +81,20 @@ static void regBlockEvents(lua_State* L) {
       {"position",
        [](lua_State* L) -> int {
          auto lobj = LuaObject::fromstack(L, 1);
-         auto arg  = *lobj->get<onBlockDestroyedEvent*>();
+         auto arg  = *lobj->get<onBlockDestroyedEvent*>(L);
          return pushVector(L, arg->pos);
        }},
       {"destroyer",
        [](lua_State* L) -> int {
          auto lobj = LuaObject::fromstack(L, 1);
-         auto arg  = *lobj->get<onBlockDestroyedEvent*>();
+         auto arg  = *lobj->get<onBlockDestroyedEvent*>(L);
          lua_pushentity(L, arg->user);
          return 1;
        }},
       {"itemStack",
        [](lua_State* L) -> int {
          auto lobj    = LuaObject::fromstack(L, 1);
-         auto arg     = *lobj->get<onBlockDestroyedEvent*>();
+         auto arg     = *lobj->get<onBlockDestroyedEvent*>(L);
          auto is_lobj = lua_pushitemstack(L, &arg->is);
          lobj->link(is_lobj);
          return 1;
@@ -111,21 +111,21 @@ static void regMessage(lua_State* L) {
       {"cancel",
        [](lua_State* L) -> int {
          auto lobj      = LuaObject::fromstack(L, 1);
-         auto arg       = *lobj->get<onMessageEvent*>();
+         auto arg       = *lobj->get<onMessageEvent*>(L);
          arg->cancelled = true;
          return 0;
        }},
       {"isCancelled",
        [](lua_State* L) -> int {
          auto lobj = LuaObject::fromstack(L, 1);
-         auto arg  = *lobj->get<onMessageEvent*>();
+         auto arg  = *lobj->get<onMessageEvent*>(L);
          lua_pushboolean(L, arg->cancelled);
          return 1;
        }},
       {"message",
        [](lua_State* L) -> int {
          auto lobj = LuaObject::fromstack(L, 1);
-         auto arg  = *lobj->get<onMessageEvent*>();
+         auto arg  = *lobj->get<onMessageEvent*>(L);
 
          std::string mb;
          mb.reserve(arg->message.length());
@@ -146,7 +146,7 @@ static void regMessage(lua_State* L) {
       {"sender",
        [](lua_State* L) -> int {
          auto lobj = LuaObject::fromstack(L, 1);
-         auto arg  = *lobj->get<onMessageEvent*>();
+         auto arg  = *lobj->get<onMessageEvent*>(L);
          lua_pushentity(L, arg->sender);
          return 1;
        }},
@@ -154,7 +154,7 @@ static void regMessage(lua_State* L) {
        [](lua_State* L) -> int {
          auto fin  = std::string_view(luaL_checkstring(L, 2));
          auto lobj = LuaObject::fromstack(L, 1);
-         auto arg  = *lobj->get<onMessageEvent*>();
+         auto arg  = *lobj->get<onMessageEvent*>(L);
 
          arg->finalMessage.clear();
          std::mbtowc(nullptr, nullptr, 0);
@@ -176,7 +176,7 @@ static void regPlayer(lua_State* L) {
       {"cancel",
        [](lua_State* L) -> int {
          auto lobj      = LuaObject::fromstack(L, 1);
-         auto arg       = *lobj->get<onPlayerConnectedEvent*>();
+         auto arg       = *lobj->get<onPlayerConnectedEvent*>(L);
          arg->reason    = luaL_optstring(L, 2, "Kicked by Server");
          arg->cancelled = true;
          return 0;
@@ -184,14 +184,14 @@ static void regPlayer(lua_State* L) {
       {"isCancelled",
        [](lua_State* L) -> int {
          auto lobj = LuaObject::fromstack(L, 1);
-         auto arg  = *lobj->get<onPlayerConnectedEvent*>();
+         auto arg  = *lobj->get<onPlayerConnectedEvent*>(L);
          lua_pushboolean(L, arg->cancelled);
          return 1;
        }},
       {"entity",
        [](lua_State* L) -> int {
          auto lobj = LuaObject::fromstack(L, 1);
-         auto arg  = *lobj->get<onPlayerConnectedEvent*>();
+         auto arg  = *lobj->get<onPlayerConnectedEvent*>(L);
          lua_pushentity(L, arg->ent);
          return 1;
        }},

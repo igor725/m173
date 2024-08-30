@@ -29,10 +29,10 @@ LuaObject* LuaObject::fromstack(lua_State* L, int idx) {
   }
 
   auto lobj = (LuaObject*)lua_touserdata(L, idx);
-  if (lobj == nullptr || lobj->m_fingerprint != FINGERPRINT) { // Not the safest way actually, but it should not crash in normal contitions
+  if (lobj == nullptr || lobj->m_fingerprint != FINGERPRINT) { // Not the safest way actually, but it should not crash in normal conditions
     luaL_error(L, "An attempt to cast %s to LuaObject was made", luaL_typename(L, idx));
     return nullptr;
   }
-  (void)lobj->get<void>(); // Test for invalidation
+  (void)lobj->get<void>(L); // Test for invalidation
   return lobj;
 }

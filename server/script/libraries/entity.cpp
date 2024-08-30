@@ -50,7 +50,7 @@ class EntityScript {
       } break;
     }
 
-    new (lobj->get<EntityScript>()) EntityScript(ent);
+    new (lobj->get<EntityScript>(L)) EntityScript(ent);
 
     lua_rawgeti(L, LUA_REGISTRYINDEX, m_entTabRef);
     lua_pushlightuserdata(L, ent);
@@ -96,7 +96,7 @@ void lua_unlinkentity(lua_State* L, void* ptr) {
 
 EntityBase* lua_checkentity(lua_State* L, int idx, EntityBase::Type type) {
   auto lobj = LuaObject::fromstack(L, 1);
-  auto sent = lobj->get<EntityScript>()->entity();
+  auto sent = lobj->get<EntityScript>(L)->entity();
 
   if (sent->getType() != type) {
     luaL_error(L, "Invalid entity type (%d expected, got %d)", type, sent->getType());

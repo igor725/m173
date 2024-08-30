@@ -25,14 +25,14 @@ class ItemStackScript {
 LuaObject* lua_pushitemstack(lua_State* L) {
   auto lobj = LuaObject::create(L, sizeof(ItemStackScript));
   luaL_setmetatable(L, "ItemStack");
-  new (lobj->get<ItemStackScript>()) ItemStackScript();
+  new (lobj->get<ItemStackScript>(L)) ItemStackScript();
   return lobj;
 }
 
 LuaObject* lua_pushitemstack(lua_State* L, ItemStack* is) {
   auto lobj = LuaObject::create(L, sizeof(ItemStackScript));
   luaL_setmetatable(L, "ItemStack");
-  new (lobj->get<ItemStackScript>()) ItemStackScript(is);
+  new (lobj->get<ItemStackScript>(L)) ItemStackScript(is);
   return lobj;
 }
 
@@ -42,7 +42,7 @@ int luaopen_itemstack(lua_State* L) {
        [](lua_State* L) -> int {
          auto stacksz = luaL_checkinteger(L, 2);
          auto lobj    = LuaObject::fromstack(L, 1);
-         auto iss     = lobj->get<ItemStackScript>();
+         auto iss     = lobj->get<ItemStackScript>(L);
 
          lua_pushboolean(L, iss->get()->decrementBy(stacksz));
          return 1;
@@ -51,7 +51,7 @@ int luaopen_itemstack(lua_State* L) {
        [](lua_State* L) -> int {
          auto stacksz = luaL_checkinteger(L, 2);
          auto lobj    = LuaObject::fromstack(L, 1);
-         auto iss     = lobj->get<ItemStackScript>();
+         auto iss     = lobj->get<ItemStackScript>(L);
 
          lua_pushboolean(L, iss->get()->incrementBy(stacksz));
          return 1;
@@ -59,7 +59,7 @@ int luaopen_itemstack(lua_State* L) {
       {"itemId",
        [](lua_State* L) -> int {
          auto lobj = LuaObject::fromstack(L, 1);
-         auto iss  = lobj->get<ItemStackScript>();
+         auto iss  = lobj->get<ItemStackScript>(L);
 
          if (lua_isinteger(L, 2)) {
            ItemId id = lua_tointeger(L, 2);
@@ -78,7 +78,7 @@ int luaopen_itemstack(lua_State* L) {
       {"stackSize",
        [](lua_State* L) -> int {
          auto lobj = LuaObject::fromstack(L, 1);
-         auto iss  = lobj->get<ItemStackScript>();
+         auto iss  = lobj->get<ItemStackScript>(L);
 
          if (lua_isinteger(L, 2)) { // todo check there?
            iss->get()->stackSize = lua_tointeger(L, 2);
@@ -91,7 +91,7 @@ int luaopen_itemstack(lua_State* L) {
       {"damage",
        [](lua_State* L) -> int {
          auto lobj = LuaObject::fromstack(L, 1);
-         auto iss  = lobj->get<ItemStackScript>();
+         auto iss  = lobj->get<ItemStackScript>(L);
 
          if (lua_isinteger(L, 2)) {
            lua_pushboolean(L, iss->get()->damageItem(lua_tointeger(L, 2), nullptr));
