@@ -98,10 +98,12 @@ class Give: public Command {
         caller->resendItem(cont.getItem(slot));
         out = std::format(L"\u00a7eGiven {} of {}:{}", is.stackSize, is.itemId, is.itemDamage);
       } else {
-        out = L"\u00a7cFailed, no free space in your inventory";
+        out = L"No free space in your inventory";
+        return false;
       }
     } else {
-      out = L"\u00a7cFailed, invalid item id";
+      out = L"Invalid item id";
+      return false;
     }
 
     return true;
@@ -194,7 +196,8 @@ class Lua: public Command {
         if (accessScript().openScript(args[1])) {
           out = L"\u00a7aScript loaded successfully";
         } else {
-          out = L"\u00a7cFailed to load script, check console for more info";
+          out = L"Failed, check console for more info";
+          return false;
         }
       } else {
         out = L"Usage: /lua load <script name>";
@@ -227,7 +230,8 @@ class Pwd: public Command {
       out = L"\u00a7aYou're operator now!";
       executor->setOperator(true);
     } else {
-      out = L"\u00a7cIncorrect password!";
+      out = L"Incorrect password!";
+      return false;
     }
 
     return true;
