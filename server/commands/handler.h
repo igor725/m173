@@ -16,7 +16,7 @@ class ICommandHandler {
 
   virtual bool execute(PlayerBase* caller, std::wstring command, std::wstring& out) = 0;
 
-  virtual void genHelp(int32_t page, int32_t perpage, std::wstring& out) = 0;
+  virtual void genHelp(int32_t page, int32_t perpage, PlayerBase* user, std::wstring& out) = 0;
 };
 
 ICommandHandler& accessCommandHandler();
@@ -44,6 +44,8 @@ class Command {
   bool isPlayerOnly() const { return m_flags & Flags::PlayerOnly; }
 
   bool isOperatorOnly() const { return m_flags & Flags::OperatorOnly; }
+
+  bool canBeUsedBy(PlayerBase* user) const { return !isOperatorOnly() || user == nullptr || user->isOperator(); }
 
   inline bool isNamesEqual(Command* cmd) const { return cmd == this || Helper::stricmp(cmd->getName(), getName()); }
 

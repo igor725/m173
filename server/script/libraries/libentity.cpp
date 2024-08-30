@@ -1,7 +1,8 @@
-#include "entity.h"
+#include "libentity.h"
 
 #include "entity/creatures/player.h"
 #include "entity/manager.h"
+#include "libvector.h"
 
 #include <string>
 
@@ -94,9 +95,13 @@ void lua_unlinkentity(lua_State* L, void* ptr) {
   EntityScript::unlink(L, ptr);
 }
 
+EntityBase* lua_checkentity(lua_State* L, int idx) {
+  auto lobj = LuaObject::fromstack(L, idx);
+  return lobj->get<EntityScript>(L)->entity();
+}
+
 EntityBase* lua_checkentity(lua_State* L, int idx, EntityBase::Type type) {
-  auto lobj = LuaObject::fromstack(L, 1);
-  auto sent = lobj->get<EntityScript>(L)->entity();
+  auto sent = lua_checkentity(L, idx);
 
   if (sent->getType() != type) {
     luaL_error(L, "Invalid entity type (%d expected, got %d)", type, sent->getType());
@@ -123,6 +128,13 @@ CreatureBase* lua_checkcreature(lua_State* L, int idx, CreatureBase::Type type) 
 
 int luaopen_entity(lua_State* L) {
   const luaL_Reg entitybase_reg[] = {
+      {"position",
+       [](lua_State* L) -> int {
+         auto ent = lua_checkentity(L, 1);
+         lua_pushvector(L, &ent->getPosition());
+         return 1;
+       }},
+
       {nullptr, nullptr},
   };
   luaL_newmetatable(L, "EntityBase");
@@ -148,6 +160,7 @@ int luaopen_entity(lua_State* L) {
   luaL_newmetatable(L, "CreatureBase");
   lua_pushvalue(L, -1);
   lua_setfield(L, -2, "__index");
+  luaL_setmetatable(L, "EntityBase");
   luaL_setfuncs(L, creaturebase_reg, 0);
 
   const luaL_Reg entityplayer_reg[] = {

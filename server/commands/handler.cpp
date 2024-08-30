@@ -12,6 +12,7 @@ class CommandHandler: public ICommandHandler {
       if ((*it)->isNamesEqual(cmd)) return false;
     }
 
+    if (!cmd->isOperatorOnly()) ++m_nonOpCommands;
     m_commands.push_back(cmd);
     return true;
   }
@@ -19,6 +20,7 @@ class CommandHandler: public ICommandHandler {
   bool unregisterCommand(Command* cmd) {
     for (auto it = m_commands.begin(); it != m_commands.end(); ++it) {
       if ((*it) == cmd) {
+        if (!(*it)->isOperatorOnly()) --m_nonOpCommands;
         m_commands.erase(it);
         return true;
       }
@@ -62,14 +64,17 @@ class CommandHandler: public ICommandHandler {
     return true;
   }
 
-  void genHelp(int32_t page, int32_t perpage, std::wstring& out) final {
-    auto pagecnt = int32_t(m_commands.size()) / perpage;
+  size_t cmdCountFor(PlayerBase* user) const { return user == nullptr || user->isOperator() ? m_commands.size() : m_nonOpCommands; }
+
+  void genHelp(int32_t page, int32_t perpage, PlayerBase* user, std::wstring& out) final {
+    auto pagecnt = int32_t(cmdCountFor(user)) / perpage;
     page         = std::min(pagecnt, std::max(0, page));
 
     int32_t pstart = page * perpage;
 
     out = std::format(L"Server commands help (page {}/{}):", page + 1, pagecnt + 1);
     for (auto it = m_commands.begin(); it != m_commands.end(); ++it) {
+      if (!(*it)->canBeUsedBy(user)) continue;
       if (pstart-- > 0) continue;
       if (perpage-- < 1) break;
       out += std::format(L"\n  \u00a7e/{}\u00a7f - {}", (*it)->getName(), (*it)->getHelp());
@@ -78,6 +83,8 @@ class CommandHandler: public ICommandHandler {
 
   private:
   std::vector<Command*> m_commands;
+
+  size_t m_nonOpCommands = 0;
 };
 
 ICommandHandler& accessCommandHandler() {

@@ -29,6 +29,8 @@ class LuaObject {
 
   static LuaObject* fromstack(lua_State* L, int idx);
 
+  static LuaObject* fromstack(lua_State* L, int idx, const char* meta);
+
   private:
   uint64_t                m_fingerprint = FINGERPRINT;
   bool                    m_invalidated;

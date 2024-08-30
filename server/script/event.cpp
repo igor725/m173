@@ -1,7 +1,8 @@
 #include "event.h"
 
-#include "libraries/entity.h"
-#include "libraries/itemstack.h"
+#include "libraries/libentity.h"
+#include "libraries/libitemstack.h"
+#include "libraries/libvector.h"
 #include "vm/lua.hpp"
 
 #include <cstdlib>
@@ -48,7 +49,8 @@ static void regBlockEvents(lua_State* L) {
        [](lua_State* L) -> int {
          auto lobj = LuaObject::fromstack(L, 1);
          auto arg  = *lobj->get<preBlockPlaceArgumentEvent*>(L);
-         return pushVector(L, arg->pos);
+         lua_pushvector(L, &arg->pos);
+         return 1;
        }},
       {"direction",
        [](lua_State* L) -> int {
@@ -82,7 +84,8 @@ static void regBlockEvents(lua_State* L) {
        [](lua_State* L) -> int {
          auto lobj = LuaObject::fromstack(L, 1);
          auto arg  = *lobj->get<onBlockDestroyedEvent*>(L);
-         return pushVector(L, arg->pos);
+         lua_pushvector(L, &arg->pos);
+         return 1;
        }},
       {"destroyer",
        [](lua_State* L) -> int {

@@ -1,6 +1,6 @@
 #include "thread.h"
 
-#include "libraries/entity.h"
+#include "libraries/libentity.h"
 #include "luaobject.h"
 
 #include <algorithm>

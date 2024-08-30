@@ -13,9 +13,9 @@
 
 class Help: public Command {
   public:
-  Help(): Command(L"help", L"Shows this message") {}
+  Help(): Command(L"help", L"Show this message") {}
 
-  bool execute(PlayerBase*, std::vector<std::wstring_view>& args, std::wstring& out) final {
+  bool execute(PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
     int32_t page = 0;
 
     if (args.size() > 0) {
@@ -25,14 +25,14 @@ class Help: public Command {
       --page;
     }
 
-    accessCommandHandler().genHelp(page, 10, out);
+    accessCommandHandler().genHelp(page, 10, caller, out);
     return true;
   }
 };
 
 class Stop: public Command {
   public:
-  Stop(): Command(L"stop", L"Stops the server", OperatorOnly) {}
+  Stop(): Command(L"stop", L"Stop the server", OperatorOnly) {}
 
   bool execute(PlayerBase*, std::vector<std::wstring_view>&, std::wstring& out) final {
     RunManager::stop();
@@ -122,7 +122,7 @@ class WInfo: public Command {
 
 class Craft: public Command {
   public:
-  Craft(): Command(L"craft", L"Opens the crafting window", PlayerOnly) {}
+  Craft(): Command(L"craft", L"Open the crafting window", PlayerOnly) {}
 
   bool execute(PlayerBase* caller, std::vector<std::wstring_view>&, std::wstring&) final {
     caller->createWindow(std::make_unique<WorkbenchWindow>(&caller->getStorage()));
@@ -132,7 +132,7 @@ class Craft: public Command {
 
 class Thor: public Command {
   public:
-  Thor(): Command(L"thor", L"Summons some lightning strike around", OperatorOnly | PlayerOnly) {}
+  Thor(): Command(L"thor", L"Summon some lightning strike around", OperatorOnly | PlayerOnly) {}
 
   bool execute(PlayerBase* caller, std::vector<std::wstring_view>&, std::wstring&) final {
     accessEntityManager().AddEntity(createThunderbolt(caller->getPosition()));
@@ -142,7 +142,7 @@ class Thor: public Command {
 
 class TP: public Command {
   public:
-  TP(): Command(L"tp", L"Teleports you to specified coordinates", OperatorOnly) {}
+  TP(): Command(L"tp", L"Teleport to specified coordinates", OperatorOnly) {}
 
   bool execute(PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
     if (args.size() < 3) {

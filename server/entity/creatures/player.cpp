@@ -62,27 +62,28 @@ class Player: public PlayerBase {
     uint32_t startpos  = 0;
 
     if (message.length() > MAX_MESSAGE_LINE) {
-      while (startpos < message.length()) {
-        {
-          auto cpos = message.find(L'\u00a7', startpos);
-          if (cpos != std::wstring_view::npos && (cpos + 1) < message.length()) {
-            lastcolor = message.at(cpos + 1);
-          }
-        }
-
+      while (true) {
         auto partend = std::min(startpos + MAX_MESSAGE_LINE, message.length());
 
+        if (lastcolor != L'f' && ((partend - startpos) >= (MAX_MESSAGE_LINE - 2))) partend -= 2;
+        std::wstring_view next = std::wstring_view(message.begin() + startpos, message.begin() + partend);
+        if (next.length() == 0) break;
+
         if (lastcolor == 'f') {
-          auto str = std::wstring_view(message.begin() + startpos, message.begin() + partend);
-          startpos += str.length();
-          if (!sendChat(str)) return false;
+          startpos += next.length();
+          if (!sendChat(next)) return false;
         } else {
-          if ((partend - startpos) >= (MAX_MESSAGE_LINE - 2)) partend -= 2;
           std::wstring str = {L'\u00a7', lastcolor};
-          const auto   ncl = std::wstring_view(message.begin() + startpos, message.begin() + partend);
-          str.append(ncl);
-          startpos += ncl.length();
+          str.append(next);
+          startpos += next.length();
           if (!sendChat(str)) return false;
+        }
+
+        {
+          auto cpos = next.find_last_of(L'\u00a7', startpos);
+          if (cpos != std::wstring_view::npos && (cpos + 1) < next.length()) {
+            lastcolor = next.at(cpos + 1);
+          }
         }
       }
 

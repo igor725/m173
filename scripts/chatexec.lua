@@ -28,7 +28,7 @@ local function runScript(runner, script)
         out[i] = tostring(out[i])
       end
 
-      return '\xa7aScript executed\xa7f: ' .. table.concat(out)
+      return '\xa7aScript executed\xa7f: ' .. table.concat(out, ', ')
     end
 
     return '\xa7aScript executed successfully'

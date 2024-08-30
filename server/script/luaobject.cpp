@@ -40,3 +40,13 @@ LuaObject* LuaObject::fromstack(lua_State* L, int idx) {
   (void)lobj->get<void>(L); // Test for invalidation
   return lobj;
 }
+
+LuaObject* LuaObject::fromstack(lua_State* L, int idx, const char* meta) {
+  auto lobj = (LuaObject*)luaL_checkudata(L, idx, meta);
+  if (lobj == nullptr || lobj->m_fingerprint != FINGERPRINT) {
+    casterror(L, idx);
+    return nullptr;
+  }
+  (void)lobj->get<void>(L); // Test for invalidation
+  return lobj;
+}
