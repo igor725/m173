@@ -2,6 +2,7 @@
 
 #include "entity/creatures/player.h"
 #include "entity/manager.h"
+#include "libitemstack.h"
 #include "libvector.h"
 
 #include <string>
@@ -164,6 +165,20 @@ int luaopen_entity(lua_State* L) {
   luaL_setfuncs(L, creaturebase_reg, 0);
 
   const luaL_Reg entityplayer_reg[] = {
+      {"heldItem",
+       [](lua_State* L) -> int {
+         auto ent = lua_checkcreature(L, 1, CreatureBase::Player);
+         lua_pushitemstack(L, &dynamic_cast<PlayerBase*>(ent)->getHeldItem());
+         return 1;
+       }},
+      {"resendItem",
+       [](lua_State* L) -> int {
+         auto ent = lua_checkcreature(L, 1, CreatureBase::Player);
+         auto is  = lua_checkitemstack(L, 2);
+         auto ply = dynamic_cast<PlayerBase*>(ent);
+         lua_pushboolean(L, ply->resendItem(*is));
+         return 1;
+       }},
       {"chat",
        [](lua_State* L) -> int {
          auto msg = std::string_view(luaL_checkstring(L, 2));
