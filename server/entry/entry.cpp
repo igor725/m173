@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
   }
 
   spdlog::info("Initializing scripting engine...");
-  accessScript().loadScriptsFrom("./scripts/");
+  accessScript().registerDirectory("./scripts/");
 
   spdlog::info("Initializing libraries...");
   sockpp::initialize();

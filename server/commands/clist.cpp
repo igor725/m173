@@ -203,6 +203,7 @@ class Lua: public Command {
 
   bool execute(PlayerBase* executor, std::vector<std::wstring_view>& args, std::wstring& out) {
     if (args.size() < 1) {
+    usage:
       out = L"Usage: /lua <reload/reloadall/status/load> [script file name]";
       return true;
     }
@@ -219,7 +220,17 @@ class Lua: public Command {
         accessScript().getStatus(out);
       }
     } else if (args[0] == L"load") {
-      out = L"Work in progress";
+      if (args.size() > 1) {
+        if (accessScript().openScript(args[1])) {
+          out = L"\u00a7aScript loaded successfully";
+        } else {
+          out = L"\u00a7cFailed to load script, check console for more info";
+        }
+      } else {
+        out = L"Usage: /lua load <script name>";
+      }
+    } else {
+      goto usage;
     }
 
     return true;

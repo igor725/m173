@@ -10,7 +10,9 @@ class IScriptVM {
   IScriptVM()          = default;
   virtual ~IScriptVM() = default;
 
-  virtual void loadScriptsFrom(const std::filesystem::path& path) = 0;
+  virtual void registerDirectory(const std::filesystem::path& path) = 0;
+
+  virtual bool openScript(const std::filesystem::path& scr) = 0;
 
   virtual void reloadAll() = 0;
 

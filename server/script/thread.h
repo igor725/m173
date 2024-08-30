@@ -19,6 +19,8 @@ class IScriptThread {
 
   virtual bool isNamesEqual(const std::filesystem::path& name) const = 0;
 
+  virtual bool isPathsEqual(const std::filesystem::path& path) const = 0;
+
   virtual Status getStatus() const = 0;
 
   virtual lua_State* getState() const = 0;

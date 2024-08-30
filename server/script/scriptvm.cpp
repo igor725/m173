@@ -86,9 +86,7 @@ class ScriptVM: public IScriptVM {
     lua_close(m_mainState);
   }
 
-  void openScript(const std::filesystem::path& scr) {
-    std::unique_lock lock(m_stateLock);
-
+  bool openScript_int(const std::filesystem::path& scr) {
     auto thstate = lua_newthread(m_mainState);
     if (thstate == nullptr) throw std::bad_alloc();
 
@@ -97,6 +95,48 @@ class ScriptVM: public IScriptVM {
     auto& thread = m_threads.emplace_back(createThread(thstate, scr, luaL_ref(m_mainState, -2)));
     thread->postEvent({ScriptEvent::onStart});
     lua_pop(m_mainState, 2);
+    return true;
+  }
+
+  static bool isValidLuaFile(const std::filesystem::directory_entry& ent) { return ent.is_regular_file() && ent.path().extension() == ".lua"; }
+
+  bool openScript(const std::filesystem::path& scr) final {
+    std::unique_lock lock(m_stateLock);
+
+    if (scr.has_extension() && scr.extension() != ".lua") {
+      spdlog::warn("Attempt to load not a lua file as script!");
+      return false;
+    }
+
+    for (auto it = m_threads.begin(); it != m_threads.end(); ++it) {
+      if ((*it)->isPathsEqual(scr)) {
+        spdlog::warn("Attempt to load already loaded script!");
+        return false;
+      }
+    }
+
+    auto rdir = scr.parent_path().native();
+    if (!rdir.empty()) {
+      for (auto it = m_directories.begin(); it != m_directories.end(); ++it) {
+        if ((*it).compare(rdir) == 0) return openScript_int(scr);
+      }
+    }
+
+    // Final attempt...
+    auto fname = scr.filename();
+    fname.replace_extension(".lua");
+    for (auto it = m_directories.begin(); it != m_directories.end(); ++it) {
+      for (auto& entry: std::filesystem::directory_iterator(*it)) {
+        auto path = entry.path();
+        if (isValidLuaFile(entry) && (path.filename().compare(fname) == 0)) {
+          // Yay! Does stackoverflow is possible there??
+          return openScript(path);
+        }
+      }
+    }
+
+    spdlog::warn("Attempt to load script from unknown folder!");
+    return false;
   }
 
   IScriptThread* getByName(const std::filesystem::path& path) {
@@ -120,14 +160,13 @@ class ScriptVM: public IScriptVM {
     return nullptr;
   }
 
-  void loadScriptsFrom(const std::filesystem::path& path) final {
+  void registerDirectory(const std::filesystem::path& path) final {
     std::unique_lock lock(m_stateLock);
 
     if (!std::filesystem::exists(path)) std::filesystem::create_directories(path);
+    m_directories.push_back(path.native());
     for (const auto& entry: std::filesystem::directory_iterator(path)) {
-      if (entry.is_regular_file() && entry.path().extension() == ".lua") {
-        openScript(entry.path());
-      }
+      if (isValidLuaFile(entry)) openScript_int(entry.path());
     }
   }
 
@@ -205,6 +244,7 @@ class ScriptVM: public IScriptVM {
   lua_State*                                  m_mainState;
   int32_t                                     m_threadsTable;
   std::vector<std::unique_ptr<IScriptThread>> m_threads;
+  std::vector<std::filesystem::path>          m_directories;
 };
 
 IScriptVM& accessScript() {

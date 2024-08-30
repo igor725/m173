@@ -81,6 +81,8 @@ class ScriptThread: public IScriptThread {
 
   bool isNamesEqual(const std::filesystem::path& name) const final { return m_path.filename() == name; }
 
+  bool isPathsEqual(const std::filesystem::path& path) const final { return m_path == path; }
+
   Status getStatus() const final { return m_status; }
 
   lua_State* getState() const final { return m_self; }
