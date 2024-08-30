@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include "cfgexcept.h"
+#include "helper.h"
 
 #include <fstream>
 #include <sstream>
@@ -68,7 +69,7 @@ class Config: public IConfig {
 
         switch (item.getType()) {
           case ConfigType::BOOL: {
-            item.setValue(tempstr == "True");
+            item.setValue(Helper::stricmp(tempstr, "True"));
           } break;
 
           case ConfigType::STRING: {
