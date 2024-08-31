@@ -10,6 +10,7 @@
 #include "network/packets/Window.h"
 #include "network/packets/World.h"
 #include "network/safesock.h"
+#include "runmanager/runmanager.h"
 #include "uiwindow/list/inventory.h"
 #include "uiwindow/uiwindow.h"
 #include "world/world.h"
@@ -36,14 +37,16 @@ class Player: public PlayerBase {
   }
 
   ~Player() {
-    auto& em = accessEntityManager();
+    if (RunManager::isRunning()) {
+      auto& em = accessEntityManager();
 
-    std::unique_lock lock(m_lockEntities);
-    for (auto it = m_trackedEntities.begin(); it != m_trackedEntities.end(); ++it) {
-      auto ent = em.GetEntity(*it);
-      if (ent != nullptr && ent->isPlayer()) {
-        auto ply = dynamic_cast<PlayerBase*>(ent);
-        ply->removeTrackedEntity(this);
+      std::unique_lock lock(m_lockEntities);
+      for (auto it = m_trackedEntities.begin(); it != m_trackedEntities.end(); ++it) {
+        auto ent = em.GetEntity(*it);
+        if (ent != nullptr && ent->isPlayer()) {
+          auto ply = dynamic_cast<PlayerBase*>(ent);
+          ply->removeTrackedEntity(this);
+        }
       }
     }
   }
@@ -111,12 +114,12 @@ class Player: public PlayerBase {
 
     auto& spawn = world.getSpawnPoint();
     setSpawnPos(spawn);
-    updateWorldChunks(getCurrentChunk(), getCurrentChunk());
     setTime(world.getTime());
     updateInventory();
+    m_bLoggedIn = true;
+    updateWorldChunks(getCurrentChunk(), getCurrentChunk());
     teleportPlayer(spawn);
     updateGroundState(false);
-    m_bLoggedIn = true;
     return true;
   }
 
@@ -437,6 +440,7 @@ class Player: public PlayerBase {
 
   bool removeTrackedEntity(EntityBase* ent) final {
     if (ent == this) return false;
+    if (m_bLoggedIn == false) return false;
     std::unique_lock lock(m_lockEntities);
 
     auto eid = ent->getEntityId();
@@ -582,6 +586,8 @@ class Player: public PlayerBase {
 
   bool isOperator() const final { return m_bIsOperator; }
 
+  bool isLoggedIn() const final { return m_bLoggedIn; }
+
   void setStance(double_t stance) final { m_stance = stance; }
 
   double_t getStance() const final { return m_stance; }
@@ -605,6 +611,12 @@ class Player: public PlayerBase {
     }
 
     return m_attachedEntity == ent;
+  }
+
+  void finish() final {
+    std::unique_lock lock1(m_lockEntities);
+    std::unique_lock lock2(m_lockChunks);
+    m_bLoggedIn = false;
   }
 
   private:

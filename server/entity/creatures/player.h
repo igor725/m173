@@ -28,6 +28,10 @@ class PlayerBase: public CreatureBase {
 
   bool isPlayer() const final { return true; }
 
+  virtual bool isLoggedIn() const = 0;
+
+  virtual void finish() = 0;
+
   virtual bool sendChat(const std::wstring_view message) = 0;
 
   /* Entity tracking */

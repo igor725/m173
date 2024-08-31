@@ -495,6 +495,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
   if (linkedPlayer) {
     BroadcastManager::chatToClients(std::format(L"{} left the game", linkedPlayer->getName()));
     accessEntityManager().RemoveEntity(linkedPlayer->getEntityId());
+    linkedPlayer->finish();
   }
 
   spdlog::trace("Client {} closed!", ss.addr());

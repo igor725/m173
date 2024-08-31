@@ -9,7 +9,7 @@ namespace BroadcastManager {
 void chatToClients(const std::wstring& msg) {
   Packet::ToClient::ChatMessage wdata_cm(std::format(L"\u00a7e{}", msg));
   accessEntityManager().IterPlayers([&wdata_cm](PlayerBase* ply) -> bool {
-    wdata_cm.sendTo(ply->getSocket());
+    if (ply->isLoggedIn()) wdata_cm.sendTo(ply->getSocket());
     return true;
   });
 }
