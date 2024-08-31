@@ -147,6 +147,12 @@ class PacketWriter {
   void writeString(const T& str) {
     writeInteger(static_cast<int16_t>(str.length()));
 
+/* Beta 1.8 protocol does not seem to have UTF strings anymore */
+#ifdef M173_BETA18_PROTO
+    for (auto it = str.begin(); it != str.end(); ++it) {
+      writeInteger(static_cast<int16_t>(*it));
+    }
+#else
     if (sizeof(typename T::value_type) < 4) { // Fix some Linux fuckery
       for (auto it = str.begin(); it != str.end(); ++it) {
         writeInteger(static_cast<T::value_type>(*it));
@@ -156,6 +162,7 @@ class PacketWriter {
         writeInteger(static_cast<int16_t>(*it));
       }
     }
+#endif
   }
 
   void writeMotion(const DoubleVector3& motion) {

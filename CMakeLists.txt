@@ -16,6 +16,7 @@ set(CMAKE_INSTALL_MESSAGE LAZY)
 set(CMAKE_PREFIX_PATH ${CMAKE_SOURCE_DIR}/3rd/install/lib/cmake)
 
 option(M173_COPY_SCRIPTS "This option enables copying of default Lua scripts to installation directory" ON)
+option(M173_BETA18_PROTO "This option specifies used protocol version during compilation" OFF)
 
 include_directories(BEFORE
   ${CMAKE_SOURCE_DIR}/3rd/install/include
@@ -28,6 +29,13 @@ link_directories(BEFORE
 
 find_package(spdlog "1.14.1" REQUIRED)
 find_package(sockpp "1.0.0" REQUIRED)
+
+if(M173_BETA18_PROTO)
+  set(M173_PROTO_VERSION "17")
+  add_definitions(-DM173_BETA18_PROTO)
+else()
+  set(M173_PROTO_VERSION "14")
+endif()
 
 if(WIN32)
   set(platform_defines "-DNOMINMAX -DWIN32_LEAN_AND_MEAN")

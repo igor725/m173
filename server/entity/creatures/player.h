@@ -83,10 +83,10 @@ class PlayerBase: public CreatureBase {
   virtual bool teleportPlayer(const IntVector3& pos) = 0;
 
   /* Network things / Authentication */
-  virtual const std::wstring& getName() const   = 0;
-  virtual bool                doLoginProcess()  = 0;
-  virtual SafeSocket&         getSocket() const = 0;
-  virtual bool                isLocal() const   = 0;
+  virtual const std::wstring& getName() const             = 0;
+  virtual bool                doLoginProcess(int8_t maxp) = 0;
+  virtual SafeSocket&         getSocket() const           = 0;
+  virtual bool                isLocal() const             = 0;
 
   virtual void setOperator(bool state) = 0;
   virtual bool isOperator() const      = 0;

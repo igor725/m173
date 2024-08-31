@@ -65,6 +65,8 @@ class EntityManager: public IEntityManager {
         ply->addTrackedEntity(eptr);
         return true;
       });
+    } else {
+      ++m_playersCount;
     }
 
     eptr->onSpawned();
@@ -86,6 +88,7 @@ class EntityManager: public IEntityManager {
     auto it = m_loadedents.find(id);
     if (it == m_loadedents.end()) return false;
     it->second->m_shouldBeDestroyed = true;
+    if (it->second->isPlayer()) --m_playersCount;
     return true;
   }
 
@@ -167,7 +170,6 @@ class EntityManager: public IEntityManager {
   void AddPlayerThread(std::thread&& thread, uint64_t ref) final {
     std::unique_lock lock(m_ptLock);
     m_playerThreads.emplace(std::make_pair(ref, std::move(thread)));
-    ++m_playersCount;
   }
 
   void RemovePlayerThread(uint64_t ref) final {
@@ -177,7 +179,6 @@ class EntityManager: public IEntityManager {
     for (auto it = m_playerThreads.begin(); it != m_playerThreads.end(); ++it) {
       if (it->first == ref) {
         it->second.canBeDestroyed = true;
-        --m_playersCount;
         return;
       }
     }

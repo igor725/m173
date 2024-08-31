@@ -7,9 +7,10 @@ set CLIENT_DIR=./client
 set DATA_DIR=%CLIENT_DIR%/data/
 set JARS_DIR=%CLIENT_DIR%/jars/
 set NATIVES_DIR=%CLIENT_DIR%/natives/
+set JMC_CLASSPATH=%JARS_DIR%/libs/*;%JARS_DIR%/client181.jar
 
 if "%1"=="untouched" (
-  "%JAVA_HOME%\bin\java.exe" -Djava.library.path="%NATIVES_DIR%" -cp "%JARS_DIR%/*" net.minecraft.client.Minecraft "Test%random%" "-"
+  "%JAVA_HOME%\bin\java.exe" -Djava.library.path="%NATIVES_DIR%" -cp "%JMC_CLASSPATH%" net.minecraft.client.Minecraft "Test%random%" "-"
 ) else (
-  "%JAVA_HOME%\bin\java.exe" -Djava.library.path="%NATIVES_DIR%" -cp "%JARS_DIR%/*" net.minecraft.launchwrapper.Launch "Test%random%" "-" --tweakClass net.minecraft.launchwrapper.VanillaTweaker --gameDir "%DATA_DIR%" --version "b1.7.3" --userType legacy
+  "%JAVA_HOME%\bin\java.exe" -Djava.library.path="%NATIVES_DIR%" -cp "%JMC_CLASSPATH%" net.minecraft.launchwrapper.Launch "Test%random%" "-" --tweakClass net.minecraft.launchwrapper.VanillaTweaker --gameDir "%DATA_DIR%" --version "b1.7.3" --userType legacy
 )

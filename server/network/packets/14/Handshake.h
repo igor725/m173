@@ -1,11 +1,19 @@
 #pragma once
 
-#include "../ids.h"
-#include "../packet.h"
+#include "../../ids.h"
+#include "../../packet.h"
+#include "world/world.h"
 
 namespace Packet {
 #ifdef M173_ACTIVATE_READER_API
 namespace FromClient {
+class KeepAlive: private PacketReader {
+  public:
+  KeepAlive(SafeSocket& sock): PacketReader(sock) {}
+
+  uint32_t getId() const { return 0; }
+};
+
 class LoginRequest: private PacketReader {
   public:
   LoginRequest(SafeSocket& sock): PacketReader(sock) {
@@ -46,22 +54,22 @@ class Handshake: private PacketReader {
 namespace ToClient {
 class KeepAlive: public PacketWriter {
   public:
-  KeepAlive(): PacketWriter(Packet::IDs::KeepAlive, 0) {}
+  KeepAlive(uint32_t id): PacketWriter(Packet::IDs::KeepAlive, 0) {}
 };
 
-class LoginRequest: public PacketWriter {
+class LoginResponse: public PacketWriter {
   public:
-  LoginRequest(EntityId entId, const std::wstring_view svname, int16_t seed, int8_t dimension): PacketWriter(Packet::IDs::Login, 15 + svname.size()) {
-    writeInteger<EntityId>(entId);
-    writeString(svname);
-    writeInteger<int64_t>(seed);
-    writeInteger<int8_t>(dimension);
+  LoginResponse(PlayerBase* pbase, IWorld& world, int8_t maxp): PacketWriter(Packet::IDs::Login, 15 + world.getName().length()) {
+    writeInteger<EntityId>(pbase->getEntityId());
+    writeString(world.getName());
+    writeInteger<int64_t>(world.getSeed());
+    writeInteger<int8_t>(pbase->getDimension());
   }
 };
 
 class Handshake: public PacketWriter {
   public:
-  Handshake(const std::wstring_view connhash): PacketWriter(Packet::IDs::Handshake, 2 + connhash.size()) { writeString(connhash); }
+  Handshake(const std::wstring_view connhash): PacketWriter(Packet::IDs::Handshake, 2 + connhash.length()) { writeString(connhash); }
 };
 } // namespace ToClient
 } // namespace Packet

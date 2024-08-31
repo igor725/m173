@@ -1,5 +1,4 @@
 #define M173_ACTIVATE_READER_API
-#include "Handshake.h"
 #include "Window.h"
 #include "World.h"
 #include "world/chunkCompression.h"
@@ -122,60 +121,5 @@ MapChunk::MapChunk(const IntVector3& pos, const ByteVector3& size, const ChunkUn
   *reinterpret_cast<uint32_t*>(m_data.data() + csize_pos) = bswap(static_cast<uint32_t>(worker->getTotalOutput()));
 }
 } // namespace Packet::ToClient
-
-#pragma endregion()
-
-#pragma region("Handshake.h")
-
-class InvalidProtoException: public std::exception {
-  public:
-  InvalidProtoException(int32_t cver, int32_t ever) { m_what = std::format("Got unsupported protocol version (ex: {}, got: {})", ever, cver); }
-
-  const char* what() const noexcept override { return m_what.c_str(); }
-
-  private:
-  std::string m_what;
-};
-
-class InvalidNameException: public std::exception {
-  public:
-  enum Reason {
-    NameTooLong,
-    ProhibitSymbols,
-  };
-
-  InvalidNameException(Reason r, uint32_t add = 0) {
-    switch (r) {
-      case NameTooLong: {
-        m_what = std::format("Your name is {} symbols long, 16 is maximum allowed!", add);
-      } break;
-      case ProhibitSymbols: {
-        m_what = "Your name contains prohibited symbols!";
-      } break;
-    }
-  }
-
-  const char* what() const noexcept override { return m_what.c_str(); }
-
-  private:
-  std::string m_what;
-};
-
-namespace Packet::FromClient {
-void LoginRequest::testProtoVer(int32_t proto) {
-  constexpr int32_t SV_PROTO_VER = 14;
-  if (proto != SV_PROTO_VER) throw InvalidProtoException(proto, SV_PROTO_VER);
-}
-
-void LoginRequest::testUserName(const std::wstring_view name) {
-  auto testSym = [](wchar_t sym) -> bool {
-    return (sym >= '0' && sym <= L'9') || (sym >= L'A' && sym <= L'Z') || (sym >= L'a' && sym <= L'z') || (sym == L'_');
-  };
-
-  const auto nameLen = name.size();
-  if (nameLen > 16) throw InvalidNameException(InvalidNameException::NameTooLong, nameLen);
-  if (std::find_if_not(name.begin(), name.end(), testSym) != name.end()) throw InvalidNameException(InvalidNameException::ProhibitSymbols);
-}
-} // namespace Packet::FromClient
 
 #pragma endregion()

@@ -5,7 +5,6 @@
 #include "entity/manager.h"
 #include "network/packets/ChatMessage.h"
 #include "network/packets/Entity.h"
-#include "network/packets/Handshake.h"
 #include "network/packets/Object.h"
 #include "network/packets/Player.h"
 #include "network/packets/Window.h"
@@ -14,6 +13,12 @@
 #include "uiwindow/list/inventory.h"
 #include "uiwindow/uiwindow.h"
 #include "world/world.h"
+
+#ifdef M173_BETA18_PROTO
+#include "network/packets/17/Handshake.h"
+#else
+#include "network/packets/14/Handshake.h"
+#endif
 
 #include <atomic>
 #include <spdlog/spdlog.h>
@@ -94,11 +99,11 @@ class Player: public PlayerBase {
     return wdata_cm.sendTo(getSocket());
   }
 
-  bool doLoginProcess() final {
+  bool doLoginProcess(int8_t maxp) final {
     auto& world = accessWorld();
 
     {
-      Packet::ToClient::LoginRequest wdata_lr(this->getEntityId(), L"Yuck fou", world.getSeed(), this->getDimension());
+      Packet::ToClient::LoginResponse wdata_lr(this, world, maxp);
       wdata_lr.sendTo(m_selfSock);
     }
 

@@ -5,6 +5,7 @@
 #include "helper.h"
 
 #include <cstdint>
+#include <string>
 
 class IWorld {
   public:
@@ -22,6 +23,12 @@ class IWorld {
   virtual int64_t getSeed() const = 0;
 
   virtual int64_t getTime() const = 0;
+
+  virtual const std::wstring& getName() const = 0;
+
+  virtual int8_t getGameType() const = 0;
+
+  virtual int8_t getDifficulty() const = 0;
 
   virtual size_t getChunksCount() = 0;
 

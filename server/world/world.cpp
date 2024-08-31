@@ -163,6 +163,12 @@ class World: public IWorld {
 
   int64_t getSeed() const final { return m_generator->getSeed(); }
 
+  const std::wstring& getName() const final { return m_wname; }
+
+  int8_t getGameType() const final { return 0; }
+
+  int8_t getDifficulty() const final { return 0; }
+
   size_t getChunksCount() final {
     std::unique_lock lock(m_accChunks);
     return m_ldChunks.size();
@@ -176,6 +182,8 @@ class World: public IWorld {
   vec2_map<std::unique_ptr<Chunk>> m_ldChunks;
   std::recursive_mutex             m_accChunks;
   std::thread                      m_tickThread;
+
+  std::wstring m_wname = L"Yuck fou";
 
   std::unique_ptr<IGenerator> m_generator;
 

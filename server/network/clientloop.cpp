@@ -11,7 +11,6 @@
 #include "items/item.h"
 #include "packets/ChatMessage.h"
 #include "packets/Entity.h"
-#include "packets/Handshake.h"
 #include "packets/Player.h"
 #include "packets/Window.h"
 #include "packets/World.h"
@@ -22,6 +21,12 @@
 #include "script/script.h"
 #include "world/world.h"
 #include "zlibpp/zlibpp.h"
+
+#ifdef M173_BETA18_PROTO
+#include "network/packets/17/Handshake.h"
+#else
+#include "network/packets/14/Handshake.h"
+#endif
 
 #include <chrono>
 #include <format>
@@ -89,13 +94,24 @@ class GenericKickException: public std::exception {
   std::string m_what;
 };
 
-static std::atomic<uint32_t> g_clientCount = 0;
+class MOTDException: public std::exception {
+  public:
+  MOTDException(const std::string& motd, uint32_t players, uint32_t maxPlayers) { m_what = std::format("{}\xa7{}\xa7{}", motd, players, maxPlayers); }
+
+  const char* what() const noexcept override { return m_what.c_str(); }
+
+  private:
+  std::string m_what;
+};
+
+static std::atomic<uint32_t> g_clientCount    = 0;
+static std::atomic<uint32_t> g_maxClientCount = 0;
 
 ClientLoop::ClientLoop(sockpp::tcp_socket& sock, sockpp::inet_address& addr) {
-  static uint64_t playerRef  = 0;
-  static uint32_t maxClients = accessConfig().getItem("bind.max_clients").getValue<uint32_t>();
+  static uint64_t playerRef = 0;
+  if (g_maxClientCount == 0) g_maxClientCount = accessConfig().getItem("bind.max_clients").getValue<uint32_t>();
 
-  if (g_clientCount >= maxClients) {
+  if (g_clientCount >= g_maxClientCount) {
     Packet::ToClient::PlayerKick wdata_kick(L"The server is full!");
     wdata_kick.sendTo(sock);
     sock.shutdown(SHUT_WR);
@@ -133,7 +149,8 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
       if (linkedPlayer == nullptr) {
         switch (id) {
           case Packet::IDs::Login:
-          case Packet::IDs::Handshake: {
+          case Packet::IDs::Handshake:
+          case Packet::IDs::ServerPing: {
           } break;
 
           default: {
@@ -143,6 +160,9 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
       }
 
       switch (id) {
+        case Packet::IDs::KeepAlive: {
+          Packet::FromClient::KeepAlive data(ss);
+        } break;
         case Packet::IDs::Login: {
           Packet::FromClient::LoginRequest data(ss);
 
@@ -160,7 +180,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
           if (arg.cancelled) {
             throw GenericKickException(arg.reason);
           } else {
-            linkedPlayer->doLoginProcess();
+            linkedPlayer->doLoginProcess(g_maxClientCount);
 
             static bool localOp = accessConfig().getItem("perms.local_op").getValue<bool>();
             if (localOp && linkedPlayer->isLocal()) linkedPlayer->setOperator(true);
@@ -381,6 +401,12 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
           ss.close();
         } break;
 
+#ifdef M173_BETA18_PROTO
+        case Packet::IDs::ServerPing: {
+          throw MOTDException("Experimental beta 1.8 protocol test", accessEntityManager().GetPlayersCount(), g_maxClientCount);
+        } break;
+#endif
+
         default: throw UnknownPacketException(id);
       }
 
@@ -389,7 +415,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
           linkedPlayer->setTime(accessWorld().getTime()); // Sync world time, just in case
         }
 
-        Packet::ToClient::KeepAlive data;
+        Packet::ToClient::KeepAlive data(0);
         data.sendTo(ss);
 
         nextPing = currTime + pingFreq;
@@ -433,14 +459,28 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
         throw UngracefulClosingException();
       }
     }
-  } catch (GenericKickException& kex) {
+  } catch (const MOTDException& mex) {
+    std::string_view exwhat(mex.what());
+    std::wstring     svinfo;
+
+    svinfo.reserve(exwhat.length());
+    std::mbtowc(nullptr, nullptr, 0);
+    for (auto it = exwhat.begin(); it != exwhat.end(); ++it) {
+      wchar_t dst;
+      if (std::mbtowc(&dst, &(*it), 1) > 0) svinfo.push_back(dst);
+    }
+
+    Packet::ToClient::PlayerKick wdata(svinfo);
+    wdata.sendTo(ss);
+    ss.pushQueue();
+  } catch (const GenericKickException& kex) {
     std::string_view exwhat(kex.what());
     std::wstring     reason(exwhat.begin(), exwhat.end());
 
     Packet::ToClient::PlayerKick wdata(std::format(L"\u00a7cKicked\u00a7f: {}", reason));
     wdata.sendTo(ss);
     ss.pushQueue();
-  } catch (std::exception& ex) {
+  } catch (const std::exception& ex) {
     std::string_view exwhat(ex.what());
     std::wstring     reason(exwhat.begin(), exwhat.end());
 
@@ -456,8 +496,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
     accessEntityManager().RemoveEntity(linkedPlayer->getEntityId());
   }
 
-  spdlog::info("Client {} closed!", ss.addr());
-
+  spdlog::trace("Client {} closed!", ss.addr());
   accessEntityManager().RemovePlayerThread(ref);
   --g_clientCount;
 }
