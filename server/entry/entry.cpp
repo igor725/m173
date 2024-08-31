@@ -74,10 +74,15 @@ int main(int argc, char* argv[]) {
 
     const auto nport = port.getValue<uint32_t>();
 
+#ifdef M173_BETA18_PROTO
+    spdlog::info("Using: experimental beta 1.8 protocol #17");
+#else
+    spdlog::info("Using: beta 1.7 protocol #14");
     if (nport != 25565) {
       spdlog::warn("Minecraft Beta 1.7.3 does not really support custom server"
                    "ports, you should change it only if you know what you're doing.");
     }
+#endif
 
     sockpp::tcp_acceptor server(nport, qsize.getValue<uint32_t>());
 
@@ -111,6 +116,7 @@ int main(int argc, char* argv[]) {
 
   std::thread console([]() {
     Platform::SetCurrentThreadName("Console reader");
+    spdlog::info("Type \"stop\" or press Ctrl-C to stop the server");
 
     while (RunManager::isRunning()) {
       if (!std::cin) break;
@@ -138,8 +144,6 @@ int main(int argc, char* argv[]) {
     }
   });
   console.detach();
-
-  spdlog::info("Type \"stop\" or press Ctrl-C to stop the server");
 
   // We don't really need main thread to do something, so just waiting til acceptor finishes to destroy the rest
   acceptThread.join();
