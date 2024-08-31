@@ -40,6 +40,9 @@ class PlayerBase: public CreatureBase {
 
   /* Health control functions */
 
+  virtual int16_t getHunger() const = 0;
+  virtual float_t getSatur() const  = 0;
+
   virtual bool respawn() = 0;
 
   /* Environment control */

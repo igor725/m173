@@ -16,8 +16,10 @@
 
 #ifdef M173_BETA18_PROTO
 #include "network/packets/17/Handshake.h"
+#include "network/packets/17/Player.h"
 #else
 #include "network/packets/14/Handshake.h"
+#include "network/packets/14/Player.h"
 #endif
 
 #include <atomic>
@@ -184,6 +186,10 @@ class Player: public PlayerBase {
     }
   }
 
+  int16_t getHunger() const final { return 20; }
+
+  float_t getSatur() const final { return 20.0f; }
+
   bool respawn() final {
     if (m_health > 0) return false;
     using namespace Packet::ToClient;
@@ -203,7 +209,7 @@ class Player: public PlayerBase {
 
     updateEquipedItem(Equipment(0xFFFF)); // Should be called after player's spawn packet
 
-    PlayerRespawn wdata(m_dimension);
+    PlayerRespawn wdata(this, accessWorld());
     if (!wdata.sendTo(m_selfSock)) return false;
 
     return teleportPlayer(accessWorld().getSpawnPoint());
@@ -328,7 +334,7 @@ class Player: public PlayerBase {
 
   void onHealthChanged(int16_t diff, bool dead) final {
     using namespace Packet::ToClient;
-    PlayerHealth wdata_ph(getHealth());
+    PlayerHealth wdata_ph(this);
     if (diff > 0) {
       wdata_ph.sendTo(m_selfSock);
       return;

@@ -24,8 +24,10 @@
 
 #ifdef M173_BETA18_PROTO
 #include "network/packets/17/Handshake.h"
+#include "network/packets/17/Player.h"
 #else
 #include "network/packets/14/Handshake.h"
+#include "network/packets/14/Player.h"
 #endif
 
 #include <chrono>
@@ -146,17 +148,16 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
 
       spdlog::trace("Received packet {:02x} from {}", id, addr.to_string());
 
-      if (linkedPlayer == nullptr) {
-        switch (id) {
-          case Packet::IDs::Login:
-          case Packet::IDs::Handshake:
-          case Packet::IDs::ServerPing: {
-          } break;
+      switch (id) {
+        case Packet::IDs::Login:
+        case Packet::IDs::Handshake:
+        case Packet::IDs::ServerPing: {
+          if (linkedPlayer != nullptr) throw GenericKickException("You're already authorized!");
+        } break;
 
-          default: {
-            throw GenericKickException("You should authorize first!");
-          } break;
-        }
+        default: {
+          if (linkedPlayer == nullptr) throw GenericKickException("You should authorize first!");
+        } break;
       }
 
       switch (id) {
