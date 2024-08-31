@@ -98,7 +98,7 @@ class GenericKickException: public std::exception {
 
 class MOTDException: public std::exception {
   public:
-  MOTDException(const std::string& motd, uint32_t players, uint32_t maxPlayers) { m_what = std::format("{}\xa7{}\xa7{}", motd, players, maxPlayers); }
+  MOTDException(const std::string& motd, uint32_t players, uint32_t maxPlayers) { m_what = std::format("{}\1{}\1{}", motd, players, maxPlayers); }
 
   const char* what() const noexcept override { return m_what.c_str(); }
 
@@ -468,7 +468,8 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
     std::mbtowc(nullptr, nullptr, 0);
     for (auto it = exwhat.begin(); it != exwhat.end(); ++it) {
       wchar_t dst;
-      if (std::mbtowc(&dst, &(*it), 1) > 0) svinfo.push_back(dst);
+      // Linux having a hard time understanding \xa7 symbol for some reason, so I'm using \1 as some kind of workaround
+      if (std::mbtowc(&dst, &(*it), 1) > 0) svinfo.push_back(dst == L'\1' ? L'\u00a7' : dst);
     }
 
     Packet::ToClient::PlayerKick wdata(svinfo);
