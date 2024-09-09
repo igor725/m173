@@ -2,6 +2,7 @@
 #include "config/config.h"
 #include "entity/manager.h"
 #include "network/clientloop.h"
+#include "network/protover.h"
 #include "platform/platform.h"
 #include "recipes/crafting/recipe.h"
 #include "runmanager/runmanager.h"
@@ -74,15 +75,18 @@ int main(int argc, char* argv[]) {
 
     const auto nport = port.getValue<uint32_t>();
 
-#ifdef M173_BETA18_PROTO
-    spdlog::info("Using: experimental beta 1.8 protocol #17");
-#else
-    spdlog::info("Using: beta 1.7 protocol #14");
-    if (nport != 25565) {
-      spdlog::warn("Minecraft Beta 1.7.3 does not really support custom server"
-                   "ports, you should change it only if you know what you're doing.");
+    switch (Packet::getProtoVersion()) {
+      case 14: {
+        spdlog::info("Using: beta 1.7 protocol #14");
+        if (nport != 25565) {
+          spdlog::warn("Minecraft Beta 1.7.3 does not really support custom server"
+                       "ports, you should change it only if you know what you're doing.");
+        }
+      } break;
+      case 17: {
+        spdlog::info("Using: experimental beta 1.8 protocol #17");
+      } break;
     }
-#endif
 
     sockpp::tcp_acceptor server(nport, qsize.getValue<uint32_t>());
 

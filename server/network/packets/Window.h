@@ -2,9 +2,9 @@
 
 #include "../ids.h"
 #include "../packet.h"
-#include "containers/list/playerContainer.h"
 #include "helper.h"
-#include "uiwindow/uiwindow.h"
+#include "playerui/containers/playerContainer.h"
+#include "playerui/windows/uiwindow.h"
 
 namespace Packet {
 #ifdef M173_ACTIVATE_READER_API

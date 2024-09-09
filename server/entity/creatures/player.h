@@ -1,12 +1,12 @@
 #pragma once
 
 #include "../creaturebase.h"
-#include "containers/list/playerContainer.h"
-#include "containers/storages/playerStorage.h"
 #include "items/itemstack.h"
 #include "network/packet.h"
 #include "network/safesock.h"
-#include "uiwindow/uiwindow.h"
+#include "playerui/containers/playerContainer.h"
+#include "playerui/storages/playerStorage.h"
+#include "playerui/windows/uiwindow.h"
 
 #include <memory>
 #include <string>

@@ -9,6 +9,8 @@
 #include "entity/manager.h"
 #include "ids.h"
 #include "items/item.h"
+#include "network/packets/Handshake.h"
+#include "network/packets/Player.h"
 #include "packets/ChatMessage.h"
 #include "packets/Entity.h"
 #include "packets/Player.h"
@@ -22,15 +24,8 @@
 #include "world/world.h"
 #include "zlibpp/zlibpp.h"
 
-#ifdef M173_BETA18_PROTO
-#include "network/packets/17/Handshake.h"
-#include "network/packets/17/Player.h"
-#else
-#include "network/packets/14/Handshake.h"
-#include "network/packets/14/Player.h"
-#endif
-
 #include <chrono>
+#include <cstddef>
 #include <format>
 #include <spdlog/spdlog.h>
 #include <thread>
@@ -63,7 +58,7 @@ class HackedClientException: public std::exception {
     _ReasonsCount,
   };
 
-  HackedClientException(Reasons r) { m_what = std::format("It appear your client is hacked! ({})", ReasonNames[r]); }
+  HackedClientException(Reasons r) { m_what = std::format("It appears your client is hacked! ({})", ReasonNames[r]); }
 
   const char* what() const noexcept override { return m_what.c_str(); }
 
@@ -152,7 +147,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
         case Packet::IDs::Login:
         case Packet::IDs::Handshake:
         case Packet::IDs::ServerPing: {
-          if (linkedPlayer != nullptr) throw GenericKickException("You're already authorized!");
+          if (linkedPlayer != nullptr) throw GenericKickException("Unexpected authorization attempt!");
         } break;
 
         default: {
@@ -211,7 +206,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
           } else {
             for (auto it = message.begin(); it != message.end();) { // todo more message sanitizing
               if (*it == L'\u00a7') {
-                it = message.erase(it, it + std::min(ptrdiff_t(2), std::distance(it, message.end())));
+                it = message.erase(it, it + std::min(std::ptrdiff_t(2), std::distance(it, message.end())));
                 continue;
               }
 

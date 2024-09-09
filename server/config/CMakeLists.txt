@@ -1,4 +1,4 @@
-add_library(config OBJECT
+add_library(config STATIC
   config.cpp
 )
 

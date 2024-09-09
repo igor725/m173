@@ -32,12 +32,11 @@ find_package(sockpp "1.0.0" REQUIRED)
 
 if(M173_BETA18_PROTO)
   set(M173_PROTO_VERSION "17")
-  add_definitions(-DM173_BETA18_PROTO)
 else()
   set(M173_PROTO_VERSION "14")
 endif()
 
-if(WIN32)
+if(WIN32) # Windows...
   set(platform_defines "-DNOMINMAX -DWIN32_LEAN_AND_MEAN")
 endif()
 
@@ -47,28 +46,29 @@ add_subdirectory(server)
 
 add_executable(m173_server
   $<TARGET_OBJECTS:entry>
-  $<TARGET_OBJECTS:config>
+  $<TARGET_OBJECTS:runmanager>
+
+  $<TARGET_OBJECTS:entity>
   $<TARGET_OBJECTS:commands>
-  $<TARGET_OBJECTS:network>
   $<TARGET_OBJECTS:blocks>
   $<TARGET_OBJECTS:items>
   $<TARGET_OBJECTS:recipes>
-  $<TARGET_OBJECTS:entity>
-  $<TARGET_OBJECTS:containers>
-  $<TARGET_OBJECTS:mcregion>
-  $<TARGET_OBJECTS:world>
-  $<TARGET_OBJECTS:zlibpp>
-  $<TARGET_OBJECTS:platform>
-  $<TARGET_OBJECTS:runmanager>
 )
 
-if(WIN32)
-  set(platform_libs ws2_32.lib $<$<CONFIG:Debug>:zlibstaticd>$<$<CONFIG:Release>:zlibstatic>.lib)
-else()
-  set(platform_libs z.a)
-endif()
+target_link_libraries(m173_server PRIVATE
+  # Third party and OS-depended
+  Sockpp::sockpp-static
+  spdlog::spdlog
 
-target_link_libraries(m173_server PRIVATE Sockpp::sockpp-static spdlog::spdlog scriptvm ${platform_libs})
+  # Own libraries
+  scriptvm
+  mcnetwork
+  platform
+  config
+  playerui
+  world
+  zlibpp
+)
 
 install(
   TARGETS m173_server

@@ -8,6 +8,8 @@ class Command;
 
 class ICommandHandler {
   public:
+  friend class Command;
+
   ICommandHandler()          = default;
   virtual ~ICommandHandler() = default;
 

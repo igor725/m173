@@ -1,7 +1,7 @@
 #include "entity/creatures/player.h"
 #include "network/packets/World.h"
 #include "noteBlock.h"
-#include "uiwindow/list/workbench.h"
+#include "playerui/windows/list/workbench.h"
 #include "workbenchBlock.h"
 
 #pragma region("noteBlock.h")

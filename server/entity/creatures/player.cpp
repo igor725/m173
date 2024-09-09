@@ -1,27 +1,20 @@
 #include "player.h"
 
 #include "config/config.h"
-#include "containers/slots/armorSlot.h"
 #include "entity/manager.h"
 #include "network/packets/ChatMessage.h"
 #include "network/packets/Entity.h"
+#include "network/packets/Handshake.h"
 #include "network/packets/Object.h"
 #include "network/packets/Player.h"
 #include "network/packets/Window.h"
 #include "network/packets/World.h"
 #include "network/safesock.h"
+#include "playerui/slots/armorSlot.h"
+#include "playerui/windows/list/inventory.h"
+#include "playerui/windows/uiwindow.h"
 #include "runmanager/runmanager.h"
-#include "uiwindow/list/inventory.h"
-#include "uiwindow/uiwindow.h"
 #include "world/world.h"
-
-#ifdef M173_BETA18_PROTO
-#include "network/packets/17/Handshake.h"
-#include "network/packets/17/Player.h"
-#else
-#include "network/packets/14/Handshake.h"
-#include "network/packets/14/Player.h"
-#endif
 
 #include <atomic>
 #include <spdlog/spdlog.h>

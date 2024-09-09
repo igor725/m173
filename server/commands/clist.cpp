@@ -3,9 +3,9 @@
 #include "entity/objects/thunderbolt.h"
 #include "handler.h"
 #include "items/item.h"
+#include "playerui/windows/list/workbench.h"
 #include "runmanager/runmanager.h"
 #include "script/script.h"
-#include "uiwindow/list/workbench.h"
 #include "world/world.h"
 
 #include <spdlog/spdlog.h>
