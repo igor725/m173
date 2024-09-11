@@ -51,6 +51,8 @@ class Command {
 
   inline bool isNamesEqual(Command* cmd) const { return cmd == this || Helper::stricmp(cmd->getName(), getName()); }
 
+  static void regAll();
+
   private:
   const std::wstring m_commandName;
   const std::wstring m_helpMessage;

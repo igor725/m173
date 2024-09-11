@@ -54,6 +54,7 @@ int main(int argc, char* argv[]) {
   accessScript().registerDirectory("./scripts/");
 
   spdlog::info("Initializing libraries...");
+  Command::regAll(); // todo move it somewhere
   sockpp::initialize();
   (void)accessConfig();
   (void)accessWorld();

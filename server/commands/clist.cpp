@@ -8,6 +8,7 @@
 #include "script/script.h"
 #include "world/world.h"
 
+#include <format>
 #include <spdlog/spdlog.h>
 #include <sstream>
 
@@ -238,13 +239,15 @@ class Pwd: public Command {
   }
 };
 
-static Help  help_reg;
-static Stop  stop_reg;
-static Hat   hat_reg;
-static Give  give_reg;
-static WInfo winfo_reg;
-static Craft craft_reg;
-static Thor  thor_reg;
-static TP    tp_reg;
-static Lua   lua_reg;
-static Pwd   pwd_reg;
+void Command::regAll() {
+  static Help  help_reg;
+  static Stop  stop_reg;
+  static Hat   hat_reg;
+  static Give  give_reg;
+  static WInfo winfo_reg;
+  static Craft craft_reg;
+  static Thor  thor_reg;
+  static TP    tp_reg;
+  static Lua   lua_reg;
+  static Pwd   pwd_reg;
+}
