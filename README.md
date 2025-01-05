@@ -1,6 +1,6 @@
 # m173
 
-m173 it's a hackable Minecraft Beta 1.7.3 server written in C++.
+m173 it's a hackable Minecraft Beta 1.7.3 server written in C++. This project currently in frozen state and unlikely to be continued.
 
 ## Planned features
 
@@ -22,8 +22,6 @@ m173 it's a hackable Minecraft Beta 1.7.3 server written in C++.
 * Multiple worlds
 * Pickuping up/Dropping items
 * TNT/Explosions
-
-TODO: More description
 
 ## Dependencies
 
