@@ -3,9 +3,9 @@
 // clang-format off
 
 extern "C" {
-#include "lua.h"
-#include "lualib.h"
-#include "lauxlib.h"
+#include "lua.h" // IWYU pragma: export
+#include "lualib.h" // IWYU pragma: export
+#include "lauxlib.h" // IWYU pragma: export
 }
 
 // clang-format on

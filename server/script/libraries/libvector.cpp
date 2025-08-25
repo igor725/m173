@@ -1,5 +1,7 @@
 #include "libvector.h"
 
+#include "helper.h"
+
 #include <spdlog/spdlog.h>
 
 class VectorScript {
@@ -94,6 +96,41 @@ LuaObject* lua_pushvector(lua_State* L, DoubleVector3* vec, bool constant) {
 LuaObject* lua_pushangle(lua_State* L, FloatAngle* ang, bool constant) {
   testvecptr(L, ang);
   return VectorScript::create(L, VectorScript::FAngle, ang, constant)->object();
+}
+
+LuaObject* lua_newvector(lua_State* L, const ByteVector3& vec, bool constant) {
+  auto vs = VectorScript::create(L, VectorScript::BVec3, nullptr, constant);
+
+  *vs->getAs<ByteVector3>() = vec;
+  return vs->object();
+}
+
+LuaObject* lua_newvector(lua_State* L, const IntVector2& vec, bool constant) {
+  auto vs = VectorScript::create(L, VectorScript::IVec2, nullptr, constant);
+
+  *vs->getAs<IntVector2>() = vec;
+  return vs->object();
+}
+
+LuaObject* lua_newvector(lua_State* L, const IntVector3& vec, bool constant) {
+  auto vs = VectorScript::create(L, VectorScript::IVec3, nullptr, constant);
+
+  *vs->getAs<IntVector3>() = vec;
+  return vs->object();
+}
+
+LuaObject* lua_newvector(lua_State* L, const DoubleVector3& vec, bool constant) {
+  auto vs = VectorScript::create(L, VectorScript::DVec3, nullptr, constant);
+
+  *vs->getAs<DoubleVector3>() = vec;
+  return vs->object();
+}
+
+LuaObject* lua_newangle(lua_State* L, const FloatAngle& ang, bool constant) {
+  auto vs = VectorScript::create(L, VectorScript::FAngle, nullptr, constant);
+
+  *vs->getAs<FloatAngle>() = ang;
+  return vs->object();
 }
 
 int luaopen_vector(lua_State* L) {

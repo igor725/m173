@@ -4,6 +4,7 @@
 #include "entity/manager.h"
 #include "libitemstack.h"
 #include "libvector.h"
+#include "lua.h"
 
 #include <string>
 #include <string_view>
@@ -197,6 +198,13 @@ int luaopen_entity(lua_State* L) {
          lua_pushinteger(L, creat->getHealth());
          return 1;
        }},
+      {"chunk",
+       [](lua_State* L) -> int {
+         auto creat = lua_checkcreature(L, 1);
+
+         lua_newvector(L, creat->getCurrentChunk(), true);
+         return 1;
+       }},
 
       {nullptr, nullptr},
   };
@@ -234,6 +242,29 @@ int luaopen_entity(lua_State* L) {
        [](lua_State* L) -> int {
          auto ply = dynamic_cast<PlayerBase*>(lua_checkcreature(L, 1, CreatureBase::Player));
          lua_pushboolean(L, ply->isLocal());
+         return 1;
+       }},
+      {"operator",
+       [](lua_State* L) -> int {
+         auto ply = dynamic_cast<PlayerBase*>(lua_checkcreature(L, 1, CreatureBase::Player));
+
+         if (lua_isboolean(L, 1)) {
+           ply->setOperator(lua_toboolean(L, 1));
+         }
+
+         lua_pushboolean(L, ply->isOperator());
+         return 1;
+       }},
+      {"hunger",
+       [](lua_State* L) -> int {
+         auto ply = dynamic_cast<PlayerBase*>(lua_checkcreature(L, 1, CreatureBase::Player));
+         lua_pushboolean(L, ply->getHunger());
+         return 1;
+       }},
+      {"saturation",
+       [](lua_State* L) -> int {
+         auto ply = dynamic_cast<PlayerBase*>(lua_checkcreature(L, 1, CreatureBase::Player));
+         lua_pushboolean(L, ply->getSatur());
          return 1;
        }},
 

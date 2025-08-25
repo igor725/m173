@@ -42,8 +42,8 @@ local function processEvent(evname, evarg)
     local msg = evarg:message()
     if msg:find('^>') then
       local sender = evarg:sender()
-      if not sender:isLocal() then
-        return
+      if not sender:isLocal() and not sender:isOperator() then
+        return '\xc2\xa7cYou don\'t have permissions to execute Lua code'
       end
 
       evarg:cancel()
