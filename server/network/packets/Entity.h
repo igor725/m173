@@ -3,6 +3,7 @@
 #include "../ids.h"
 #include "../packet.h"
 #include "entity/entitybase.h"
+#include "helper.h"
 
 namespace Packet {
 #ifdef M173_ACTIVATE_READER_API
@@ -27,6 +28,26 @@ class EntityClick: private PacketReader {
 #endif
 
 namespace ToClient {
+class PickupSpawn: public PacketWriter {
+  PickupSpawn(EntityId eid, const ItemStack& is, const DoubleVector3& pos, const FloatAngle3& angle): PacketWriter(Packet::IDs::PickupSpawn, 24) {
+    writeInteger<int32_t>(eid);
+    writeInteger<int32_t>(is.itemId);
+    writeInteger<int8_t>(is.stackSize);
+    writeInteger<int16_t>(is.itemDamage);
+    writeAIVector(pos);
+    writeInteger<int8_t>(angle.yawToByte());
+    writeInteger<int8_t>(angle.pitchToByte());
+    writeInteger<int8_t>(angle.rollToByte());
+  }
+};
+
+class CollectItem: public PacketWriter {
+  CollectItem(EntityId picker, EntityId item): PacketWriter(Packet::IDs::CollectItem, 8) {
+    writeInteger<int32_t>(picker);
+    writeInteger<int32_t>(item);
+  }
+};
+
 class EntityEquipment: public PacketWriter {
   public:
   EntityEquipment(EntityId eid, SlotId sid, const ItemStack& is): PacketWriter(Packet::IDs::EntityEquip, 10) {

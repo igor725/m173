@@ -14,7 +14,7 @@ class EntityCounterOverflowException: public std::exception {
   public:
   EntityCounterOverflowException() {}
 
-  const char* what() const noexcept override { return "EntityId counter got overflowed"; }
+  const char* what() const noexcept override { return "EntityId counter overflow"; }
 };
 
 class EntityManager: public IEntityManager {

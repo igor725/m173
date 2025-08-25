@@ -5,7 +5,6 @@
 #include "zlibpp/zlibpp_unique.h"
 
 #include <exception>
-#include <format>
 #include <spdlog/spdlog.h>
 #include <sstream>
 

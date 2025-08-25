@@ -6,3 +6,4 @@
 /orig_server/*
 !*/.gitkeep
 *.log
+.cache

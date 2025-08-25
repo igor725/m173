@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <map>
-#include <memory>
 #include <string>
 
 enum class ConfigType : uint32_t { UNSPECIFIED, BOOL, STRING, INT, UINT };

@@ -4,7 +4,6 @@
 #include "items/itemstack.h"
 
 #include <cstdint>
-#include <exception>
 #include <string>
 #include <vector>
 
@@ -22,6 +21,8 @@ T bswap(T val) {
 }
 
 #ifdef M173_ACTIVATE_READER_API
+#include <exception>
+
 #pragma region(Reader)
 
 #include "safesock.h"

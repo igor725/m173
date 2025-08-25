@@ -2,7 +2,6 @@
 
 #include "config/config.h"
 #include "generators/glist.h"
-#include "items/item.h"
 #include "mcregion/mcregion.h"
 #include "network/packets/World.h"
 #include "platform/platform.h"

@@ -4,7 +4,6 @@
 
 #include <format>
 #include <spdlog/spdlog.h>
-#include <string>
 #include <unordered_map>
 
 class MCRegion: public IMCRegion {

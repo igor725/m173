@@ -1,9 +1,8 @@
 #pragma once
 
-#include "helper.h"
-
 #include <array>
 #include <cstddef>
+#include <cstdint>
 
 struct Nibble {
   int8_t a : 4;

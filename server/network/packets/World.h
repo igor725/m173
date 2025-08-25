@@ -3,7 +3,7 @@
 #include "../ids.h"
 #include "../packet.h"
 #include "helper.h"
-#include "world/world.h"
+#include "world/chunk.h"
 
 namespace Packet {
 #ifdef M173_ACTIVATE_READER_API

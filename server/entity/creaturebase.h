@@ -3,8 +3,6 @@
 #include "entitybase.h"
 #include "network/packet.h"
 
-#include <memory>
-
 class CreatureBase: public EntityBase {
   public:
   enum Type {
