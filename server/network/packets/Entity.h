@@ -3,6 +3,7 @@
 #include "../ids.h"
 #include "../packet.h"
 #include "entity/entitybase.h"
+#include "entity/interact/pickup.h"
 #include "helper.h"
 
 namespace Packet {
@@ -29,19 +30,25 @@ class EntityClick: private PacketReader {
 
 namespace ToClient {
 class PickupSpawn: public PacketWriter {
-  PickupSpawn(EntityId eid, const ItemStack& is, const DoubleVector3& pos, const FloatAngle3& angle): PacketWriter(Packet::IDs::PickupSpawn, 24) {
-    writeInteger<int32_t>(eid);
-    writeInteger<int32_t>(is.itemId);
-    writeInteger<int8_t>(is.stackSize);
-    writeInteger<int16_t>(is.itemDamage);
-    writeAIVector(pos);
-    writeInteger<int8_t>(angle.yawToByte());
-    writeInteger<int8_t>(angle.pitchToByte());
-    writeInteger<int8_t>(angle.rollToByte());
+  public:
+  PickupSpawn(EntityBase* ent): PacketWriter(Packet::IDs::PickupSpawn, 24) {
+    if (auto pickup = dynamic_cast<IPickup*>(ent)) {
+
+      writeInteger<int32_t>(pickup->getEntityId());
+
+      auto& is = pickup->getItemStack();
+      writeInteger<int32_t>(is.itemId);
+      writeInteger<int8_t>(is.stackSize);
+      writeInteger<int16_t>(is.itemDamage);
+
+      writeAIVector(pickup->getPosition());
+      writeFullAngle(pickup->getRotation());
+    }
   }
 };
 
 class CollectItem: public PacketWriter {
+  public:
   CollectItem(EntityId picker, EntityId item): PacketWriter(Packet::IDs::CollectItem, 8) {
     writeInteger<int32_t>(picker);
     writeInteger<int32_t>(item);
@@ -90,10 +97,8 @@ class EntityRelaMove: public PacketWriter {
 class EntityLook: public PacketWriter {
   public:
   EntityLook(EntityBase* entity): PacketWriter(Packet::IDs::EntityLook, 6) {
-    auto& rot = entity->getRotation();
     writeInteger<EntityId>(entity->getEntityId());
-    writeInteger<int8_t>(rot.yawToByte());
-    writeInteger<int8_t>(rot.pitchToByte());
+    writePartAngle(entity->getRotation());
   }
 };
 
@@ -102,25 +107,19 @@ class EntityLookRM: public PacketWriter {
   EntityLookRM(EntityBase* entity): PacketWriter(Packet::IDs::EntityLookRM, 9) {
     DoubleVector3 diff;
     entity->popPositionDiff(diff);
-    auto& rot = entity->getRotation();
 
     writeInteger<EntityId>(entity->getEntityId());
     writeABVector(diff);
-    writeInteger<int8_t>(rot.yawToByte());
-    writeInteger<int8_t>(rot.pitchToByte());
+    writePartAngle(entity->getRotation());
   }
 };
 
 class EntitySetPos: public PacketWriter {
   public:
   EntitySetPos(EntityBase* entity): PacketWriter(Packet::IDs::EntitySetPos, 18) {
-    auto& pos = entity->getPosition();
-    auto& rot = entity->getRotation();
-
     writeInteger<EntityId>(entity->getEntityId());
-    writeAIVector(pos);
-    writeInteger<int8_t>(rot.yawToByte());
-    writeInteger<int8_t>(rot.pitchToByte());
+    writeAIVector(entity->getPosition());
+    writePartAngle(entity->getRotation());
   }
 };
 

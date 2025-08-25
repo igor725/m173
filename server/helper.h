@@ -96,14 +96,6 @@ struct DoubleVector3 {
 };
 
 struct FloatAngle {
-  float_t yaw, pitch;
-
-  inline int8_t yawToByte() const { return (yaw / 360) * 255; }
-
-  inline int8_t pitchToByte() const { return (pitch / 360) * 255; }
-};
-
-struct FloatAngle3 {
   float_t yaw, pitch, roll;
 
   inline int8_t yawToByte() const { return (yaw / 360) * 255; }

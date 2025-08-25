@@ -116,7 +116,7 @@ int luaopen_vector(lua_State* L) {
         mtype = 2;
       } break;
       case VectorScript::FAngle: {
-        mcnt  = 2;
+        mcnt  = 3;
         mtype = 3;
       } break;
       default: {

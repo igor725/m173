@@ -1,6 +1,7 @@
 #include "player.h"
 
 #include "config/config.h"
+#include "entity/entitybase.h"
 #include "entity/manager.h"
 #include "network/packets/ChatMessage.h"
 #include "network/packets/Entity.h"
@@ -390,6 +391,10 @@ class Player: public PlayerBase {
         Packet::ToClient::SpawnThunderbolt wdata_stb(ent);
         wdata_stb.sendTo(m_selfSock);
       } break;
+      case EntityBase::Pickup: {
+        Packet::ToClient::PickupSpawn wdata_ps(ent);
+        wdata_ps.sendTo(m_selfSock);
+      } break;
 
       default: {
         spdlog::warn("Unhandled tracked entity type {}!", (int8_t)t);
@@ -420,6 +425,9 @@ class Player: public PlayerBase {
         } break;
         case EntityBase::Thunderbolt: {
           // Same as above I think
+        } break;
+        case EntityBase::Pickup: {
+          // Aaand again
         } break;
 
         default: {

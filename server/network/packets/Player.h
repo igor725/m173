@@ -236,18 +236,14 @@ class PlayerPosAndLook: public PacketWriter {
 class PlayerSpawn: public PacketWriter {
   public:
   PlayerSpawn(PlayerBase* player): PacketWriter(Packet::IDs::PlayerSpawn, 22 + player->getName().size()) {
-    auto& position = player->getPosition();
-    auto& rotation = player->getRotation();
-
     writeInteger<EntityId>(player->getEntityId());
     writeString(player->getName());
 
     /* Player position */
-    writeAIVector(position);
+    writeAIVector(player->getPosition());
 
     /* Player rotation */
-    writeInteger<int8_t>(rotation.yawToByte());   // Yaw
-    writeInteger<int8_t>(rotation.pitchToByte()); // Pitch
+    writePartAngle(player->getRotation());
 
     /* Other data */
     auto heldItem = player->getHeldItem().itemId;

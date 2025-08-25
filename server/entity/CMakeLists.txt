@@ -7,6 +7,7 @@ add_library(entity OBJECT
   objects/snowball.cpp
   objects/fishfloat.cpp
   objects/thunderbolt.cpp
+  interact/pickup.cpp
 )
 
 target_link_libraries(entity PRIVATE spdlog::spdlog)

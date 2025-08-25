@@ -9,10 +9,11 @@ class EntityBase {
 
   public:
   enum Type : int8_t {
-    Unspecified,
+    Unspecified = -1,
     Creature,
     Object,
     Thunderbolt,
+    Pickup,
   };
 
   enum Flags : int8_t {

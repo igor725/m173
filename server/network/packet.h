@@ -184,6 +184,17 @@ class PacketWriter {
     writeInteger(floor_double(pos.z * 32.0));
   }
 
+  void writeFullAngle(const FloatAngle& ang) {
+    writeInteger<int8_t>(ang.yawToByte());
+    writeInteger<int8_t>(ang.pitchToByte());
+    writeInteger<int8_t>(ang.rollToByte());
+  }
+
+  void writePartAngle(const FloatAngle& ang) {
+    writeInteger<int8_t>(ang.yawToByte());
+    writeInteger<int8_t>(ang.pitchToByte());
+  }
+
   void writeABVector(const DoubleVector3& pos) {
     writeInteger<int8_t>(floor_double8(pos.x * 32.0));
     writeInteger<int8_t>(floor_double8(pos.y * 32.0));
