@@ -9,7 +9,7 @@ execEnvMeta.__index = _G
 
 local function runScript(runner, script)
   if not script or #script == 0 then
-    return '\xa7cAttempt to execute an empty string was made'
+    return '\xc2\xa7cAttempt to execute an empty string was made'
   end
 
   local env = setmetatable({ self = runner }, execEnvMeta)
@@ -19,7 +19,7 @@ local function runScript(runner, script)
     local out = { pcall(chunk) }
 
     if table.remove(out, 1) == false then
-      return '\xa7cRuntime error\xa7f: ' .. out[1]
+      return '\xc2\xa7cRuntime error\xc2\xa7f: ' .. out[1]
     end
 
     if #out > 0 then
@@ -28,13 +28,13 @@ local function runScript(runner, script)
         out[i] = tostring(out[i])
       end
 
-      return '\xa7aScript executed\xa7f: ' .. table.concat(out, ', ')
+      return '\xc2\xa7aScript executed\xc2\xa7f: ' .. table.concat(out, ', ')
     end
 
-    return '\xa7aScript executed successfully'
+    return '\xc2\xa7aScript executed successfully'
   end
 
-  return '\xa7cCompilation failed\xa7f: ' .. err
+  return '\xc2\xa7cCompilation failed\xc2\xa7f: ' .. err
 end
 
 local function processEvent(evname, evarg)

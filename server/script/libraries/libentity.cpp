@@ -6,6 +6,48 @@
 #include "libvector.h"
 
 #include <string>
+#include <string_view>
+
+namespace {
+static std::wstring cvtToUCS2(std::string_view str) {
+  std::wstring wtext;
+  size_t       i = 0;
+  while (i < str.size()) {
+    uint32_t      codepoint = 0;
+    unsigned char c         = str[i];
+
+    if (c <= 0x7F) { // ASCII
+      codepoint = c;
+      i += 1;
+    } else if ((c & 0xE0) == 0xC0) { // 2-byte sequence
+      if (i + 1 >= str.size()) goto invaid_cp;
+      codepoint = ((c & 0x1F) << 6) | (str[i + 1] & 0x3F);
+      i += 2;
+    } else if ((c & 0xF0) == 0xE0) { // 3-byte sequence
+      if (i + 2 >= str.size()) goto invaid_cp;
+      codepoint = ((c & 0x0F) << 12) | ((str[i + 1] & 0x3F) << 6) | (str[i + 2] & 0x3F);
+      i += 3;
+    } else if ((c & 0xF8) == 0xF0) { // 4-byte sequence? Can't convert to UCS-2
+      goto invaid_cp;
+    } else { // Corrupted UTF-8 sequence
+      goto invaid_cp;
+    }
+
+    if (codepoint > 0xFFFF) { // Out of range codepoint
+      goto invaid_cp;
+    }
+
+    wtext.push_back(static_cast<char16_t>(codepoint));
+    continue;
+
+  invaid_cp:
+    i += 1;
+    wtext.push_back(L'?');
+  }
+
+  return wtext;
+}
+} // namespace
 
 class EntityScript {
   public:
@@ -181,16 +223,9 @@ int luaopen_entity(lua_State* L) {
        }},
       {"chat",
        [](lua_State* L) -> int {
-         auto msg = std::string_view(luaL_checkstring(L, 2));
          auto ent = lua_checkcreature(L, 1, CreatureBase::Player);
 
-         std::wstring wtext;
-         std::mbtowc(nullptr, nullptr, 0);
-         for (auto it = msg.begin(); it != msg.end(); ++it) {
-           wchar_t ch;
-           if (std::mbtowc(&ch, &(*it), 1) > 0) wtext.push_back(ch);
-         }
-
+         auto wtext = cvtToUCS2(luaL_checkstring(L, 2));
          dynamic_cast<PlayerBase*>(ent)->sendChat(std::wstring_view(wtext.begin(), wtext.end()));
 
          return 0;
@@ -215,16 +250,7 @@ int luaopen_entity(lua_State* L) {
   const luaL_Reg entity_lib[] = {
       {"player",
        [](lua_State* L) -> int {
-         auto aname = std::string_view(luaL_checkstring(L, 1));
-
-         std::wstring name;
-         name.reserve(aname.length());
-         std::mbtowc(nullptr, nullptr, 0);
-         for (auto it = aname.begin(); it != aname.end(); ++it) {
-           wchar_t ch;
-           if (std::mbtowc(&ch, &(*it), 1) > 0) name.push_back(ch);
-         }
-
+         auto name = cvtToUCS2(luaL_checkstring(L, 1));
          lua_pushentity(L, accessEntityManager().getPlayerByName(name));
          return 1;
        }},

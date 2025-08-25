@@ -27,7 +27,7 @@ link_directories(BEFORE
   ${CMAKE_SOURCE_DIR}/3rd/install/lib
 )
 
-find_package(spdlog "1.14.1" REQUIRED)
+find_package(spdlog "1.15.3" REQUIRED)
 find_package(sockpp "1.0.0" REQUIRED)
 
 if(M173_BETA18_PROTO)
