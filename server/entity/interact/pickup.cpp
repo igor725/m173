@@ -4,7 +4,7 @@
 
 class Pickup: public IPickup {
   public:
-  Pickup(const DoubleVector3& pos, const ItemStack& is): IPickup() { m_position = pos, m_prevPosition = pos; }
+  Pickup(const DoubleVector3& pos, const ItemStack& is): IPickup(), m_itemStack(is) { m_position = pos, m_prevPosition = pos; }
 
   ~Pickup() = default;
 
