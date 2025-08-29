@@ -57,7 +57,7 @@ KeepAlive::KeepAlive(uint32_t id): PacketWriter(Packet::IDs::KeepAlive, 4) {
   writeInteger<uint32_t>(id);
 }
 
-LoginResponse::LoginResponse(PlayerBase* pbase, IWorld& world, int8_t maxp): PacketWriter(Packet::IDs::Login, 19 + world.getName().length()) {
+LoginResponse::LoginResponse(Entities::PlayerBase* pbase, IWorld& world, int8_t maxp): PacketWriter(Packet::IDs::Login, 19 + world.getName().length()) {
   writeInteger<EntityId>(pbase->getEntityId());
   writeString(world.getName());
   writeInteger<int64_t>(world.getSeed());
@@ -72,13 +72,13 @@ Handshake::Handshake(const std::wstring_view connhash): PacketWriter(Packet::IDs
   writeString(connhash);
 }
 
-PlayerHealth::PlayerHealth(PlayerBase* player): PacketWriter(Packet::IDs::PlayerHealth, 8) {
+PlayerHealth::PlayerHealth(Entities::PlayerBase* player): PacketWriter(Packet::IDs::PlayerHealth, 8) {
   writeInteger<int16_t>(player->getHealth());
   writeInteger<int16_t>(player->getHunger());
   writeFloating<float_t>(player->getSatur());
 }
 
-PlayerRespawn::PlayerRespawn(PlayerBase* player, IWorld& world): PacketWriter(Packet::IDs::PlayerRespawn, 13) {
+PlayerRespawn::PlayerRespawn(Entities::PlayerBase* player, IWorld& world): PacketWriter(Packet::IDs::PlayerRespawn, 13) {
   writeInteger<Dimension>(player->getDimension());
   writeInteger<int8_t>(world.getDifficulty()); // Difficulty
   writeInteger<int8_t>(world.getGameType());   // Game type
