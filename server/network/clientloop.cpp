@@ -458,18 +458,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
       }
     }
   } catch (const MOTDException& mex) {
-    std::string_view exwhat(mex.what());
-    std::wstring     svinfo;
-
-    svinfo.reserve(exwhat.length());
-    std::mbtowc(nullptr, nullptr, 0);
-    for (auto it = exwhat.begin(); it != exwhat.end(); ++it) {
-      wchar_t dst;
-      // Linux having a hard time understanding \xa7 symbol for some reason, so I'm using \1 as some kind of workaround
-      if (std::mbtowc(&dst, &(*it), 1) > 0) svinfo.push_back(dst == L'\1' ? L'\u00a7' : dst);
-    }
-
-    Packet::ToClient::PlayerKick wdata(svinfo);
+    Packet::ToClient::PlayerKick wdata(Helper::cvtToUCS2(mex.what()));
     wdata.sendTo(ss);
     ss.pushQueue();
   } catch (const GenericKickException& kex) {

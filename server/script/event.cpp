@@ -5,7 +5,6 @@
 #include "libraries/libvector.h"
 #include "vm/lua.hpp"
 
-#include <cstdlib>
 #include <format>
 
 static void createEventArg(lua_State* L, const char* name, const luaL_Reg* reg) {
@@ -145,13 +144,7 @@ static void regMessage(lua_State* L) {
          auto lobj = LuaObject::fromstack(L, 1);
          auto arg  = *lobj->get<onMessageEvent*>(L);
 
-         arg->finalMessage.clear();
-         std::mbtowc(nullptr, nullptr, 0);
-         for (auto it = fin.begin(); it != fin.end(); ++it) {
-           wchar_t dst;
-           if (std::mbtowc(&dst, &(*it), 1) > 0) arg->finalMessage.push_back(dst);
-         }
-
+         arg->finalMessage = Helper::cvtToUCS2(fin);
          return 0;
        }},
 

@@ -53,15 +53,8 @@ class ScriptThread: public IScriptThread {
         lua_getfield(m_self, -3, "version");
         params[2] = std::string_view(luaL_optstring(m_self, -1, "N/A"));
 
-        std::mbtowc(nullptr, nullptr, 0);
         for (auto i = 0; i < params.size(); ++i) {
-          m_info[i].clear();
-          m_info[i].reserve(params[i].length());
-
-          for (auto it = params[i].begin(); it != params[i].end(); ++it) {
-            wchar_t dst;
-            if (std::mbtowc(&dst, &(*it), 1) > 0) m_info[i].push_back(dst);
-          }
+          m_info[i] = Helper::cvtToUCS2(params[i]);
         }
 
         luaL_unref(m_self, LUA_REGISTRYINDEX, inforef);

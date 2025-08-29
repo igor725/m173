@@ -21,6 +21,7 @@ class Base {
     None        = 0,
     IsOnFire    = 1 << 0,
     IsCrouching = 1 << 1,
+    IsRiding    = 1 << 2,
   };
 
   Base(Type type): m_type(type) {}
