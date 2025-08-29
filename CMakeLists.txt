@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
+include(CheckIncludeFileCXX)
+
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS OFF)
 set(CMAKE_WINDOWS_SYMBOL_VISIBILITY_IN_STATIC_LIBRARIES OFF)
 
@@ -40,7 +42,12 @@ if(WIN32) # Windows...
   set(platform_defines "-DNOMINMAX -DWIN32_LEAN_AND_MEAN")
 endif()
 
-add_definitions(${platform_defines} -DSPDLOG_USE_STD_FORMAT)
+check_include_file_cxx("format" HAVE_STD_FORMAT)
+
+add_definitions(${platform_defines})
+if(HAVE_STD_FORMAT)
+  add_definitions(-DSPDLOG_USE_STD_FORMAT)
+endif()
 
 add_subdirectory(server)
 
