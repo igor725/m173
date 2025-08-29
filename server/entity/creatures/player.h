@@ -11,6 +11,7 @@
 #include <memory>
 #include <string>
 
+namespace Entities {
 class PlayerBase: public CreatureBase {
   public:
   enum Equipment {
@@ -22,7 +23,7 @@ class PlayerBase: public CreatureBase {
     HeldItem = 1 << 4,
   };
 
-  PlayerBase(): CreatureBase(CreatureBase::Type::Player) {}
+  PlayerBase(): CreatureBase(CreatureBase::Type::Player) { m_idName = "Creature::Player"; }
 
   virtual ~PlayerBase() = default;
 
@@ -39,8 +40,8 @@ class PlayerBase: public CreatureBase {
   virtual bool updateTrackedEntities()                                   = 0;
   virtual void sendToTrackedPlayers(PacketWriter& pw, bool self = false) = 0;
   virtual bool isTrackingEntity(EntityId eid)                            = 0;
-  virtual bool addTrackedEntity(EntityBase* ent)                         = 0;
-  virtual bool removeTrackedEntity(EntityBase* ent)                      = 0;
+  virtual bool addTrackedEntity(Entities::Base* ent)                     = 0;
+  virtual bool removeTrackedEntity(Entities::Base* ent)                  = 0;
 
   /* Health control functions */
 
@@ -59,15 +60,15 @@ class PlayerBase: public CreatureBase {
 
   /* Inventory manipulations */
 
-  virtual ItemStack&       getHeldItem()                                          = 0;
-  virtual SlotId           getHeldItemSlotId()                                    = 0;
-  virtual bool             setHeldSlot(SlotId slot)                               = 0;
-  virtual bool             updateInventory()                                      = 0;
-  virtual bool             resendItem(const ItemStack& is)                        = 0;
-  virtual PlayerStorage&   getStorage()                                           = 0;
-  virtual PlayerContainer& getInventoryContainer()                                = 0;
-  virtual bool             setAttachedEntity(EntityBase* ent, bool reset = false) = 0;
-  virtual EntityBase*      getAttachedEntity() const                              = 0;
+  virtual ItemStack&       getHeldItem()                                              = 0;
+  virtual SlotId           getHeldItemSlotId()                                        = 0;
+  virtual bool             setHeldSlot(SlotId slot)                                   = 0;
+  virtual bool             updateInventory()                                          = 0;
+  virtual bool             resendItem(const ItemStack& is)                            = 0;
+  virtual PlayerStorage&   getStorage()                                               = 0;
+  virtual PlayerContainer& getInventoryContainer()                                    = 0;
+  virtual bool             setAttachedEntity(Entities::Base* ent, bool reset = false) = 0;
+  virtual Entities::Base*  getAttachedEntity() const                                  = 0;
 
   /* UI manipulations */
   virtual WinId     createWindow(std::unique_ptr<UiWindow>&& win) = 0;
@@ -99,4 +100,8 @@ class PlayerBase: public CreatureBase {
   virtual bool isOperator() const      = 0;
 };
 
-std::unique_ptr<PlayerBase> createPlayer(SafeSocket& sock, const std::wstring& name);
+namespace Create {
+std::unique_ptr<PlayerBase> player(SafeSocket& sock, const std::wstring& name);
+
+}
+} // namespace Entities

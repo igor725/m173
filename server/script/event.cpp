@@ -130,21 +130,7 @@ static void regMessage(lua_State* L) {
          auto lobj = LuaObject::fromstack(L, 1);
          auto arg  = *lobj->get<onMessageEvent*>(L);
 
-         std::string mb;
-         mb.reserve(arg->message.length());
-
-         std::wctomb(nullptr, 0);
-         for (auto it = arg->message.begin(); it != arg->message.end(); ++it) {
-           char dst;
-           if (std::wctomb(&dst, (*it)) > 0) mb.push_back(dst);
-         }
-
-         if (lua_pushstring(L, mb.c_str()) != nullptr) {
-           mb.clear();
-           return 1;
-         }
-
-         return 0;
+         return lua_pushstring(L, Helper::cvtToUTF8(arg->message).c_str()) != nullptr ? 1 : 0;
        }},
       {"sender",
        [](lua_State* L) -> int {

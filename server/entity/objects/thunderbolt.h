@@ -4,13 +4,18 @@
 
 #include <memory>
 
-class IThunderbolt: public EntityBase {
+namespace Entities {
+
+class IThunderbolt: public Entities::Base {
   public:
-  IThunderbolt(): EntityBase(Type::Thunderbolt) {}
+  IThunderbolt(): Entities::Base(Type::Thunderbolt) {}
 
   bool isPlayer() const final { return false; }
 
   ~IThunderbolt() {}
 };
 
-std::unique_ptr<IThunderbolt> createThunderbolt(const DoubleVector3& pos);
+namespace Create {
+std::unique_ptr<IThunderbolt> thunderbolt(const DoubleVector3& pos);
+}
+} // namespace Entities

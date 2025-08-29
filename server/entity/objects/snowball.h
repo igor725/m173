@@ -4,6 +4,7 @@
 
 #include <memory>
 
+namespace Entities {
 class ISnowBall: public ObjectBase {
   public:
   ISnowBall(EntityId owner, const DoubleVector3& motion): ObjectBase(Type::Snowball, owner, motion) {}
@@ -11,4 +12,7 @@ class ISnowBall: public ObjectBase {
   ~ISnowBall() {}
 };
 
-std::unique_ptr<ISnowBall> createSnowBall(const DoubleVector3& pos, EntityId owner, const DoubleVector3& motion);
+namespace Create {
+std::unique_ptr<ISnowBall> snowball(const DoubleVector3& pos, EntityId owner, const DoubleVector3& motion);
+}
+} // namespace Entities

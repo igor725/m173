@@ -6,5 +6,5 @@ class WorkbenchBlock: public BasicBlock {
   public:
   WorkbenchBlock(BlockId bid): BasicBlock(bid) {}
 
-  bool blockActivated(const IntVector3& pos, EntityBase* activator) final;
+  bool blockActivated(const IntVector3& pos, Entities::Base* activator) final;
 };

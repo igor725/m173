@@ -1,7 +1,7 @@
 #pragma once
 
 #include "entity/entitybase.h"
-#include "helper.h"
+#include "entry/helper.h"
 
 struct ItemStack {
   int16_t stackSize;
@@ -41,15 +41,15 @@ struct ItemStack {
 
   int16_t getMaxDamage() const;
 
-  void getDamageVsEntity(EntityBase* ent, VsDamageInfo& vif) const;
+  void getDamageVsEntity(Entities::Base* ent, VsDamageInfo& vif) const;
 
-  void onDestroyBlock(const IntVector3& pos, BlockId id, EntityBase* destroyer);
+  void onDestroyBlock(const IntVector3& pos, BlockId id, Entities::Base* destroyer);
 
-  void hitEntity(EntityBase* attacker, EntityBase* victim);
+  void hitEntity(Entities::Base* attacker, Entities::Base* victim);
 
-  bool useItemOnBlock(EntityBase* user, const IntVector3& pos, int8_t direction);
+  bool useItemOnBlock(Entities::Base* user, const IntVector3& pos, int8_t direction);
 
-  bool damageItem(int16_t damage, EntityBase* damager);
+  bool damageItem(int16_t damage, Entities::Base* damager);
 
   ItemStack splitStack(int16_t count);
 };

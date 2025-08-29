@@ -19,8 +19,8 @@
 
 #pragma region("block.h")
 
-bool ItemBlock::place(EntityBase* user, const IntVector3& npos, int8_t direction, int8_t meta) {
-  auto ply = dynamic_cast<PlayerBase*>(user);
+bool ItemBlock::place(Entities::Base* user, const IntVector3& npos, int8_t direction, int8_t meta) {
+  auto ply = dynamic_cast<Entities::PlayerBase*>(user);
   if (accessWorld().setBlockWithNotify(npos, m_blockId, meta, ply)) {
     using namespace Packet::ToClient;
     SoundEffect wdata_snd(SoundEffect::BlockBreak, npos, m_blockId);
@@ -31,8 +31,8 @@ bool ItemBlock::place(EntityBase* user, const IntVector3& npos, int8_t direction
   return false;
 }
 
-bool ItemBlock::onUseItemOnBlock(ItemStack& is, EntityBase* user, const IntVector3& pos, int8_t direction) {
-  auto  ply  = dynamic_cast<PlayerBase*>(user);
+bool ItemBlock::onUseItemOnBlock(ItemStack& is, Entities::Base* user, const IntVector3& pos, int8_t direction) {
+  auto  ply  = dynamic_cast<Entities::PlayerBase*>(user);
   auto& ppos = ply->getPosition();
 
   auto& world  = accessWorld();
@@ -81,8 +81,8 @@ bool ItemBlock::onUseItemOnBlock(ItemStack& is, EntityBase* user, const IntVecto
   return false;
 }
 
-bool ItemBlock::onBlockDestroyed(ItemStack& is, const IntVector3& pos, BlockId id, EntityBase* destroyer) {
-  auto ply = dynamic_cast<PlayerBase*>(destroyer);
+bool ItemBlock::onBlockDestroyed(ItemStack& is, const IntVector3& pos, BlockId id, Entities::Base* destroyer) {
+  auto ply = dynamic_cast<Entities::PlayerBase*>(destroyer);
   using namespace Packet::ToClient;
   SoundEffect wdata_snd(SoundEffect::BlockBreak, pos, id);
   ply->sendToTrackedPlayers(wdata_snd);
@@ -98,7 +98,7 @@ bool ItemBlock::onBlockDestroyed(ItemStack& is, const IntVector3& pos, BlockId i
 
 #pragma region("torch.h")
 
-bool ItemTorch::place(EntityBase* user, const IntVector3& npos, int8_t direction, int8_t meta) {
+bool ItemTorch::place(Entities::Base* user, const IntVector3& npos, int8_t direction, int8_t meta) {
   switch (direction) { // Todo check block
     case 1: {
       meta = 5;
@@ -117,7 +117,7 @@ bool ItemTorch::place(EntityBase* user, const IntVector3& npos, int8_t direction
     } break;
   }
 
-  auto ply = dynamic_cast<PlayerBase*>(user);
+  auto ply = dynamic_cast<Entities::PlayerBase*>(user);
   if (accessWorld().setBlockWithNotify(npos, m_blockId, meta, ply)) {
     using namespace Packet::ToClient;
     SoundEffect wdata_snd(SoundEffect::BlockBreak, npos, m_blockId);
@@ -132,8 +132,8 @@ bool ItemTorch::place(EntityBase* user, const IntVector3& npos, int8_t direction
 
 #pragma region("bow.h")
 
-bool ItemBow::onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) {
-  auto  ply  = dynamic_cast<PlayerBase*>(clicker);
+bool ItemBow::onItemRightClick(ItemStack& is, Entities::Base* clicker, const IntVector3& pos, int8_t dir) {
+  auto  ply  = dynamic_cast<Entities::PlayerBase*>(clicker);
   auto& stor = ply->getStorage();
 
   auto sid = stor.findItemSlotId(ItemDB::arrow.getId());
@@ -144,7 +144,7 @@ bool ItemBow::onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVect
       ply->resendItem(arrow_is);
       auto apos = ply->getPosition();
       apos.y += ply->getEyeHeight();
-      accessEntityManager().AddEntity(createArrow(apos, ply->getEntityId(), ply->getForwardVector()));
+      Entities::Access::manager().AddEntity(Entities::Create::arrow(apos, ply->getEntityId(), ply->getForwardVector()));
       using namespace Packet::ToClient;
       SoundEffect wdata_snd(SoundEffect::BowFire, pos, 0);
       ply->sendToTrackedPlayers(wdata_snd);
@@ -158,18 +158,18 @@ bool ItemBow::onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVect
 
 #pragma region("fishingRod.h")
 
-bool ItemFishingRod::onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) {
-  auto ply = dynamic_cast<PlayerBase*>(clicker);
+bool ItemFishingRod::onItemRightClick(ItemStack& is, Entities::Base* clicker, const IntVector3& pos, int8_t dir) {
+  auto ply = dynamic_cast<Entities::PlayerBase*>(clicker);
 
   if (auto attEnt = ply->getAttachedEntity()) {
-    if (auto fishfloat = dynamic_cast<IFishFloat*>(attEnt)) {
+    if (auto fishfloat = dynamic_cast<Entities::FishFloatBase*>(attEnt)) {
       fishfloat->lure();
     }
   } else {
     if (is.damageItem(1, clicker)) {
       auto apos = ply->getPosition();
       apos.y += ply->getEyeHeight();
-      accessEntityManager().AddEntity(createFishFloat(apos, ply->getEntityId(), ply->getForwardVector()));
+      Entities::Access::manager().AddEntity(Entities::Create::fishFloat(apos, ply->getEntityId(), ply->getForwardVector()));
     }
   }
 
@@ -180,7 +180,7 @@ bool ItemFishingRod::onItemRightClick(ItemStack& is, EntityBase* clicker, const 
 
 #pragma region("lighter.h")
 
-bool ItemLighter::onUseItemOnBlock(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) {
+bool ItemLighter::onUseItemOnBlock(ItemStack& is, Entities::Base* clicker, const IntVector3& pos, int8_t dir) {
   auto firepos = pos;
 
   switch (dir) {
@@ -192,7 +192,7 @@ bool ItemLighter::onUseItemOnBlock(ItemStack& is, EntityBase* clicker, const Int
     case 5: firepos.x += 1; break;
   }
 
-  if (accessWorld().setBlockWithNotify(firepos, BlockDB::fire.getId(), 0, dynamic_cast<PlayerBase*>(clicker))) {
+  if (accessWorld().setBlockWithNotify(firepos, BlockDB::fire.getId(), 0, dynamic_cast<Entities::PlayerBase*>(clicker))) {
     is.damageItem(1, clicker);
   }
 
@@ -203,7 +203,7 @@ bool ItemLighter::onUseItemOnBlock(ItemStack& is, EntityBase* clicker, const Int
 
 #pragma region("sign.h")
 
-bool ItemSign::onUseItemOnBlock(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) {
+bool ItemSign::onUseItemOnBlock(ItemStack& is, Entities::Base* clicker, const IntVector3& pos, int8_t dir) {
   if (dir == 0) return false;
   // todo check if block is solid
 
@@ -224,7 +224,7 @@ bool ItemSign::onUseItemOnBlock(ItemStack& is, EntityBase* clicker, const IntVec
       signMeta   = static_cast<int8_t>(std::roundf(((prot.yaw + 180.0f) * 16.0f / 360.0f) + 0.5f));
     }
 
-    return accessWorld().setBlockWithNotify(placepos, BlockDB::sign.getId(), signMeta, dynamic_cast<PlayerBase*>(clicker));
+    return accessWorld().setBlockWithNotify(placepos, BlockDB::sign.getId(), signMeta, dynamic_cast<Entities::PlayerBase*>(clicker));
   }
 
   return false;
@@ -234,16 +234,16 @@ bool ItemSign::onUseItemOnBlock(ItemStack& is, EntityBase* clicker, const IntVec
 
 #pragma region("snowball.h")
 
-bool ItemSnowball::onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) {
-  auto ply = dynamic_cast<PlayerBase*>(clicker);
+bool ItemSnowball::onItemRightClick(ItemStack& is, Entities::Base* clicker, const IntVector3& pos, int8_t dir) {
+  auto ply = dynamic_cast<Entities::PlayerBase*>(clicker);
   if (!is.decrementBy(1)) {
-    ply->updateEquipedItem(PlayerBase::HeldItem);
+    ply->updateEquipedItem(Entities::PlayerBase::HeldItem);
     return true;
   }
 
   auto apos = ply->getPosition();
   apos.y += ply->getEyeHeight();
-  accessEntityManager().AddEntity(createSnowBall(apos, ply->getEntityId(), ply->getForwardVector()));
+  Entities::Access::manager().AddEntity(Entities::Create::snowball(apos, ply->getEntityId(), ply->getForwardVector()));
   // todo spawn thrown snowball entity
   return true;
 }
@@ -252,7 +252,7 @@ bool ItemSnowball::onItemRightClick(ItemStack& is, EntityBase* clicker, const In
 
 #pragma region("map.h")
 
-bool ItemMap::onEquipedByEntity(ItemStack& is, EntityBase* equiper) {
+bool ItemMap::onEquipedByEntity(ItemStack& is, Entities::Base* equiper) {
   // todo send map
   return true;
 }

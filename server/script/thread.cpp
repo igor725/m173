@@ -172,7 +172,7 @@ class ScriptThread: public IScriptThread {
       } break;
       case ScriptEvent::onEntityDestroyed: {
         lua_pushliteral(m_self, "onEntityDestroyed");
-        lua_pushentity(m_self, (EntityBase*)ev.args);
+        lua_pushentity(m_self, (Entities::Base*)ev.args);
         return 2;
       } break;
     }

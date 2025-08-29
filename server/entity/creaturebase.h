@@ -3,14 +3,14 @@
 #include "entitybase.h"
 #include "network/packet.h"
 
-class CreatureBase: public EntityBase {
+class CreatureBase: public Entities::Base {
   public:
   enum Type {
     Player,
     Mob,
   };
 
-  CreatureBase(Type t): EntityBase(EntityBase::Creature), m_type(t) { m_maxHealth = 20; }
+  CreatureBase(Type t): Entities::Base(Entities::Base::Creature), m_type(t) { m_maxHealth = 20, m_idName = "CreatureBase"; }
 
   ~CreatureBase() {}
 

@@ -1,5 +1,6 @@
 #include "thunderbolt.h"
 
+namespace Entities {
 class Thunderbolt: public IThunderbolt {
   public:
   Thunderbolt(const DoubleVector3& pos): IThunderbolt() { m_position = pos, m_prevPosition = pos; }
@@ -12,6 +13,9 @@ class Thunderbolt: public IThunderbolt {
   double_t m_lifeTime = 0;
 };
 
-std::unique_ptr<IThunderbolt> createThunderbolt(const DoubleVector3& pos) {
+namespace Create {
+std::unique_ptr<IThunderbolt> thunderbolt(const DoubleVector3& pos) {
   return std::make_unique<Thunderbolt>(pos);
 }
+} // namespace Create
+} // namespace Entities

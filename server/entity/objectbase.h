@@ -1,11 +1,12 @@
 #pragma once
 
 #include "entitybase.h"
-#include "helper.h"
+#include "entry/helper.h"
 
 #include <cstdint>
 
-class ObjectBase: public EntityBase {
+namespace Entities {
+class ObjectBase: public Entities::Base {
   public:
   enum Type : int8_t {
     Unknown,
@@ -21,9 +22,10 @@ class ObjectBase: public EntityBase {
     FishingFloat  = 90,
   };
 
-  ObjectBase(Type type): EntityBase(EntityBase::Object), m_objtype(type), m_owner(0), m_motion() {}
+  ObjectBase(Type type): Entities::Base(Entities::Base::Object), m_objtype(type), m_owner(0), m_motion() {}
 
-  ObjectBase(Type type, EntityId owner, const DoubleVector3& motion): EntityBase(EntityBase::Object), m_objtype(type), m_owner(owner), m_motion(motion) {}
+  ObjectBase(Type type, EntityId owner, const DoubleVector3& motion)
+      : Entities::Base(Entities::Base::Object), m_objtype(type), m_owner(owner), m_motion(motion) {}
 
   bool isPlayer() const final { return false; }
 
@@ -42,3 +44,4 @@ class ObjectBase: public EntityBase {
 
   protected:
 };
+} // namespace Entities

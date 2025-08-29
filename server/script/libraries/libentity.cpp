@@ -1,64 +1,34 @@
 #include "libentity.h"
 
+#include "entity/creatures/pig.h"
 #include "entity/creatures/player.h"
+#include "entity/entitybase.h"
+#include "entity/interact/pickup.h"
 #include "entity/manager.h"
+#include "entity/objects/arrow.h"
+#include "entity/objects/snowball.h"
+#include "entity/objects/thunderbolt.h"
+#include "entry/helper.h"
+#include "lauxlib.h"
 #include "libitemstack.h"
 #include "libvector.h"
 #include "lua.h"
+#include "script/libraries/libitemstack.h"
+#include "script/libraries/libvector.h"
 
+#include <memory>
 #include <string>
 #include <string_view>
 
-namespace {
-static std::wstring cvtToUCS2(std::string_view str) {
-  std::wstring wtext;
-  size_t       i = 0;
-  while (i < str.size()) {
-    uint32_t      codepoint = 0;
-    unsigned char c         = str[i];
-
-    if (c <= 0x7F) { // ASCII
-      codepoint = c;
-      i += 1;
-    } else if ((c & 0xE0) == 0xC0) { // 2-byte sequence
-      if (i + 1 >= str.size()) goto invaid_cp;
-      codepoint = ((c & 0x1F) << 6) | (str[i + 1] & 0x3F);
-      i += 2;
-    } else if ((c & 0xF0) == 0xE0) { // 3-byte sequence
-      if (i + 2 >= str.size()) goto invaid_cp;
-      codepoint = ((c & 0x0F) << 12) | ((str[i + 1] & 0x3F) << 6) | (str[i + 2] & 0x3F);
-      i += 3;
-    } else if ((c & 0xF8) == 0xF0) { // 4-byte sequence? Can't convert to UCS-2
-      goto invaid_cp;
-    } else { // Corrupted UTF-8 sequence
-      goto invaid_cp;
-    }
-
-    if (codepoint > 0xFFFF) { // Out of range codepoint
-      goto invaid_cp;
-    }
-
-    wtext.push_back(static_cast<char16_t>(codepoint));
-    continue;
-
-  invaid_cp:
-    i += 1;
-    wtext.push_back(L'?');
-  }
-
-  return wtext;
-}
-} // namespace
-
 class EntityScript {
   public:
-  EntityScript(EntityBase* ent): m_ent(ent) {}
+  EntityScript(Entities::Base* ent): m_ent(ent) {}
 
-  EntityBase* entity() const { return m_ent; }
+  Entities::Base* entity() const { return m_ent; }
 
   // todo getName method
 
-  static LuaObject* get(lua_State* L, EntityBase* ent) {
+  static LuaObject* get(lua_State* L, Entities::Base* ent) {
     if (m_entTabRef > 0) {
       lua_rawgeti(L, LUA_REGISTRYINDEX, m_entTabRef);
       lua_pushlightuserdata(L, ent);
@@ -77,21 +47,20 @@ class EntityScript {
     auto lobj = LuaObject::create(L, sizeof(EntityScript));
 
     switch (auto t = ent->getType()) {
-      case EntityBase::Creature: {
+      case Entities::Base::Creature: {
         switch (auto ct = dynamic_cast<CreatureBase*>(ent)->getCreatureType()) {
           case CreatureBase::Player: {
             luaL_setmetatable(L, "EntityPlayer");
-
           } break;
 
           default: {
-            luaL_error(L, "Unknown creature type: %d", ct);
+            luaL_setmetatable(L, "CreatureBase");
           } break;
         }
       } break;
 
       default: {
-        luaL_error(L, "Unknown entity type: %d", t);
+        luaL_setmetatable(L, "EntityBase");
       } break;
     }
 
@@ -120,13 +89,13 @@ class EntityScript {
   }
 
   private:
-  static int  m_entTabRef;
-  EntityBase* m_ent;
+  static int      m_entTabRef;
+  Entities::Base* m_ent;
 };
 
 int EntityScript::m_entTabRef = -1;
 
-LuaObject* lua_pushentity(lua_State* L, EntityBase* ent) {
+LuaObject* lua_pushentity(lua_State* L, Entities::Base* ent) {
   if (ent == nullptr) {
     lua_pushnil(L);
     return nullptr;
@@ -139,12 +108,12 @@ void lua_unlinkentity(lua_State* L, void* ptr) {
   EntityScript::unlink(L, ptr);
 }
 
-EntityBase* lua_checkentity(lua_State* L, int idx) {
+Entities::Base* lua_checkentity(lua_State* L, int idx) {
   auto lobj = LuaObject::fromstack(L, idx);
   return lobj->get<EntityScript>(L)->entity();
 }
 
-EntityBase* lua_checkentity(lua_State* L, int idx, EntityBase::Type type) {
+Entities::Base* lua_checkentity(lua_State* L, int idx, Entities::Base::Type type) {
   auto sent = lua_checkentity(L, idx);
 
   if (sent->getType() != type) {
@@ -156,7 +125,7 @@ EntityBase* lua_checkentity(lua_State* L, int idx, EntityBase::Type type) {
 }
 
 CreatureBase* lua_checkcreature(lua_State* L, int idx) {
-  auto ent = lua_checkentity(L, idx, EntityBase::Creature);
+  auto ent = lua_checkentity(L, idx, Entities::Base::Creature);
   return dynamic_cast<CreatureBase*>(ent);
 }
 
@@ -218,14 +187,14 @@ int luaopen_entity(lua_State* L) {
       {"heldItem",
        [](lua_State* L) -> int {
          auto ent = lua_checkcreature(L, 1, CreatureBase::Player);
-         lua_pushitemstack(L, &dynamic_cast<PlayerBase*>(ent)->getHeldItem());
+         lua_pushitemstack(L, &dynamic_cast<Entities::PlayerBase*>(ent)->getHeldItem());
          return 1;
        }},
       {"resendItem",
        [](lua_State* L) -> int {
          auto ent = lua_checkcreature(L, 1, CreatureBase::Player);
          auto is  = lua_checkitemstack(L, 2);
-         auto ply = dynamic_cast<PlayerBase*>(ent);
+         auto ply = dynamic_cast<Entities::PlayerBase*>(ent);
          lua_pushboolean(L, ply->resendItem(*is));
          return 1;
        }},
@@ -233,20 +202,20 @@ int luaopen_entity(lua_State* L) {
        [](lua_State* L) -> int {
          auto ent = lua_checkcreature(L, 1, CreatureBase::Player);
 
-         auto wtext = cvtToUCS2(luaL_checkstring(L, 2));
-         dynamic_cast<PlayerBase*>(ent)->sendChat(std::wstring_view(wtext.begin(), wtext.end()));
+         auto wtext = Helper::cvtToUCS2(luaL_checkstring(L, 2));
+         dynamic_cast<Entities::PlayerBase*>(ent)->sendChat(std::wstring_view(wtext.begin(), wtext.end()));
 
          return 0;
        }},
       {"isLocal",
        [](lua_State* L) -> int {
-         auto ply = dynamic_cast<PlayerBase*>(lua_checkcreature(L, 1, CreatureBase::Player));
+         auto ply = dynamic_cast<Entities::PlayerBase*>(lua_checkcreature(L, 1, CreatureBase::Player));
          lua_pushboolean(L, ply->isLocal());
          return 1;
        }},
       {"operator",
        [](lua_State* L) -> int {
-         auto ply = dynamic_cast<PlayerBase*>(lua_checkcreature(L, 1, CreatureBase::Player));
+         auto ply = dynamic_cast<Entities::PlayerBase*>(lua_checkcreature(L, 1, CreatureBase::Player));
 
          if (lua_isboolean(L, 1)) {
            ply->setOperator(lua_toboolean(L, 1));
@@ -257,13 +226,13 @@ int luaopen_entity(lua_State* L) {
        }},
       {"hunger",
        [](lua_State* L) -> int {
-         auto ply = dynamic_cast<PlayerBase*>(lua_checkcreature(L, 1, CreatureBase::Player));
+         auto ply = dynamic_cast<Entities::PlayerBase*>(lua_checkcreature(L, 1, CreatureBase::Player));
          lua_pushboolean(L, ply->getHunger());
          return 1;
        }},
       {"saturation",
        [](lua_State* L) -> int {
-         auto ply = dynamic_cast<PlayerBase*>(lua_checkcreature(L, 1, CreatureBase::Player));
+         auto ply = dynamic_cast<Entities::PlayerBase*>(lua_checkcreature(L, 1, CreatureBase::Player));
          lua_pushboolean(L, ply->getSatur());
          return 1;
        }},
@@ -281,8 +250,72 @@ int luaopen_entity(lua_State* L) {
   const luaL_Reg entity_lib[] = {
       {"player",
        [](lua_State* L) -> int {
-         auto name = cvtToUCS2(luaL_checkstring(L, 1));
-         lua_pushentity(L, accessEntityManager().getPlayerByName(name));
+         auto name = Helper::cvtToUCS2(luaL_checkstring(L, 1));
+         lua_pushentity(L, Entities::Access::manager().getPlayerByName(name));
+         return 1;
+       }},
+
+      {"create",
+       [](lua_State* L) -> int {
+         luaL_checktype(L, 1, LUA_TSTRING);
+         luaL_checktype(L, 2, LUA_TTABLE);
+
+         std::unique_ptr<Entities::Base> entptr = {};
+
+         static const int32_t     entnum[]   = {0, 1, 2, 3, 4};
+         static const char* const entnames[] = {"arrow", "thunderbolt", "snowball", "pig", "pickup", nullptr};
+
+         auto stackStart = lua_gettop(L);
+         switch (luaL_checkoption(L, 1, nullptr, entnames)) {
+           case 0: {
+             lua_getfield(L, 2, "position");
+             lua_getfield(L, 2, "owner");
+             lua_getfield(L, 2, "motion");
+
+             auto posVec = lua_checkvector(L, -3)->get<VectorScript>(L);
+             auto ownEnt = lua_checkentity(L, -2);
+             auto dirVec = lua_checkvector(L, -1)->get<VectorScript>(L);
+
+             entptr = Entities::Create::arrow(*posVec->getAs<DoubleVector3>(L), ownEnt->getEntityId(), *dirVec->getAs<DoubleVector3>(L));
+           } break;
+           case 1: {
+             lua_getfield(L, 2, "position");
+
+             auto posVec = lua_checkvector(L, -1)->get<VectorScript>(L);
+
+             entptr = Entities::Create::thunderbolt(*posVec->getAs<DoubleVector3>(L));
+           } break;
+           case 2: {
+             lua_getfield(L, 2, "position");
+             lua_getfield(L, 2, "owner");
+             lua_getfield(L, 2, "motion");
+
+             auto posVec = lua_checkvector(L, -3)->get<VectorScript>(L);
+             auto ownEnt = lua_checkentity(L, -2);
+             auto dirVec = lua_checkvector(L, -1)->get<VectorScript>(L);
+
+             entptr = Entities::Create::snowball(*posVec->getAs<DoubleVector3>(L), ownEnt->getEntityId(), *dirVec->getAs<DoubleVector3>(L));
+           } break;
+           case 3: {
+             lua_getfield(L, 2, "position");
+
+             auto posVec = lua_checkvector(L, -1)->get<VectorScript>(L);
+
+             entptr = Entities::Create::pig(*posVec->getAs<DoubleVector3>(L));
+           } break;
+           case 4: {
+             lua_getfield(L, 2, "position");
+             lua_getfield(L, 2, "item");
+
+             auto posVec = lua_checkvector(L, -2)->get<VectorScript>(L);
+             auto is     = lua_checkitemstack(L, -1);
+
+             entptr = Entities::Create::pickup(*posVec->getAs<DoubleVector3>(L), *is);
+           } break;
+         }
+         lua_settop(L, stackStart);
+
+         lua_pushentity(L, Entities::Access::manager().AddEntity(std::move(entptr)));
          return 1;
        }},
 

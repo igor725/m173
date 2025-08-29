@@ -16,7 +16,7 @@ class Help: public Command {
   public:
   Help(): Command(L"help", L"Show this message") {}
 
-  bool execute(PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
+  bool execute(Entities::PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
     int32_t page = 0;
 
     if (args.size() > 0) {
@@ -35,7 +35,7 @@ class Stop: public Command {
   public:
   Stop(): Command(L"stop", L"Stop the server", OperatorOnly) {}
 
-  bool execute(PlayerBase*, std::vector<std::wstring_view>&, std::wstring& out) final {
+  bool execute(Entities::PlayerBase*, std::vector<std::wstring_view>&, std::wstring& out) final {
     RunManager::stop();
     return true;
   }
@@ -45,7 +45,7 @@ class Hat: public Command {
   public:
   Hat(): Command(L"hat", L"Set held item as hat", PlayerOnly) {}
 
-  bool execute(PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
+  bool execute(Entities::PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
     auto& heldItem = caller->getHeldItem();
     auto& storage  = caller->getStorage();
     if (heldItem.validate()) {
@@ -63,7 +63,7 @@ class Give: public Command {
   public:
   Give(): Command(L"give", L"Give some item", OperatorOnly | PlayerOnly) {}
 
-  bool execute(PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
+  bool execute(Entities::PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
     if (args.size() == 0) {
       out = L"Usage /give <item id>:[item damage] [item count]";
       return true;
@@ -115,7 +115,7 @@ class WInfo: public Command {
   public:
   WInfo(): Command(L"winfo", L"Information abot the loaded world") {}
 
-  bool execute(PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
+  bool execute(Entities::PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
     auto& world = accessWorld();
 
     out = std::format(L"Current world time: {}\nLoaded chunks: {}", world.getTime(), world.getChunksCount());
@@ -127,7 +127,7 @@ class Craft: public Command {
   public:
   Craft(): Command(L"craft", L"Open the crafting window", PlayerOnly) {}
 
-  bool execute(PlayerBase* caller, std::vector<std::wstring_view>&, std::wstring&) final {
+  bool execute(Entities::PlayerBase* caller, std::vector<std::wstring_view>&, std::wstring&) final {
     caller->createWindow(std::make_unique<WorkbenchWindow>(&caller->getStorage()));
     return true;
   }
@@ -137,8 +137,8 @@ class Thor: public Command {
   public:
   Thor(): Command(L"thor", L"Summon some lightning strike around", OperatorOnly | PlayerOnly) {}
 
-  bool execute(PlayerBase* caller, std::vector<std::wstring_view>&, std::wstring&) final {
-    accessEntityManager().AddEntity(createThunderbolt(caller->getPosition()));
+  bool execute(Entities::PlayerBase* caller, std::vector<std::wstring_view>&, std::wstring&) final {
+    Entities::Access::manager().AddEntity(Entities::Create::thunderbolt(caller->getPosition()));
     return true;
   }
 };
@@ -147,7 +147,7 @@ class TP: public Command {
   public:
   TP(): Command(L"tp", L"Teleport to specified coordinates", OperatorOnly) {}
 
-  bool execute(PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
+  bool execute(Entities::PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) final {
     if (args.size() < 3) {
       out = L"Usage: /tp <x> <y> <z>";
       return true;
@@ -174,7 +174,7 @@ class Lua: public Command {
   public:
   Lua(): Command(L"lua", L"Manage Lua VM", OperatorOnly) {}
 
-  bool execute(PlayerBase* executor, std::vector<std::wstring_view>& args, std::wstring& out) {
+  bool execute(Entities::PlayerBase* executor, std::vector<std::wstring_view>& args, std::wstring& out) {
     if (args.size() < 1) {
     usage:
       out = L"Usage: /lua <reload/reloadall/status/load> [script file name]";
@@ -215,7 +215,7 @@ class Pwd: public Command {
   public:
   Pwd(): Command(L"pwd", L"Authorize as server's operator", PlayerOnly) {}
 
-  bool execute(PlayerBase* executor, std::vector<std::wstring_view>& args, std::wstring& out) {
+  bool execute(Entities::PlayerBase* executor, std::vector<std::wstring_view>& args, std::wstring& out) {
     if (args.size() < 1) {
       out = L"Usage: /pwd <password>";
       return true;

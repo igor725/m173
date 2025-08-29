@@ -3,7 +3,7 @@ if "%JAVA_HOME%"=="" (
   set JAVA_HOME="D:\Programs\jdk-8.80.0.17"
 )
 
-set CLIENT_VER=181
+set CLIENT_VER=173
 set CLIENT_DIR=./client
 set DATA_DIR=%CLIENT_DIR%/data/%CLIENT_VER%/
 set JARS_DIR=%CLIENT_DIR%/jars/

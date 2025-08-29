@@ -2,9 +2,10 @@
 
 #include "items/itemstack.h"
 
-class Pickup: public IPickup {
+namespace Entities {
+class Pickup: public PickupBase {
   public:
-  Pickup(const DoubleVector3& pos, const ItemStack& is): IPickup(), m_itemStack(is) { m_position = pos, m_prevPosition = pos; }
+  Pickup(const DoubleVector3& pos, const ItemStack& is): PickupBase(), m_itemStack(is) { m_position = pos, m_prevPosition = pos; }
 
   ~Pickup() = default;
 
@@ -19,6 +20,9 @@ class Pickup: public IPickup {
   const ItemStack m_itemStack;
 };
 
-std::unique_ptr<IPickup> createPickup(const DoubleVector3& pos, const ItemStack& is) {
+namespace Create {
+std::unique_ptr<PickupBase> pickup(const DoubleVector3& pos, const ItemStack& is) {
   return std::make_unique<Pickup>(pos, is);
 }
+} // namespace Create
+} // namespace Entities

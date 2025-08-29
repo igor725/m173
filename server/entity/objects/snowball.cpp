@@ -1,5 +1,6 @@
 #include "snowball.h"
 
+namespace Entities {
 class SnowBall: public ISnowBall {
   public:
   SnowBall(const DoubleVector3& pos, EntityId owner, const DoubleVector3& motion): ISnowBall(owner, motion) { m_position = pos, m_prevPosition = pos; }
@@ -12,6 +13,9 @@ class SnowBall: public ISnowBall {
   double_t m_lifeTime = 0;
 };
 
-std::unique_ptr<ISnowBall> createSnowBall(const DoubleVector3& pos, EntityId owner, const DoubleVector3& motion) {
+namespace Create {
+std::unique_ptr<ISnowBall> snowball(const DoubleVector3& pos, EntityId owner, const DoubleVector3& motion) {
   return std::make_unique<SnowBall>(pos, owner, motion);
 }
+} // namespace Create
+} // namespace Entities

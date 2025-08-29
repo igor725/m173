@@ -30,23 +30,23 @@ int16_t ItemStack::getMaxDamage() const {
   return Item::getById(itemId)->getMaxDamage();
 }
 
-void ItemStack::onDestroyBlock(const IntVector3& pos, BlockId id, EntityBase* destroyer) {
+void ItemStack::onDestroyBlock(const IntVector3& pos, BlockId id, Entities::Base* destroyer) {
   Item::getById(itemId)->onBlockDestroyed(*this, pos, id, destroyer);
 }
 
-void ItemStack::hitEntity(EntityBase* attacker, EntityBase* victim) {
+void ItemStack::hitEntity(Entities::Base* attacker, Entities::Base* victim) {
   Item::getById(itemId)->hitEntity(*this, attacker, victim);
 }
 
-bool ItemStack::useItemOnBlock(EntityBase* user, const IntVector3& pos, int8_t direction) {
+bool ItemStack::useItemOnBlock(Entities::Base* user, const IntVector3& pos, int8_t direction) {
   return Item::getById(itemId)->onUseItemOnBlock(*this, user, pos, direction);
 }
 
-void ItemStack::getDamageVsEntity(EntityBase* ent, VsDamageInfo& vif) const {
+void ItemStack::getDamageVsEntity(Entities::Base* ent, VsDamageInfo& vif) const {
   return Item::getById(itemId)->getDamageVsEntity(ent, vif);
 }
 
-bool ItemStack::damageItem(int16_t damage, EntityBase* damager) {
+bool ItemStack::damageItem(int16_t damage, Entities::Base* damager) {
   if (isDamageable()) {
     itemDamage += damage;
     if (itemDamage > getMaxDamage()) {

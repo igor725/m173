@@ -19,7 +19,7 @@ IntVector2 CreatureBase::getPreviousChunk() {
 }
 
 void CreatureBase::setPosition(const DoubleVector3& pos) {
-  EntityBase::setPosition(pos);
+  Entities::Base::setPosition(pos);
 
   onMove(m_position - m_prevPosition);
 
@@ -46,7 +46,7 @@ bool CreatureBase::addVelocity(const DoubleVector3& motion) {
 
 // todo move it somewhere?
 void CreatureBase::broadcastToTrackers(PacketWriter& pw) {
-  accessEntityManager().IterPlayers([this, &pw](PlayerBase* ply) -> bool {
+  Entities::Access::manager().IterPlayers([this, &pw](Entities::PlayerBase* ply) -> bool {
     if (ply->isTrackingEntity(getEntityId())) pw.sendTo(ply->getSocket());
     return true;
   });

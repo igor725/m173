@@ -1,10 +1,10 @@
 #pragma once
 
 #include "creaturebase.h"
-#include "helper.h"
 
 #include <cstdint>
 
+namespace Entities {
 class MobBase: public CreatureBase {
   public:
   enum Type : int8_t {
@@ -25,7 +25,7 @@ class MobBase: public CreatureBase {
     Wolf         = 95,
   };
 
-  MobBase(Type type): CreatureBase(EntityBase::Mob), m_mobtype(type) {}
+  MobBase(Type type): CreatureBase(CreatureBase::Mob), m_mobtype(type) { m_idName = "MobBase"; }
 
   virtual ~MobBase() = default;
 
@@ -34,3 +34,4 @@ class MobBase: public CreatureBase {
   private:
   Type m_mobtype;
 };
+} // namespace Entities

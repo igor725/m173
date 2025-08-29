@@ -29,7 +29,7 @@ class CommandHandler: public ICommandHandler {
     return false;
   }
 
-  bool execute(PlayerBase* caller, std::wstring command, std::wstring& out) final {
+  bool execute(Entities::PlayerBase* caller, std::wstring command, std::wstring& out) final {
     if (command.at(0) == L'/') command.erase(0, 1);
     auto start_of_args = command.find_first_of(L' ');
     if (start_of_args == std::wstring::npos) start_of_args = command.size();
@@ -64,9 +64,9 @@ class CommandHandler: public ICommandHandler {
     return true;
   }
 
-  size_t cmdCountFor(PlayerBase* user) const { return user == nullptr || user->isOperator() ? m_commands.size() : m_nonOpCommands; }
+  size_t cmdCountFor(Entities::PlayerBase* user) const { return user == nullptr || user->isOperator() ? m_commands.size() : m_nonOpCommands; }
 
-  void genHelp(int32_t page, int32_t perpage, PlayerBase* user, std::wstring& out) final {
+  void genHelp(int32_t page, int32_t perpage, Entities::PlayerBase* user, std::wstring& out) final {
     auto pagecnt = int32_t(cmdCountFor(user)) / perpage;
     page         = std::min(pagecnt, std::max(0, page));
 

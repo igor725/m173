@@ -16,9 +16,9 @@ class ICommandHandler {
   virtual bool registerCommand(Command* cmd)   = 0;
   virtual bool unregisterCommand(Command* cmd) = 0;
 
-  virtual bool execute(PlayerBase* caller, std::wstring command, std::wstring& out) = 0;
+  virtual bool execute(Entities::PlayerBase* caller, std::wstring command, std::wstring& out) = 0;
 
-  virtual void genHelp(int32_t page, int32_t perpage, PlayerBase* user, std::wstring& out) = 0;
+  virtual void genHelp(int32_t page, int32_t perpage, Entities::PlayerBase* user, std::wstring& out) = 0;
 };
 
 ICommandHandler& accessCommandHandler();
@@ -37,7 +37,7 @@ class Command {
 
   ~Command() { accessCommandHandler().unregisterCommand(this); }
 
-  virtual bool execute(PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) = 0;
+  virtual bool execute(Entities::PlayerBase* caller, std::vector<std::wstring_view>& args, std::wstring& out) = 0;
 
   const std::wstring& getName() const { return m_commandName; }
 
@@ -47,7 +47,7 @@ class Command {
 
   bool isOperatorOnly() const { return m_flags & Flags::OperatorOnly; }
 
-  bool canBeUsedBy(PlayerBase* user) const { return !isOperatorOnly() || user == nullptr || user->isOperator(); }
+  bool canBeUsedBy(Entities::PlayerBase* user) const { return !isOperatorOnly() || user == nullptr || user->isOperator(); }
 
   inline bool isNamesEqual(Command* cmd) const { return cmd == this || Helper::stricmp(cmd->getName(), getName()); }
 

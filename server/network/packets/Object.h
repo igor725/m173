@@ -8,7 +8,7 @@ namespace Packet {
 namespace ToClient {
 class ObjectSpawn: public PacketWriter {
   public:
-  ObjectSpawn(ObjectBase* object): PacketWriter(Packet::IDs::SpawnObject, 21) {
+  ObjectSpawn(Entities::ObjectBase* object): PacketWriter(Packet::IDs::SpawnObject, 21) {
     writeInteger<EntityId>(object->getEntityId());
     writeInteger<int8_t>(object->getObjectType());
     writeAIVector(object->getPosition());

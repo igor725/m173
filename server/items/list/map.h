@@ -9,5 +9,5 @@ class ItemMap: public Item {
     maxDamage    = 0;
   }
 
-  bool onEquipedByEntity(ItemStack& is, EntityBase* equiper) final;
+  bool onEquipedByEntity(ItemStack& is, Entities::Base* equiper) final;
 };

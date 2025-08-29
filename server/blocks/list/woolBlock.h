@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../database.h"
-#include "helper.h"
+#include "entry/helper.h"
 #include "items/list/wool.h"
 
 class WoolBlock: public Block {

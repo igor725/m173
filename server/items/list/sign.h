@@ -9,5 +9,5 @@ class ItemSign: public Item {
     maxDamage    = 0;
   }
 
-  bool onUseItemOnBlock(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) final;
+  bool onUseItemOnBlock(ItemStack& is, Entities::Base* clicker, const IntVector3& pos, int8_t dir) final;
 };

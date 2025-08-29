@@ -4,6 +4,7 @@
 #include <cctype>
 #include <cmath>
 #include <cstdint>
+#include <string>
 
 #define CLASS_NO_COPY(name)                                                                                                                                    \
   name(const name&)            = delete;                                                                                                                       \
@@ -138,4 +139,7 @@ bool stricmp(const auto& a, const auto& b) {
 bool strcmp(const auto& a, const auto& b) {
   return std::ranges::equal(a, b);
 }
+
+std::wstring cvtToUCS2(std::string_view str);
+std::string  cvtToUTF8(std::wstring_view str);
 } // namespace Helper

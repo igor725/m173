@@ -4,7 +4,11 @@
 #include "../packet.h"
 #include "entity/entitybase.h"
 #include "entity/interact/pickup.h"
-#include "helper.h"
+#include "entity/mobbase.h"
+#include "entry/helper.h"
+#include "network/ids.h"
+
+#include <cstdint>
 
 namespace Packet {
 #ifdef M173_ACTIVATE_READER_API
@@ -31,8 +35,8 @@ class EntityClick: private PacketReader {
 namespace ToClient {
 class PickupSpawn: public PacketWriter {
   public:
-  PickupSpawn(EntityBase* ent): PacketWriter(Packet::IDs::PickupSpawn, 24) {
-    if (auto pickup = dynamic_cast<IPickup*>(ent)) {
+  PickupSpawn(Entities::Base* ent): PacketWriter(Packet::IDs::PickupSpawn, 24) {
+    if (auto pickup = dynamic_cast<Entities::PickupBase*>(ent)) {
 
       writeInteger<int32_t>(pickup->getEntityId());
 
@@ -52,6 +56,48 @@ class CollectItem: public PacketWriter {
   CollectItem(EntityId picker, EntityId item): PacketWriter(Packet::IDs::CollectItem, 8) {
     writeInteger<int32_t>(picker);
     writeInteger<int32_t>(item);
+  }
+};
+
+class MobSpawn: public PacketWriter {
+  public:
+  MobSpawn(EntityId eid, Entities::MobBase::Type type, const DoubleVector3& position, const FloatAngle& rotation): PacketWriter(Packet::IDs::SpawnMob, 20) {
+    writeInteger<int32_t>(eid);
+    writeInteger<int8_t>(type);
+    writeAIVector(position);
+    writePartAngle(rotation);
+
+    /**
+     * @todo Metadata for mobs:
+     *
+     * Credits https://wiki.vg/User:Olive/Beta_Protocol
+     *
+     * Creeper: 16 - fuse status (int8), 17 - charged creeper (bool)
+     * Skeleton: (empty)
+     * Spider: (empty)
+     * GiantZombie: (empty)
+     * Zombie: (empty)
+     * Slime: 16 - slime size (byte, from 0 to 2)
+     * Ghast: 16 - red eyes on (bool)
+     * ZombiePigman: (empty)
+     * Pig: 16 - has saddle (bool)
+     * Sheep: 16 - bitflags (byte, bit 0x10 set if sheep's sheared, lower 4 bits indicate the sheep's color)
+     * Cow: (empty)
+     * Chicken: (empty)
+     * Squid: (empty)
+     * Wolf: 16 - bitflags (byte, 1st bit - is sitting, 2nd bit - aggressive, 3rd bit - tamed), 17 - tamer name (string), 18 - health (int32)
+     *
+     *
+     * Sheep colors:
+     *   0 - White, 1 - Orange, 2 - Magenta, 3 - LightBlue, 4 - Yellow,
+     *   5 - Lime, 6 - Pink, 7 - Gray, 8 - Silver, 9 - Cyan, 10 - Purple,
+     *   11 - Blue, 12 - Brown, 13 - Green, 14 - Red, 15 - Black
+     *
+     * Shared metadata for all entities is a set of bitflags (int8) that is installed by setting index 0:
+     * 1st bit - is entity on fire, 2nd bit - is entity crouching, 3rd bit - is entity riding something
+     *
+     */
+    writeInteger<int8_t>(127);
   }
 };
 
@@ -85,7 +131,7 @@ class EntityIdle: public PacketWriter {
 
 class EntityRelaMove: public PacketWriter {
   public:
-  EntityRelaMove(EntityBase* entity): PacketWriter(Packet::IDs::EntityRelMove, 7) {
+  EntityRelaMove(Entities::Base* entity): PacketWriter(Packet::IDs::EntityRelMove, 7) {
     DoubleVector3 diff;
     entity->popPositionDiff(diff);
 
@@ -96,7 +142,7 @@ class EntityRelaMove: public PacketWriter {
 
 class EntityLook: public PacketWriter {
   public:
-  EntityLook(EntityBase* entity): PacketWriter(Packet::IDs::EntityLook, 6) {
+  EntityLook(Entities::Base* entity): PacketWriter(Packet::IDs::EntityLook, 6) {
     writeInteger<EntityId>(entity->getEntityId());
     writePartAngle(entity->getRotation());
   }
@@ -104,7 +150,7 @@ class EntityLook: public PacketWriter {
 
 class EntityLookRM: public PacketWriter {
   public:
-  EntityLookRM(EntityBase* entity): PacketWriter(Packet::IDs::EntityLookRM, 9) {
+  EntityLookRM(Entities::Base* entity): PacketWriter(Packet::IDs::EntityLookRM, 9) {
     DoubleVector3 diff;
     entity->popPositionDiff(diff);
 
@@ -116,7 +162,7 @@ class EntityLookRM: public PacketWriter {
 
 class EntitySetPos: public PacketWriter {
   public:
-  EntitySetPos(EntityBase* entity): PacketWriter(Packet::IDs::EntitySetPos, 18) {
+  EntitySetPos(Entities::Base* entity): PacketWriter(Packet::IDs::EntitySetPos, 18) {
     writeInteger<EntityId>(entity->getEntityId());
     writeAIVector(entity->getPosition());
     writePartAngle(entity->getRotation());
@@ -147,7 +193,7 @@ class EntityMeta: public PacketWriter {
   public:
   EntityMeta(EntityId eid): PacketWriter(Packet::IDs::EntityMeta, 10 /* Not the actual packet size, just a reservation */) { writeInteger<EntityId>(eid); }
 
-  EntityMeta(EntityBase* ent): PacketWriter(Packet::IDs::EntityMeta, 7) {
+  EntityMeta(Entities::Base* ent): PacketWriter(Packet::IDs::EntityMeta, 7) {
     writeInteger<EntityId>(ent->getEntityId());
 
     MetaDataStream mds(*this);
@@ -157,7 +203,7 @@ class EntityMeta: public PacketWriter {
 
 class SpawnThunderbolt: public PacketWriter {
   public:
-  SpawnThunderbolt(EntityBase* ent): PacketWriter(Packet::IDs::Thunderbolt, 17) {
+  SpawnThunderbolt(Entities::Base* ent): PacketWriter(Packet::IDs::Thunderbolt, 17) {
     writeInteger<EntityId>(ent->getEntityId());
     writeBoolean(true);
     writeAIVector(ent->getPosition());

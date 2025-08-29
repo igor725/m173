@@ -1,6 +1,6 @@
 #include "entitybase.h"
 
-void EntityBase::setRotation(const FloatAngle& rot) {
+void Entities::Base::setRotation(const FloatAngle& rot) {
   const FloatAngle rad = {rot.yaw / 180.0f * 3.1415f, rot.pitch / 180.0f * 3.1415f};
 
   m_rotation = rot;
@@ -11,7 +11,7 @@ void EntityBase::setRotation(const FloatAngle& rot) {
   };
 }
 
-void EntityBase::setCrouching(bool value) {
+void Entities::Base::setCrouching(bool value) {
   m_prevFlags = m_flags;
   if (value)
     m_flags |= Flags::IsCrouching;

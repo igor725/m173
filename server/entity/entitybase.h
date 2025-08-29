@@ -1,11 +1,12 @@
 #pragma once
 
-#include "helper.h"
+#include "entry/helper.h"
 
 #include <cstdint>
 
-class EntityBase {
-  friend class EntityManager;
+namespace Entities {
+class Base {
+  friend class Manager;
 
   public:
   enum Type : int8_t {
@@ -22,9 +23,9 @@ class EntityBase {
     IsCrouching = 1 << 1,
   };
 
-  EntityBase(Type type): m_type(type) {}
+  Base(Type type): m_type(type) {}
 
-  virtual ~EntityBase() = default;
+  virtual ~Base() = default;
 
   virtual void onSpawned() {}
 
@@ -70,6 +71,8 @@ class EntityBase {
 
   EntityId getEntityId() const { return m_id; }
 
+  std::string const& getEntityIdName() const { return m_idName; }
+
   void _setEntId(int32_t id) { m_id = id; }
 
   const DoubleVector3& getForwardVector() const { return m_forward; }
@@ -94,18 +97,20 @@ class EntityBase {
   };
 
   protected:
-  EntityId  m_id                = -1;
-  Type      m_type              = Type::Unspecified;
-  Dimension m_dimension         = Dimension::Overworld;
-  int16_t   m_health            = 20;
-  bool      m_isOnGround        = false;
-  bool      m_shouldBeDestroyed = false;
-  int8_t    m_flags             = Flags::None;
-  int8_t    m_prevFlags         = Flags::None;
-  int16_t   m_maxHealth         = 1;
+  EntityId    m_id                = -1;
+  Type        m_type              = Type::Unspecified;
+  Dimension   m_dimension         = Dimension::Overworld;
+  int16_t     m_health            = 20;
+  bool        m_isOnGround        = false;
+  bool        m_shouldBeDestroyed = false;
+  int8_t      m_flags             = Flags::None;
+  int8_t      m_prevFlags         = Flags::None;
+  int16_t     m_maxHealth         = 1;
+  std::string m_idName            = "EntityBase";
 
   DoubleVector3 m_prevPosition {0.0, 0.0, 0.0};
   DoubleVector3 m_position {0.0, 0.0, 0.0};
   DoubleVector3 m_forward {0.0, 0.0, 0.0};
   FloatAngle    m_rotation {0.0f, 0.0f};
 };
+} // namespace Entities

@@ -3,6 +3,7 @@ add_library(entity OBJECT
   entitybase.cpp
   creaturebase.cpp
   creatures/player.cpp
+  creatures/pig.cpp
   objects/arrow.cpp
   objects/snowball.cpp
   objects/fishfloat.cpp

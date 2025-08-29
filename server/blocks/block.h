@@ -1,8 +1,7 @@
 #pragma once
 
 #include "entity/entitybase.h"
-#include "helper.h"
-#include "items/list/block.h"
+#include "entry/helper.h"
 
 class Block {
   public:
@@ -10,7 +9,7 @@ class Block {
 
   ~Block();
 
-  virtual bool blockActivated(const IntVector3& pos, EntityBase* activator) { return false; }
+  virtual bool blockActivated(const IntVector3& pos, Entities::Base* activator) { return false; }
 
   BlockId getId() const { return m_index; }
 

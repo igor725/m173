@@ -1,8 +1,10 @@
 #include "player.h"
 
 #include "config/config.h"
+#include "entity/creaturebase.h"
 #include "entity/entitybase.h"
 #include "entity/manager.h"
+#include "entity/mobbase.h"
 #include "network/packets/ChatMessage.h"
 #include "network/packets/Entity.h"
 #include "network/packets/Handshake.h"
@@ -21,6 +23,7 @@
 #include <spdlog/spdlog.h>
 #include <stack>
 
+namespace Entities {
 class Player: public PlayerBase {
   public:
   Player(SafeSocket& sock, const std::wstring& name): m_selfSock(sock), m_container(&m_storage), m_name(name) {
@@ -32,7 +35,7 @@ class Player: public PlayerBase {
 
   ~Player() {
     if (RunManager::isRunning()) {
-      auto& em = accessEntityManager();
+      auto& em = Entities::Access::manager();
 
       std::unique_lock lock(m_lockEntities);
       for (auto it = m_trackedEntities.begin(); it != m_trackedEntities.end(); ++it) {
@@ -361,7 +364,7 @@ class Player: public PlayerBase {
     return false;
   }
 
-  bool addTrackedEntity(EntityBase* ent) final {
+  bool addTrackedEntity(Entities::Base* ent) final {
     if (!m_bLoggedIn || ent == this || !isEntityCloseEnough(ent)) return false;
 
     {
@@ -374,24 +377,31 @@ class Player: public PlayerBase {
     }
 
     switch (auto t = ent->getType()) {
-      case EntityBase::Creature: {
+      case Entities::Base::Creature: {
         if (ent->isPlayer()) {
           auto ply = dynamic_cast<PlayerBase*>(ent);
           ply->addTrackedEntity(this);
 
           Packet::ToClient::PlayerSpawn wdata_spawn(ply);
           wdata_spawn.sendTo(m_selfSock);
+        } else if (dynamic_cast<CreatureBase*>(ent)->getCreatureType() == CreatureBase::Mob) {
+          auto mob = dynamic_cast<MobBase*>(ent);
+
+          Packet::ToClient::MobSpawn wdata_spawn(mob->getEntityId(), mob->getMobType(), mob->getPosition(), mob->getRotation());
+          wdata_spawn.sendTo(m_selfSock);
+        } else {
+          spdlog::warn("Failed to broadcast <{}> to clients", ent->getEntityIdName());
         }
       } break;
-      case EntityBase::Object: {
+      case Entities::Base::Object: {
         Packet::ToClient::ObjectSpawn wdata_osp(dynamic_cast<ObjectBase*>(ent));
         wdata_osp.sendTo(m_selfSock);
       } break;
-      case EntityBase::Thunderbolt: {
+      case Entities::Base::Thunderbolt: {
         Packet::ToClient::SpawnThunderbolt wdata_stb(ent);
         wdata_stb.sendTo(m_selfSock);
       } break;
-      case EntityBase::Pickup: {
+      case Entities::Base::Pickup: {
         Packet::ToClient::PickupSpawn wdata_ps(ent);
         wdata_ps.sendTo(m_selfSock);
       } break;
@@ -412,21 +422,21 @@ class Player: public PlayerBase {
 
     auto nit = m_trackedEntities.erase(it);
 
-    if (auto ent = accessEntityManager().GetEntity(eid)) {
+    if (auto ent = Entities::Access::manager().GetEntity(eid)) {
       switch (auto t = ent->getType()) {
-        case EntityBase::Creature: {
+        case Entities::Base::Creature: {
           if (ent->isPlayer()) {
             auto ply = dynamic_cast<PlayerBase*>(ent);
             ply->removeTrackedEntity(this);
           }
         } break;
-        case EntityBase::Object: {
+        case Entities::Base::Object: {
           // Don't think we have to do something there actually
         } break;
-        case EntityBase::Thunderbolt: {
+        case Entities::Base::Thunderbolt: {
           // Same as above I think
         } break;
-        case EntityBase::Pickup: {
+        case Entities::Base::Pickup: {
           // Aaand again
         } break;
 
@@ -439,7 +449,7 @@ class Player: public PlayerBase {
     return nit;
   }
 
-  bool removeTrackedEntity(EntityBase* ent) final {
+  bool removeTrackedEntity(Entities::Base* ent) final {
     if (ent == this) return false;
     if (m_bLoggedIn == false) return false;
     std::unique_lock lock(m_lockEntities);
@@ -461,7 +471,7 @@ class Player: public PlayerBase {
 
     std::unique_lock lock(m_lockEntities);
 
-    auto& em = accessEntityManager();
+    auto& em = Entities::Access::manager();
 
     for (auto it = m_trackedEntities.begin(); it != m_trackedEntities.end();) {
       auto ent = em.GetEntity(*it);
@@ -477,13 +487,13 @@ class Player: public PlayerBase {
     }
   }
 
-  bool isEntityCloseEnough(EntityBase* ent) {
+  bool isEntityCloseEnough(Entities::Base* ent) {
     // 1.5 modifier there just in case, won't hurt much to have a bit more tracked entities
     return ent->getPosition().distanceToNoHeight(m_position) < m_trackDistance * 1.5 * 16.0;
   }
 
   bool updateTrackedEntities() final {
-    auto& em = accessEntityManager();
+    auto& em = Entities::Access::manager();
 
     {
       std::unique_lock lock(m_lockEntities);
@@ -499,7 +509,7 @@ class Player: public PlayerBase {
       }
     }
 
-    em.IterEntities([this](EntityBase* ent) -> bool {
+    em.IterEntities([this](Entities::Base* ent) -> bool {
       if (ent != this && isEntityCloseEnough(ent)) addTrackedEntity(ent);
       return true;
     });
@@ -597,11 +607,11 @@ class Player: public PlayerBase {
 
   const std::wstring& getName() const final { return m_name; }
 
-  EntityBase* getAttachedEntity() const final { return m_attachedEntity; }
+  Entities::Base* getAttachedEntity() const final { return m_attachedEntity; }
 
   void setOperator(bool state) final { m_bIsOperator = state; }
 
-  bool setAttachedEntity(EntityBase* ent, bool reset) final {
+  bool setAttachedEntity(Entities::Base* ent, bool reset) final {
     if (!reset && m_attachedEntity == nullptr) {
       // todo some callback for attached entity?
       m_attachedEntity = ent;
@@ -628,7 +638,7 @@ class Player: public PlayerBase {
   int64_t                 m_nextHit        = 0;
   double_t                m_stance         = 0.0;
   double_t                m_trackDistance  = 0.0;
-  EntityBase*             m_attachedEntity = nullptr;
+  Entities::Base*         m_attachedEntity = nullptr;
   std::wstring            m_name;
   std::vector<IntVector2> m_loadedChunks;
   std::vector<EntityId>   m_trackedEntities;
@@ -640,6 +650,10 @@ class Player: public PlayerBase {
   std::stack<std::unique_ptr<UiWindow>> m_windows;
 };
 
-std::unique_ptr<PlayerBase> createPlayer(SafeSocket& sock, const std::wstring& name) {
+namespace Create {
+std::unique_ptr<PlayerBase> player(SafeSocket& sock, const std::wstring& name) {
   return std::make_unique<Player>(sock, name);
 }
+
+} // namespace Create
+} // namespace Entities

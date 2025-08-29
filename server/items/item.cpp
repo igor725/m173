@@ -1,5 +1,6 @@
 #include "item.h"
 
+#include <array>
 #include <exception>
 #include <format>
 #include <spdlog/spdlog.h>

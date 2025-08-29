@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
   spdlog::info("Finishing the World routines...");
   accessWorld().finish();
   spdlog::info("Finishing the EntityManager routines...");
-  accessEntityManager().finish();
+  Entities::Access::manager().finish();
   spdlog::info("No issues found, closing the process now...");
 
   locker.close();

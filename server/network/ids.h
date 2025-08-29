@@ -1,6 +1,6 @@
 #pragma once
 
-#include "helper.h"
+#include "entry/helper.h"
 
 namespace Packet::IDs {
 constexpr PacketId KeepAlive      = 0x00; // xS +

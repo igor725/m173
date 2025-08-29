@@ -196,12 +196,12 @@ class Disconnect: private PacketReader {
 namespace ToClient {
 class PlayerHealth: public PacketWriter {
   public:
-  PlayerHealth(PlayerBase* player);
+  PlayerHealth(Entities::PlayerBase* player);
 };
 
 class PlayerRespawn: public PacketWriter {
   public:
-  PlayerRespawn(PlayerBase* player, IWorld& world);
+  PlayerRespawn(Entities::PlayerBase* player, IWorld& world);
 };
 
 class PlayerAnim: public PacketWriter {
@@ -214,7 +214,7 @@ class PlayerAnim: public PacketWriter {
 
 class PlayerPosAndLook: public PacketWriter {
   public:
-  PlayerPosAndLook(PlayerBase* player): PacketWriter(Packet::IDs::PlayerPnL, 41) {
+  PlayerPosAndLook(Entities::PlayerBase* player): PacketWriter(Packet::IDs::PlayerPnL, 41) {
     auto& position = player->getPosition();
     auto& rotation = player->getRotation();
 
@@ -235,7 +235,7 @@ class PlayerPosAndLook: public PacketWriter {
 
 class PlayerSpawn: public PacketWriter {
   public:
-  PlayerSpawn(PlayerBase* player): PacketWriter(Packet::IDs::PlayerSpawn, 22 + player->getName().size()) {
+  PlayerSpawn(Entities::PlayerBase* player): PacketWriter(Packet::IDs::PlayerSpawn, 22 + player->getName().size()) {
     writeInteger<EntityId>(player->getEntityId());
     writeString(player->getName());
 

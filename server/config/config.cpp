@@ -1,7 +1,7 @@
 #include "config.h"
 
 #include "cfgexcept.h"
-#include "helper.h"
+#include "entry/helper.h"
 
 #include <fstream>
 #include <sstream>

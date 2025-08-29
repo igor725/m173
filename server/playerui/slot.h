@@ -1,6 +1,6 @@
 #pragma once
 
-#include "helper.h"
+#include "entry/helper.h"
 #include "items/itemstack.h"
 #include "storage.h"
 

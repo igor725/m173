@@ -2,7 +2,7 @@
 
 #include "../ids.h"
 #include "../packet.h"
-#include "helper.h"
+#include "entry/helper.h"
 
 namespace Packet {
 namespace ToClient {

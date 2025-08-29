@@ -15,17 +15,17 @@ class ItemSword: public Item {
     maxStackSize = 1;
   }
 
-  bool hitEntity(ItemStack& is, EntityBase* atacker, EntityBase* victim) override {
+  bool hitEntity(ItemStack& is, Entities::Base* atacker, Entities::Base* victim) override {
     is.damageItem(1, atacker);
     return true;
   }
 
-  void getDamageVsEntity(EntityBase* ent, VsDamageInfo& vif) const override {
+  void getDamageVsEntity(Entities::Base* ent, VsDamageInfo& vif) const override {
     // todo adjust damage based on entity armor
     vif = m_damage;
   }
 
-  bool onBlockDestroyed(ItemStack& is, const IntVector3& pos, BlockId id, EntityBase* destroyer) override {
+  bool onBlockDestroyed(ItemStack& is, const IntVector3& pos, BlockId id, Entities::Base* destroyer) override {
     is.damageItem(2, destroyer);
     return true;
   }

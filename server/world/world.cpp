@@ -89,7 +89,7 @@ class World: public IWorld {
     return true;
   }
 
-  bool setBlockWithNotify(const IntVector3& pos, BlockId id, int8_t meta, PlayerBase* placer) final {
+  bool setBlockWithNotify(const IntVector3& pos, BlockId id, int8_t meta, Entities::PlayerBase* placer) final {
     if (setBlock(pos, id, meta)) {
       Packet::ToClient::BlockChange wdata(pos, id, meta);
       placer->sendToTrackedPlayers(wdata, true);

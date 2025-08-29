@@ -5,13 +5,17 @@
 
 #include <memory>
 
-class IPickup: public EntityBase {
+namespace Entities {
+class PickupBase: public Entities::Base {
   public:
-  IPickup(): EntityBase(EntityBase::Type::Pickup) {}
+  PickupBase(): Entities::Base(Entities::Base::Type::Pickup) {}
 
   virtual const ItemStack& getItemStack() const = 0;
 
-  ~IPickup() {}
+  ~PickupBase() {}
 };
 
-std::unique_ptr<IPickup> createPickup(const DoubleVector3& pos, const ItemStack& is);
+namespace Create {
+std::unique_ptr<PickupBase> pickup(const DoubleVector3& pos, const ItemStack& is);
+}
+} // namespace Entities

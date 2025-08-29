@@ -22,7 +22,6 @@
 #include "script/event.h"
 #include "script/script.h"
 #include "world/world.h"
-#include "zlibpp/zlibpp.h"
 
 #include <chrono>
 #include <cstddef>
@@ -117,7 +116,7 @@ ClientLoop::ClientLoop(sockpp::tcp_socket& sock, sockpp::inet_address& addr) {
 
   ++g_clientCount;
   std::thread reader(ThreadLoop, std::move(sock), std::move(addr), ++playerRef);
-  accessEntityManager().AddPlayerThread(std::move(reader), playerRef);
+  Entities::Access::manager().AddPlayerThread(std::move(reader), playerRef);
 }
 
 void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, uint64_t ref) {
@@ -125,7 +124,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
 
   SafeSocket ss(std::move(sock), std::move(addr));
 
-  PlayerBase* linkedPlayer = nullptr;
+  Entities::PlayerBase* linkedPlayer = nullptr;
 
   const auto joinTime = std::chrono::system_clock::now();
   const auto pingFreq = std::chrono::seconds(1);
@@ -164,11 +163,9 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
 
           auto& uname = data.getName();
 
-          std::string bname;
-          bname.resize(uname.length());
-          std::wcstombs(bname.data(), uname.c_str(), bname.size() - 1);
+          std::string bname = Helper::cvtToUTF8(uname);
 
-          linkedPlayer = dynamic_cast<PlayerBase*>(accessEntityManager().AddEntity(createPlayer(ss, uname)));
+          linkedPlayer = dynamic_cast<Entities::PlayerBase*>(Entities::Access::manager().AddEntity(Entities::Create::player(ss, uname)));
 
           auto arg = onPlayerConnectedEvent {false, "", linkedPlayer};
           accessScript().postEvent({ScriptEvent::onPlayerConnected, &arg});
@@ -220,7 +217,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
             if (!arg.cancelled) {
               Packet::ToClient::ChatMessage wdata(arg.finalMessage);
 
-              accessEntityManager().IterPlayers([&wdata](PlayerBase* player) -> bool {
+              Entities::Access::manager().IterPlayers([&wdata](Entities::PlayerBase* player) -> bool {
                 wdata.sendTo(player->getSocket());
                 return true;
               });
@@ -230,14 +227,14 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
         case Packet::IDs::EntityUse: {
           Packet::FromClient::EntityClick data(ss);
 
-          auto target = accessEntityManager().GetEntity(data.getTarget());
+          auto target = Entities::Access::manager().GetEntity(data.getTarget());
           if (target == nullptr) throw InvalidEntityIndexException(data.getTarget());
 
           if (data.isLeftClick()) {
             if (!linkedPlayer->canHitEntity()) break;
 
             switch (target->getType()) {
-              case EntityBase::Creature: {
+              case Entities::Base::Creature: {
                 auto creat_target = dynamic_cast<CreatureBase*>(target);
 
                 VsDamageInfo dmg;
@@ -399,7 +396,7 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
 
 #ifdef M173_BETA18_PROTO
         case Packet::IDs::ServerPing: {
-          throw MOTDException("Experimental beta 1.8 protocol test", accessEntityManager().GetPlayersCount(), g_maxClientCount);
+          throw MOTDException("Experimental beta 1.8 protocol test", Entities::Access::manager().GetPlayersCount(), g_maxClientCount);
         } break;
 #endif
 
@@ -490,11 +487,11 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
 
   if (linkedPlayer) {
     BroadcastManager::chatToClients(std::format(L"{} left the game", linkedPlayer->getName()));
-    accessEntityManager().RemoveEntity(linkedPlayer->getEntityId());
+    Entities::Access::manager().RemoveEntity(linkedPlayer->getEntityId());
     linkedPlayer->finish();
   }
 
   spdlog::trace("Client {} closed!", ss.addr());
-  accessEntityManager().RemovePlayerThread(ref);
+  Entities::Access::manager().RemovePlayerThread(ref);
   --g_clientCount;
 }

@@ -58,7 +58,7 @@ class KeepAlive: public PacketWriter {
 
 class LoginResponse: public PacketWriter {
   public:
-  LoginResponse(PlayerBase* pbase, IWorld& world, int8_t maxp);
+  LoginResponse(Entities::PlayerBase* pbase, IWorld& world, int8_t maxp);
 };
 
 class Handshake: public PacketWriter {

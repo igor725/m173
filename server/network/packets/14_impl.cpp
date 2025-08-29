@@ -45,7 +45,7 @@ Respawn::Respawn(SafeSocket& sock): PacketReader(sock) {
 namespace ToClient {
 KeepAlive::KeepAlive(uint32_t id): PacketWriter(Packet::IDs::KeepAlive, 0) {}
 
-LoginResponse::LoginResponse(PlayerBase* pbase, IWorld& world, int8_t maxp): PacketWriter(Packet::IDs::Login, 15 + world.getName().length()) {
+LoginResponse::LoginResponse(Entities::PlayerBase* pbase, IWorld& world, int8_t maxp): PacketWriter(Packet::IDs::Login, 15 + world.getName().length()) {
   writeInteger<EntityId>(pbase->getEntityId());
   writeString(world.getName());
   writeInteger<int64_t>(world.getSeed());
@@ -56,11 +56,11 @@ Handshake::Handshake(const std::wstring_view connhash): PacketWriter(Packet::IDs
   writeString(connhash);
 }
 
-PlayerHealth::PlayerHealth(PlayerBase* player): PacketWriter(Packet::IDs::PlayerHealth, 2) {
+PlayerHealth::PlayerHealth(Entities::PlayerBase* player): PacketWriter(Packet::IDs::PlayerHealth, 2) {
   writeInteger<int16_t>(player->getHealth());
 }
 
-PlayerRespawn::PlayerRespawn(PlayerBase* player, IWorld& world): PacketWriter(Packet::IDs::PlayerRespawn, 1) {
+PlayerRespawn::PlayerRespawn(Entities::PlayerBase* player, IWorld& world): PacketWriter(Packet::IDs::PlayerRespawn, 1) {
   writeInteger<Dimension>(player->getDimension());
 }
 } // namespace ToClient

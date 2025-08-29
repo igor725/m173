@@ -1,5 +1,6 @@
 #include "arrow.h"
 
+namespace Entities {
 class Arrow: public IArrow {
   public:
   Arrow(const DoubleVector3& pos, EntityId owner, const DoubleVector3& motion): IArrow(owner, motion) { m_position = pos, m_prevPosition = pos; }
@@ -12,6 +13,9 @@ class Arrow: public IArrow {
   double_t m_lifeTime = 0;
 };
 
-std::unique_ptr<IArrow> createArrow(const DoubleVector3& pos, EntityId owner, const DoubleVector3& motion) {
+namespace Create {
+std::unique_ptr<IArrow> arrow(const DoubleVector3& pos, EntityId owner, const DoubleVector3& motion) {
   return std::make_unique<Arrow>(pos, owner, motion);
 }
+} // namespace Create
+} // namespace Entities

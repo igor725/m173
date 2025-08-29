@@ -5,9 +5,9 @@
 #include "entity/creaturebase.h"
 #include "entity/entitybase.h"
 
-LuaObject* lua_pushentity(lua_State* L, EntityBase* ent);
+LuaObject* lua_pushentity(lua_State* L, Entities::Base* ent);
 
-EntityBase* lua_checkentity(lua_State* L, int idx, EntityBase::Type type);
+Entities::Base* lua_checkentity(lua_State* L, int idx, Entities::Base::Type type);
 
 CreatureBase* lua_checkcreature(lua_State* L, int idx);
 CreatureBase* lua_checkcreature(lua_State* L, int idx, CreatureBase::Type type);

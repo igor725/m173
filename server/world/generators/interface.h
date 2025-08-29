@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../chunk.h"
-#include "helper.h"
+#include "entry/helper.h"
 
 class IGenerator {
   public:

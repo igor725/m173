@@ -9,5 +9,5 @@ class ItemFishingRod: public Item {
     maxDamage    = 64;
   }
 
-  bool onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) final;
+  bool onItemRightClick(ItemStack& is, Entities::Base* clicker, const IntVector3& pos, int8_t dir) final;
 };

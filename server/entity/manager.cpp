@@ -10,6 +10,7 @@
 #include <thread>
 #include <unordered_map>
 
+namespace Entities {
 class EntityCounterOverflowException: public std::exception {
   public:
   EntityCounterOverflowException() {}
@@ -17,9 +18,9 @@ class EntityCounterOverflowException: public std::exception {
   const char* what() const noexcept override { return "EntityId counter overflow"; }
 };
 
-class EntityManager: public IEntityManager {
+class Manager: public IManager {
   public:
-  EntityManager() {
+  Manager() {
     m_tickThread = std::thread([this]() {
       Platform::SetCurrentThreadName("Entity ticker");
 
@@ -38,11 +39,11 @@ class EntityManager: public IEntityManager {
     });
   }
 
-  ~EntityManager() {
+  ~Manager() {
     if (m_tickThread.joinable()) m_tickThread.join();
   }
 
-  EntityBase* AddEntity(std::unique_ptr<EntityBase>&& entity) final {
+  Entities::Base* AddEntity(std::unique_ptr<Entities::Base>&& entity) final {
     std::unique_lock lock(m_lock);
 
     EntityId freeId = -1;
@@ -61,7 +62,7 @@ class EntityManager: public IEntityManager {
     eptr->_setEntId(freeId);
 
     if (!eptr->isPlayer()) {
-      IterPlayers([eptr](PlayerBase* ply) -> bool {
+      IterPlayers([eptr](Entities::PlayerBase* ply) -> bool {
         ply->addTrackedEntity(eptr);
         return true;
       });
@@ -74,7 +75,7 @@ class EntityManager: public IEntityManager {
     return eptr;
   }
 
-  EntityBase* GetEntity(EntityId id) final {
+  Entities::Base* GetEntity(EntityId id) final {
     std::unique_lock lock(m_lock);
 
     auto it = m_loadedents.find(id);
@@ -97,17 +98,17 @@ class EntityManager: public IEntityManager {
 
     for (auto it = m_loadedents.begin(); it != m_loadedents.end(); ++it) {
       if (auto entity = it->second.get()) {
-        if (entity->isPlayer() && !cb(dynamic_cast<PlayerBase*>(entity))) return false;
+        if (entity->isPlayer() && !cb(dynamic_cast<Entities::PlayerBase*>(entity))) return false;
       }
     }
 
     return true;
   }
 
-  PlayerBase* getPlayerByName(const std::wstring& name) {
-    PlayerBase* target;
+  Entities::PlayerBase* getPlayerByName(const std::wstring& name) {
+    Entities::PlayerBase* target;
 
-    if (IterPlayers([&target, &name](PlayerBase* ply) -> bool {
+    if (IterPlayers([&target, &name](Entities::PlayerBase* ply) -> bool {
           target = ply;
           return !Helper::stricmp(ply->getName(), name);
         }) == false)
@@ -136,7 +137,7 @@ class EntityManager: public IEntityManager {
 
         if (ent->isMarkedForDestruction()) {
           if (ent->isPlayer()) {
-            IterPlayers([ent](PlayerBase* ply) -> bool {
+            IterPlayers([ent](Entities::PlayerBase* ply) -> bool {
               ply->removeTrackedEntity(ent);
               return true;
             });
@@ -209,14 +210,18 @@ class EntityManager: public IEntityManager {
   std::thread          m_tickThread;
   std::recursive_mutex m_lock;
 
-  std::unordered_map<EntityId, std::unique_ptr<EntityBase>> m_loadedents;
-  std::stack<EntityId>                                      m_freeIds;
+  std::unordered_map<EntityId, std::unique_ptr<Entities::Base>> m_loadedents;
+  std::stack<EntityId>                                          m_freeIds;
 
   std::recursive_mutex                       m_ptLock;
   std::unordered_map<uint64_t, PlayerThread> m_playerThreads;
 };
 
-IEntityManager& accessEntityManager() {
-  static EntityManager inst;
+namespace Access {
+IManager& manager() {
+  static Manager inst;
   return inst;
 }
+} // namespace Access
+
+} // namespace Entities

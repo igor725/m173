@@ -1,10 +1,9 @@
 #pragma once
 
 #include "entity/entitybase.h"
-#include "helper.h"
+#include "entry/helper.h"
 #include "itemstack.h"
 
-#include <array>
 #include <cstdint>
 
 class Item {
@@ -28,15 +27,15 @@ class Item {
 
   virtual int8_t getMetadata(int16_t damage) const { return 0; }
 
-  virtual bool onItemRightClick(ItemStack& is, EntityBase* clicker, const IntVector3& pos, int8_t dir) { return false; }
+  virtual bool onItemRightClick(ItemStack& is, Entities::Base* clicker, const IntVector3& pos, int8_t dir) { return false; }
 
-  virtual bool onBlockDestroyed(ItemStack& is, const IntVector3& pos, BlockId id, EntityBase* destroyer) { return true; }
+  virtual bool onBlockDestroyed(ItemStack& is, const IntVector3& pos, BlockId id, Entities::Base* destroyer) { return true; }
 
-  virtual bool onEquipedByEntity(ItemStack& is, EntityBase* equiper) { return true; }
+  virtual bool onEquipedByEntity(ItemStack& is, Entities::Base* equiper) { return true; }
 
-  virtual bool onUseItemOnBlock(ItemStack& is, EntityBase* user, const IntVector3& pos, int8_t direction) { return false; }
+  virtual bool onUseItemOnBlock(ItemStack& is, Entities::Base* user, const IntVector3& pos, int8_t direction) { return false; }
 
-  virtual bool hitEntity(ItemStack& is, EntityBase* attacker, EntityBase* victim) { return false; }
+  virtual bool hitEntity(ItemStack& is, Entities::Base* attacker, Entities::Base* victim) { return false; }
 
   int16_t getStackLimit() const { return maxStackSize; }
 
@@ -46,5 +45,5 @@ class Item {
 
   ItemId getId() const { return shiftedIndex; }
 
-  virtual void getDamageVsEntity(EntityBase* ent, VsDamageInfo& vif) const { vif = VsDamageInfo(1, 0.1); }
+  virtual void getDamageVsEntity(Entities::Base* ent, VsDamageInfo& vif) const { vif = VsDamageInfo(1, 0.1); }
 };

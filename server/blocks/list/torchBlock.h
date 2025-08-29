@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../block.h"
-#include "helper.h"
+#include "entry/helper.h"
 #include "items/list/torch.h"
 
 class TorchBlock: public Block {
