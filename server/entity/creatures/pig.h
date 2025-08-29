@@ -10,6 +10,8 @@ class IPig: public MobBase {
   IPig(): MobBase(MobBase::Pig) { m_idName = "Mob::Pig"; }
 
   ~IPig() {}
+
+  virtual void setSaddle(bool active) = 0;
 };
 
 namespace Create {

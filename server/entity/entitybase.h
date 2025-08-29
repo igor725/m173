@@ -1,6 +1,7 @@
 #pragma once
 
 #include "entry/helper.h"
+#include "network/packet.h"
 
 #include <cstdint>
 
@@ -17,7 +18,7 @@ class Base {
     Pickup,
   };
 
-  enum Flags : int8_t {
+  enum Flags : uint8_t {
     None        = 0,
     IsOnFire    = 1 << 0,
     IsCrouching = 1 << 1,
@@ -80,6 +81,14 @@ class Base {
 
   bool isFlagsChanged() const { return m_prevFlags != m_flags; }
 
+  virtual void readMetadata(PacketWriter::MetaDataStream& mds) const {}
+
+  void refreshMeta();
+
+  void putFlags(int8_t flags) { m_flags = flags; }
+
+  int8_t peekFlags() { return m_flags; }
+
   int8_t popFlags() {
     if (m_prevFlags == m_flags) return false;
     m_prevFlags = m_flags;
@@ -104,6 +113,7 @@ class Base {
   int16_t     m_health            = 20;
   bool        m_isOnGround        = false;
   bool        m_shouldBeDestroyed = false;
+  bool        m_isMetaUpdated     = false;
   int8_t      m_flags             = Flags::None;
   int8_t      m_prevFlags         = Flags::None;
   int16_t     m_maxHealth         = 1;

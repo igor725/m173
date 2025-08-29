@@ -1,7 +1,10 @@
 #pragma once
 
-#include "entity/entitybase.h"
 #include "entry/helper.h"
+
+namespace Entities {
+class Base;
+}
 
 struct ItemStack {
   int16_t stackSize;

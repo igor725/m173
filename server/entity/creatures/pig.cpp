@@ -8,7 +8,19 @@ class Pig: public IPig {
 
   ~Pig() = default;
 
-  void tick(double_t delta) {}
+  void tick(double_t delta) final { refreshMeta(); }
+
+  void readMetadata(PacketWriter::MetaDataStream& mds) const final { mds.putByte(16, m_hasSaddle ? 1 : 0); }
+
+  void setSaddle(bool active) final {
+    if (m_hasSaddle == active) return;
+    m_hasSaddle = active, m_isMetaUpdated = true;
+  }
+
+  private:
+  struct /*Flags*/ {
+    bool m_hasSaddle : 1 = false;
+  };
 };
 
 namespace Create {

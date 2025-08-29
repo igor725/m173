@@ -59,45 +59,13 @@ class CollectItem: public PacketWriter {
   }
 };
 
-class MobSpawn: public PacketWriter {
+class MobSpawn: public PacketWriter { // This packet has to be finished with metadata stream!
   public:
-  MobSpawn(EntityId eid, Entities::MobBase::Type type, const DoubleVector3& position, const FloatAngle& rotation): PacketWriter(Packet::IDs::SpawnMob, 20) {
+  MobSpawn(EntityId eid, Entities::MobBase::Type type, const DoubleVector3& position, const FloatAngle& rotation): PacketWriter(Packet::IDs::SpawnMob, 21) {
     writeInteger<int32_t>(eid);
     writeInteger<int8_t>(type);
     writeAIVector(position);
     writePartAngle(rotation);
-
-    /**
-     * @todo Metadata for mobs:
-     *
-     * Credits https://wiki.vg/User:Olive/Beta_Protocol
-     *
-     * Creeper: 16 - fuse status (int8), 17 - charged creeper (bool)
-     * Skeleton: (empty)
-     * Spider: (empty)
-     * GiantZombie: (empty)
-     * Zombie: (empty)
-     * Slime: 16 - slime size (byte, from 0 to 2)
-     * Ghast: 16 - red eyes on (bool)
-     * ZombiePigman: (empty)
-     * Pig: 16 - has saddle (bool)
-     * Sheep: 16 - bitflags (byte, bit 0x10 set if sheep's sheared, lower 4 bits indicate the sheep's color)
-     * Cow: (empty)
-     * Chicken: (empty)
-     * Squid: (empty)
-     * Wolf: 16 - bitflags (byte, 1st bit - is sitting, 2nd bit - aggressive, 3rd bit - tamed), 17 - tamer name (string), 18 - health (int32)
-     *
-     *
-     * Sheep colors:
-     *   0 - White, 1 - Orange, 2 - Magenta, 3 - LightBlue, 4 - Yellow,
-     *   5 - Lime, 6 - Pink, 7 - Gray, 8 - Silver, 9 - Cyan, 10 - Purple,
-     *   11 - Blue, 12 - Brown, 13 - Green, 14 - Red, 15 - Black
-     *
-     * Shared metadata for all entities is a set of bitflags (int8) that is installed by setting index 0:
-     * 1st bit - is entity on fire, 2nd bit - is entity crouching, 3rd bit - is entity riding something
-     *
-     */
-    writeInteger<int8_t>(127);
   }
 };
 
@@ -189,7 +157,7 @@ class EntityStatus: public PacketWriter {
   }
 };
 
-class EntityMeta: public PacketWriter {
+class EntityMeta: public PacketWriter { // This packet has to be finished with metadata stream
   public:
   EntityMeta(EntityId eid): PacketWriter(Packet::IDs::EntityMeta, 10 /* Not the actual packet size, just a reservation */) { writeInteger<EntityId>(eid); }
 

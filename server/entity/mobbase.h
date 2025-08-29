@@ -8,7 +8,7 @@ namespace Entities {
 class MobBase: public CreatureBase {
   public:
   enum Type : int8_t {
-    Unknown,
+    Unknown      = -1,
     Creeper      = 50,
     Skeleton     = 51,
     Spider       = 52,

@@ -16,9 +16,116 @@
 #include "script/libraries/libitemstack.h"
 #include "script/libraries/libvector.h"
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
+
+static void parseMetaDataFor(Entities::Base* ent, lua_State* L, int32_t mtidx) {
+  mtidx = lua_absindex(L, mtidx);
+  luaL_checktype(L, mtidx, LUA_TTABLE);
+
+  { // Global things for all entities
+    lua_getfield(L, mtidx, "isOnFire");
+    lua_getfield(L, mtidx, "isCrouching");
+    lua_getfield(L, mtidx, "isRiding");
+
+    int8_t flags = ent->peekFlags();
+    if (!lua_isnoneornil(L, -3)) {
+      if (lua_toboolean(L, -3)) {
+        flags |= Entities::Base::Flags::IsOnFire;
+      } else {
+        flags &= ~Entities::Base::Flags::IsOnFire;
+      }
+    }
+    if (!lua_isnoneornil(L, -2)) {
+      if (lua_toboolean(L, -2)) {
+        flags |= Entities::Base::Flags::IsCrouching;
+      } else {
+        flags &= ~Entities::Base::Flags::IsCrouching;
+      }
+    }
+    if (!lua_isnoneornil(L, -1)) {
+      if (lua_toboolean(L, -1)) {
+        flags |= Entities::Base::Flags::IsRiding;
+      } else {
+        flags &= ~Entities::Base::Flags::IsRiding;
+      }
+    }
+    ent->putFlags(flags);
+
+    lua_pop(L, 3);
+  }
+
+  switch (auto entType = ent->getType()) {
+    case Entities::Base::Creature: {
+      if (ent->isPlayer()) {
+        // todo?
+      } else {
+        if (auto mob = dynamic_cast<Entities::MobBase*>(ent)) {
+          switch (auto mobType = mob->getMobType()) {
+            case Entities::MobBase::Creeper: {
+            } break;
+            case Entities::MobBase::Skeleton: {
+              // No metadata for this mob
+            } break;
+            case Entities::MobBase::Spider: {
+              // No metadata for this mob
+            } break;
+            case Entities::MobBase::GiantZombie: {
+              // No metadata for this mob
+            } break;
+            case Entities::MobBase::Zombie: {
+              // No metadata for this mob
+            } break;
+            case Entities::MobBase::Slime: break;
+            case Entities::MobBase::Ghast: break;
+            case Entities::MobBase::ZombiePigmen: {
+              // No metadata for this mob
+            } break;
+            case Entities::MobBase::Pig: {
+              lua_getfield(L, mtidx, "hasSaddle");
+
+              if (!lua_isnoneornil(L, -1)) {
+                dynamic_cast<Entities::IPig*>(ent)->setSaddle(lua_toboolean(L, -1));
+              }
+
+              lua_pop(L, 1);
+            } break;
+            case Entities::MobBase::Sheep: break;
+            case Entities::MobBase::Cow: {
+              // No metadata for this mob
+            } break;
+            case Entities::MobBase::Chicken: {
+              // No metadata for this mob
+            } break;
+            case Entities::MobBase::Squid: {
+              // No metadata for this mob
+            } break;
+            case Entities::MobBase::Wolf: break;
+
+            default: {
+              luaL_error(L, "Unhandled mob type in metadata parse: %d", (int32_t)mobType);
+            } break;
+          }
+        }
+      }
+    } break;
+    case Entities::Base::Object: {
+      // todo?
+    } break;
+    case Entities::Base::Thunderbolt: {
+      // todo?
+    } break;
+    case Entities::Base::Pickup: {
+      // todo?
+    } break;
+
+    default: {
+      luaL_error(L, "Unhandled entity type in metadata parse: %d", (int32_t)entType);
+    } break;
+  }
+}
 
 class EntityScript {
   public:
@@ -313,6 +420,10 @@ int luaopen_entity(lua_State* L) {
              entptr = Entities::Create::pickup(*posVec->getAs<DoubleVector3>(L), *is);
            } break;
          }
+
+         lua_getfield(L, 2, "metadata");
+         parseMetaDataFor(entptr.get(), L, -1);
+
          lua_settop(L, stackStart);
 
          lua_pushentity(L, Entities::Access::manager().AddEntity(std::move(entptr)));
