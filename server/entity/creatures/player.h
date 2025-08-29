@@ -33,7 +33,7 @@ class PlayerBase: public CreatureBase {
 
   virtual void finish() = 0;
 
-  virtual bool sendChat(const std::wstring_view message) = 0;
+  virtual bool sendChat(std::wstring_view message) = 0;
 
   /* Entity tracking */
 

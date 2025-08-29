@@ -9,7 +9,7 @@ void testProtoVer(int32_t proto) {
   if (proto != SV_PROTO_VER) throw InvalidProtoException(proto, SV_PROTO_VER);
 }
 
-void testUserName(const std::wstring_view name) {
+void testUserName(std::wstring_view name) {
   auto testSym = [](wchar_t sym) -> bool {
     return (sym >= '0' && sym <= L'9') || (sym >= L'A' && sym <= L'Z') || (sym >= L'a' && sym <= L'z') || (sym == L'_');
   };
@@ -52,7 +52,7 @@ LoginResponse::LoginResponse(Entities::PlayerBase* pbase, IWorld& world, int8_t 
   writeInteger<int8_t>(pbase->getDimension());
 }
 
-Handshake::Handshake(const std::wstring_view connhash): PacketWriter(Packet::IDs::Handshake, 2 + connhash.length()) {
+Handshake::Handshake(std::wstring_view connhash): PacketWriter(Packet::IDs::Handshake, 2 + connhash.length()) {
   writeString(connhash);
 }
 

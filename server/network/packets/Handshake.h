@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../ids.h"
 #include "../packet.h"
 #include "world/world.h"
 
@@ -63,7 +62,7 @@ class LoginResponse: public PacketWriter {
 
 class Handshake: public PacketWriter {
   public:
-  Handshake(const std::wstring_view connhash);
+  Handshake(std::wstring_view connhash);
 };
 } // namespace ToClient
 } // namespace Packet

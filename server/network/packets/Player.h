@@ -253,7 +253,7 @@ class PlayerSpawn: public PacketWriter {
 
 class PlayerKick: public PacketWriter {
   public:
-  PlayerKick(const std::wstring_view reason): PacketWriter(Packet::IDs::ConnectionFin) { writeString(reason); }
+  PlayerKick(std::wstring_view reason): PacketWriter(Packet::IDs::ConnectionFin) { writeString(reason); }
 };
 } // namespace ToClient
 } // namespace Packet

@@ -48,7 +48,7 @@ class Player: public PlayerBase {
     }
   }
 
-  bool sendChat(const std::wstring_view message) final {
+  bool sendChat(std::wstring_view message) final {
     if (message.empty()) return true; // No need to send those
 
     if (message.find(L'\n') != std::wstring_view::npos) {

@@ -16,7 +16,7 @@ class UiWindow {
     Dispenser = 3,
   };
 
-  UiWindow(const std::string_view name, Type type): m_name(name), m_type(type) {}
+  UiWindow(std::string_view name, Type type): m_name(name), m_type(type) {}
 
   virtual ~UiWindow() = default;
 
