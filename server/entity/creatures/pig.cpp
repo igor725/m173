@@ -14,7 +14,7 @@ class Pig: public IPig {
 
   void setSaddle(bool active) final {
     if (m_hasSaddle == active) return;
-    m_hasSaddle = active, m_isMetaUpdated = true;
+    m_hasSaddle = active, m_isMetaUpdated = false;
   }
 
   private:

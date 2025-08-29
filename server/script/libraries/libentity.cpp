@@ -254,6 +254,12 @@ int luaopen_entity(lua_State* L) {
          lua_pushvector(L, &ent->getPosition());
          return 1;
        }},
+      {"metadata",
+       [](lua_State* L) -> int {
+         auto ent = lua_checkentity(L, 1);
+         parseMetaDataFor(ent, L, 2);
+         return 0;
+       }},
 
       {nullptr, nullptr},
   };
@@ -422,7 +428,7 @@ int luaopen_entity(lua_State* L) {
          }
 
          lua_getfield(L, 2, "metadata");
-         parseMetaDataFor(entptr.get(), L, -1);
+         if (lua_istable(L, -1)) parseMetaDataFor(entptr.get(), L, -1);
 
          lua_settop(L, stackStart);
 
