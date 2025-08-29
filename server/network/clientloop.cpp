@@ -439,6 +439,11 @@ void ClientLoop::ThreadLoop(sockpp::tcp_socket sock, sockpp::inet_address addr, 
 
         if (linkedPlayer->isFlagsChanged()) {
           Packet::ToClient::EntityMeta wdata_em(linkedPlayer);
+
+          auto mds = wdata_em.startMetaData();
+          mds.putByte(0, linkedPlayer->popFlags());
+          mds.finish();
+
           linkedPlayer->sendToTrackedPlayers(wdata_em);
         }
       }

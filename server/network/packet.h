@@ -109,15 +109,76 @@ private:
 
 #pragma region(Writer)
 
-class MetaDataStream;
-
 class PacketWriter {
   public:
-  friend class MetaDataStream;
+  class MetaDataStream {
+public:
+    MetaDataStream(PacketWriter& pw): m_writer(pw) {}
+
+    ~MetaDataStream() { finish(); }
+
+    void putByte(int32_t valueid, int8_t value) {
+      if (m_finished) return;
+      putHeader(0, valueid);
+      m_writer.writeInteger<int8_t>(value);
+    }
+
+    void putShort(int32_t valueid, int16_t value) {
+      if (m_finished) return;
+      putHeader(1, valueid);
+      m_writer.writeInteger<int16_t>(value);
+    }
+
+    void putInt(int32_t valueid, int32_t value) {
+      if (m_finished) return;
+      putHeader(2, valueid);
+      m_writer.writeInteger<int32_t>(value);
+    }
+
+    void putFloat(int32_t valueid, float_t value) {
+      if (m_finished) return;
+      putHeader(3, valueid);
+      m_writer.writeFloating<float_t>(value);
+    }
+
+    void putString(int32_t valueid, const std::wstring& str) {
+      if (m_finished) return;
+      putHeader(4, valueid);
+      m_writer.writeString(str);
+    }
+
+    void putItem(int32_t valueid, const ItemStack& is) {
+      if (m_finished) return;
+      putHeader(5, valueid);
+      m_writer.writeInteger<ItemId>(is.itemId);
+      m_writer.writeInteger<int16_t>(is.stackSize);
+      m_writer.writeInteger<int16_t>(is.itemDamage);
+    }
+
+    void putVector(int32_t valueid, const IntVector3& vec) {
+      if (m_finished) return;
+      putHeader(6, valueid);
+      m_writer.writeIVector(vec);
+    }
+
+    void finish() {
+      if (m_finished) return;
+      // Finishing the stream with the terminator byte
+      m_writer.writeInteger<int8_t>(0x7f);
+    }
+
+private:
+    void putHeader(int8_t type, int8_t valueid) { m_writer.writeInteger<int8_t>((type << 5 | (valueid & 31)) & 255); }
+
+    PacketWriter& m_writer;
+    bool          m_finished = false;
+  };
 
   PacketWriter(PacketId id);
 
   PacketWriter(PacketId id, int32_t psize);
+
+  MetaDataStream startMetaData() { return MetaDataStream(*this); }
 
   template <typename T>
   bool sendTo(T& sock) {
@@ -208,59 +269,6 @@ class PacketWriter {
 
   protected:
   std::vector<char> m_data;
-};
-
-class MetaDataStream {
-  public:
-  MetaDataStream(PacketWriter& pw): m_writer(pw) {}
-
-  ~MetaDataStream() {
-    // Finishing the stream with the terminator byte
-    m_writer.writeInteger<int8_t>(0x7f);
-  }
-
-  void putByte(int valueid, int8_t value) {
-
-    putHeader(0, valueid);
-    m_writer.writeInteger<int8_t>(value);
-  }
-
-  void putShort(int valueid, int16_t value) {
-    putHeader(1, valueid);
-    m_writer.writeInteger<int16_t>(value);
-  }
-
-  void putInt(int valueid, int32_t value) {
-    putHeader(2, valueid);
-    m_writer.writeInteger<int32_t>(value);
-  }
-
-  void putFloat(int valueid, float_t value) {
-    putHeader(3, valueid);
-    m_writer.writeFloating<float_t>(value);
-  }
-
-  void putString(int valueid, const std::wstring& str) {
-    putHeader(4, valueid);
-    m_writer.writeString(str);
-  }
-
-  void putItem(int valueid, const ItemStack& is) {
-    putHeader(5, valueid);
-    m_writer.writeInteger<ItemId>(is.itemId);
-    m_writer.writeInteger<int16_t>(is.stackSize);
-    m_writer.writeInteger<int16_t>(is.itemDamage);
-  }
-
-  void putVector(int valueid, const IntVector3& vec) {
-    putHeader(6, valueid);
-    m_writer.writeIVector(vec);
-  }
-
-  private:
-  void putHeader(int8_t type, int8_t valueid) { m_writer.writeInteger<int8_t>((type << 5 | (valueid & 31)) & 255); }
-
-  PacketWriter& m_writer;
 };
 
 #pragma endregion()

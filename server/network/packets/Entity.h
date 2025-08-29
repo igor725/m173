@@ -193,12 +193,7 @@ class EntityMeta: public PacketWriter {
   public:
   EntityMeta(EntityId eid): PacketWriter(Packet::IDs::EntityMeta, 10 /* Not the actual packet size, just a reservation */) { writeInteger<EntityId>(eid); }
 
-  EntityMeta(Entities::Base* ent): PacketWriter(Packet::IDs::EntityMeta, 7) {
-    writeInteger<EntityId>(ent->getEntityId());
-
-    MetaDataStream mds(*this);
-    mds.putByte(0, ent->popFlags());
-  }
+  EntityMeta(Entities::Base* ent): PacketWriter(Packet::IDs::EntityMeta, 10) { writeInteger<EntityId>(ent->getEntityId()); }
 };
 
 class SpawnThunderbolt: public PacketWriter {
