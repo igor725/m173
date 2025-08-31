@@ -1,9 +1,9 @@
 #include "snowball.h"
 
 namespace Entities {
-class SnowBall: public ISnowBall {
+class SnowBall: public SnowBallBase {
   public:
-  SnowBall(const DoubleVector3& pos, EntityId owner, const DoubleVector3& motion): ISnowBall(owner, motion) { m_position = pos, m_prevPosition = pos; }
+  SnowBall(const DoubleVector3& pos, EntityId owner, const DoubleVector3& motion): SnowBallBase(owner, motion) { m_position = pos, m_prevPosition = pos; }
 
   ~SnowBall() = default;
 
@@ -14,7 +14,7 @@ class SnowBall: public ISnowBall {
 };
 
 namespace Create {
-std::unique_ptr<ISnowBall> snowball(const DoubleVector3& pos, EntityId owner, const DoubleVector3& motion) {
+std::unique_ptr<SnowBallBase> snowball(const DoubleVector3& pos, EntityId owner, const DoubleVector3& motion) {
   return std::make_unique<SnowBall>(pos, owner, motion);
 }
 } // namespace Create

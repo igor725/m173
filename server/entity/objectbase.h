@@ -11,6 +11,7 @@ class ObjectBase: public Entities::Base {
   enum Type : int8_t {
     Unknown,
     Boat          = 1,
+    Minecart      = 10,
     StorageCart   = 11,
     PoweredCart   = 12,
     ActivatedTNT  = 50,

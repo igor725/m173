@@ -6,16 +6,16 @@
 
 namespace Entities {
 
-class IThunderbolt: public Entities::Base {
+class ThunderboltBase: public Entities::Base {
   public:
-  IThunderbolt(): Entities::Base(Type::Thunderbolt) {}
+  ThunderboltBase(): Entities::Base(Type::Thunderbolt) {}
 
   bool isPlayer() const final { return false; }
 
-  ~IThunderbolt() {}
+  ~ThunderboltBase() {}
 };
 
 namespace Create {
-std::unique_ptr<IThunderbolt> thunderbolt(const DoubleVector3& pos);
+std::unique_ptr<ThunderboltBase> thunderbolt(const DoubleVector3& pos);
 }
 } // namespace Entities

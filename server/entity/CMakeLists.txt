@@ -9,6 +9,7 @@ add_library(entity OBJECT
   objects/fishfloat.cpp
   objects/thunderbolt.cpp
   interact/pickup.cpp
+  vehicles/minecart.cpp
 )
 
 target_link_libraries(entity PRIVATE spdlog::spdlog)

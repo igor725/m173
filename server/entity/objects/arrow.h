@@ -5,14 +5,14 @@
 #include <memory>
 
 namespace Entities {
-class IArrow: public ObjectBase {
+class ArrowBase: public ObjectBase {
   public:
-  IArrow(EntityId owner, const DoubleVector3& motion): ObjectBase(Type::Arrow, owner, motion) {}
+  ArrowBase(EntityId owner, const DoubleVector3& motion): ObjectBase(Type::Arrow, owner, motion) {}
 
-  ~IArrow() {}
+  ~ArrowBase() {}
 };
 
 namespace Create {
-std::unique_ptr<IArrow> arrow(const DoubleVector3& pos, EntityId owner, const DoubleVector3& motion);
+std::unique_ptr<ArrowBase> arrow(const DoubleVector3& pos, EntityId owner, const DoubleVector3& motion);
 }
 } // namespace Entities

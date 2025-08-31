@@ -87,7 +87,7 @@ static void parseMetaDataFor(Entities::Base* ent, lua_State* L, int32_t mtidx) {
               lua_getfield(L, mtidx, "hasSaddle");
 
               if (!lua_isnoneornil(L, -1)) {
-                dynamic_cast<Entities::IPig*>(ent)->setSaddle(lua_toboolean(L, -1));
+                dynamic_cast<Entities::PigBase*>(ent)->setSaddle(lua_toboolean(L, -1));
               }
 
               lua_pop(L, 1);

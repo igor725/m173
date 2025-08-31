@@ -2,9 +2,9 @@
 
 namespace Entities {
 
-class Pig: public IPig {
+class Pig: public PigBase {
   public:
-  Pig(const DoubleVector3& pos): IPig() { m_position = pos, m_prevPosition = pos; }
+  Pig(const DoubleVector3& pos): PigBase() { m_position = pos, m_prevPosition = pos; }
 
   ~Pig() = default;
 
@@ -24,7 +24,7 @@ class Pig: public IPig {
 };
 
 namespace Create {
-std::unique_ptr<IPig> pig(const DoubleVector3& pos) {
+std::unique_ptr<PigBase> pig(const DoubleVector3& pos) {
   return std::make_unique<Pig>(pos);
 }
 } // namespace Create
