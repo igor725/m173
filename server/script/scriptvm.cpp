@@ -57,6 +57,15 @@ class ScriptVM: public IScriptVM {
     lua_pushcfunction(m_mainState, [](lua_State* L) -> int {
       int count = lua_gettop(L);
       if (count > 0) {
+#if LUA_VERSION_NUM > 503
+        lua_pushliteral(L, "");
+
+        for (int i = 1; i <= count; ++i) {
+          lua_pushliteral(L, " ");
+          luaL_tolstring(L, i, nullptr);
+          lua_concat(L, 3);
+        }
+#else
         lua_getglobal(L, "tostring");
         lua_pushliteral(L, "");
 
@@ -68,7 +77,9 @@ class ScriptVM: public IScriptVM {
           lua_concat(L, 3);
         }
 
-        spdlog::info("Lua[{}]: {}", (const void*)L, lua_tostring(L, -1));
+#endif
+
+        spdlog::info("Lua[{}]:{}", (const void*)L, lua_tostring(L, -1));
       }
 
       return 0;
