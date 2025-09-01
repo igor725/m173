@@ -38,7 +38,9 @@ class ScriptVM: public IScriptVM {
         {LUA_MATHLIBNAME, luaopen_math},
         {LUA_STRLIBNAME, luaopen_string},
         {LUA_TABLIBNAME, luaopen_table},
+#if LUA_VERSION_NUM > 502
         {LUA_UTF8LIBNAME, luaopen_utf8},
+#endif
 
         // server libraries
         {"itemstack", luaopen_itemstack},
@@ -57,7 +59,7 @@ class ScriptVM: public IScriptVM {
     lua_pushcfunction(m_mainState, [](lua_State* L) -> int {
       int count = lua_gettop(L);
       if (count > 0) {
-#if LUA_VERSION_NUM > 503
+#if LUA_VERSION_NUM > 502
         lua_pushliteral(L, "");
 
         for (int i = 1; i <= count; ++i) {
