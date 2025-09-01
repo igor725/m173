@@ -26,7 +26,7 @@ static inline void casterror(lua_State* L, int idx) {
 
 LuaObject* LuaObject::fromstack(lua_State* L, int idx) {
   if (lua_getmetatable(L, idx) == 0) {
-    casterror(L, idx);
+    if (!lua_isnil(L, -1)) casterror(L, idx);
     return nullptr;
   } else {
     lua_pop(L, 1);
