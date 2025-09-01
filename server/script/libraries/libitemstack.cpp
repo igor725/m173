@@ -22,7 +22,7 @@ class ItemStackScript {
   };
 };
 
-LuaObject* lua_pushitemstack(lua_State* L) {
+LuaObject* lua_newitemstack(lua_State* L) {
   auto lobj = LuaObject::create(L, sizeof(ItemStackScript));
   luaL_setmetatable(L, "ItemStack");
   new (lobj->get<ItemStackScript>(L)) ItemStackScript();
@@ -120,5 +120,18 @@ int luaopen_itemstack(lua_State* L) {
   lua_setfield(L, -2, "__index");
   luaL_setfuncs(L, isfuncs, 0);
   lua_pop(L, 1);
-  return 0;
+
+  const luaL_Reg itemstack_lib[] = {
+      {"create",
+       [](lua_State* L) -> int {
+         auto is = lua_newitemstack(L);
+         return 1;
+       }},
+
+      {nullptr, nullptr},
+  };
+
+  lua_newtable(L);
+  luaL_setfuncs(L, itemstack_lib, 0);
+  return 1;
 }

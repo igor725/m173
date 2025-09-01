@@ -4,7 +4,7 @@
 #include "../vm/lua.hpp"
 #include "items/itemstack.h"
 
-LuaObject* lua_pushitemstack(lua_State* L);
+LuaObject* lua_newitemstack(lua_State* L);
 
 LuaObject* lua_pushitemstack(lua_State* L, ItemStack* is);
 
